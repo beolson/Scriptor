@@ -470,7 +470,7 @@ Build the foundational Ink.js app structure with persistent header and footer co
 
 ## Task 14 — Startup Fetch & Progress Screen
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Build the startup sequence: check cache staleness, fetch from GitHub if needed, and display step-by-step progress.
@@ -485,11 +485,38 @@ Build the startup sequence: check cache staleness, fetch from GitHub if needed, 
 - Wire the `GitHubClient`, `CacheService`, and `OAuthFlow` together in the startup orchestration logic (`source/src/startup.ts`), which is separately unit-testable (no Ink dependency).
 - Write unit tests for `source/src/startup.ts` covering: cache-hit path (no download), stale cache (downloads), network failure fallback, and OAuth trigger.
 
+**Implementation Notes:**
+- Created `source/src/startup/startup.test.ts` with 23 unit tests covering:
+  - Cache-hit path: fresh cache returns cached manifest and scripts without calling `fetchFile`; no fetching events emitted.
+  - Stale cache path: manifest fetched and saved; commit hash saved; script files fetched and saved; `fetching-manifest` event emitted; `fetching-script` events emitted with correct `index`/`total`/`scriptName`; result contains downloaded content.
+  - Network failure fallback: `getLatestCommitHash` throwing falls back to cache; `fetchFile` throwing on manifest falls back to cache; `offline-warning` event emitted; `offline` result is true; `manifest-error` event when no cache available; empty `manifestYaml` when both network and cache are unavailable.
+  - OAuth trigger: OAuth flow triggered on `AuthRequiredError` from `getLatestCommitHash`; OAuth flow triggered on `AuthRequiredError` from `fetchFile`; `oauth-started` event emitted; token used for retry; falls back to cache if OAuth fails.
+  - Script fetch error: `script-error` event emitted with `scriptPath` when a script file cannot be fetched.
+- Created `source/src/startup/startup.ts` exporting:
+  - Event types: `FetchingManifestEvent`, `FetchingScriptEvent`, `OfflineWarningEvent`, `ManifestErrorEvent`, `ScriptErrorEvent`, `OAuthStartedEvent`, and `StartupEvent` union.
+  - `FetchDeps` interface: injectable GitHub API, CacheService, OAuth, and event sink functions.
+  - `StartupResult` interface: `{ manifestYaml: string; scripts: Record<string, string>; offline: boolean }`.
+  - `runStartup(repo, deps): Promise<StartupResult>` — pure orchestration logic with no Ink dependency. Handles cache-hit, stale-cache download, network-failure fallback, and OAuth retry via `fetchWithAuthRetry`. Uses `safeParseManifest` to avoid crashing on bad YAML. Saves the new commit hash only after a fully successful download.
+- Created `source/src/tui/FetchScreen.tsx` exporting:
+  - `FetchScreenProps` interface: `{ currentEvent: StartupEvent | null; done: boolean; offline: boolean }`.
+  - `FetchScreen` component: renders the appropriate UI for each `StartupEvent` type (fetching manifest, fetching script N of M, script error, manifest error, offline warning, OAuth started) and final done states (offline warning banner or success message).
+- Updated `source/src/tui/App.tsx`:
+  - Added `runStartup` prop (injectable for isolation) to `AppProps`.
+  - Screen type updated to `"fetch" | "script-list"`.
+  - `useEffect` kicks off `runStartup` on mount; events drive `currentEvent` state.
+  - `FetchScreen` shown while `screen === "fetch"`; Enter key advances to `"script-list"` once fetch is done.
+  - `ScriptListPlaceholder` shown when `screen === "script-list"` (placeholder for Task 15).
+- Updated `source/src/index.ts`: builds a `FetchDeps` object wiring `GitHubClient`, `CacheService`, and `startOAuthFlow` together; passes `runStartupForApp` adapter to `App`.
+- Applied Biome auto-fixes (`--write --unsafe`) to remove unused import, sort imports, and reformat long lines.
+- `bun test src/startup/startup.test.ts` → 23 pass, 0 fail.
+- `bun test` (full suite) → 221 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 15 — Script List Screen
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Build the scrollable, multi-select script list filtered to the host platform.
@@ -505,11 +532,34 @@ Build the scrollable, multi-select script list filtered to the host platform.
 - The dependency auto-selection and blocking logic delegates to the already-tested `resolveDependencies` function.
 - No unit tests for the Ink component itself; Biome lint must pass.
 
+**Implementation Notes:**
+- Created `source/src/tui/ScriptListScreen.tsx` exporting:
+  - `ScriptListScreenProps` interface: `{ hostInfo: HostInfo; startupResult: StartupResult; onConfirm: (resolvedScripts: ScriptEntry[]) => void }`.
+  - `ScriptListScreen` component: on first render calls `parseManifest` then `filterManifest` to produce the host-filtered `available` list (stored in state so it's computed only once). Maintains `cursor` (index) and `userSelected` (Set of explicitly selected IDs) in state.
+  - Navigation: `↑`/`↓` move the cursor; clears any inline error on move.
+  - Space toggle: when selecting, calls `resolveDependencies` with the test selection to detect missing-dependency errors before committing. If `MissingDependencyError` is thrown, sets `inlineError` and aborts the toggle. On deselect, simply removes from `userSelected`.
+  - Dependency derivation: on every render, calls `resolveDependencies(Array.from(userSelected), available)` to build `resolvedIds` — IDs that must run including auto-selected deps. Entries in `resolvedIds` but not in `userSelected` are rendered as `[~]` (auto-selected) in cyan with an `(auto-selected dependency)` label.
+  - Enter: calls `resolveDependencies` one final time and invokes `onConfirm(resolved)` to hand the ordered list to the parent.
+  - Empty-state: when `available.length === 0`, renders `"No scripts available for <label>"` where `label` is built by `buildHostLabel(host)` (e.g. `"Ubuntu 24.04 x86"` or `"mac arm"`).
+  - Inline errors displayed in red below the list; a hint text (`"Select scripts with Space, then press Enter."`) shown when nothing is selected and there is no error.
+  - Private `buildHostLabel(host)` helper generates the human-readable host label.
+- Updated `source/src/tui/App.tsx`:
+  - `Screen` type updated to `"fetch" | "script-list" | "confirmation"`.
+  - `_startupResult` state renamed to `startupResult` (no longer prefixed) so it can be passed to `ScriptListScreen`.
+  - Added `resolvedScripts: ScriptEntry[]` state.
+  - Added `handleConfirm(scripts)` function: saves resolved scripts to state and transitions to `"confirmation"` screen.
+  - Replaced `ScriptListPlaceholder` with real `<ScriptListScreen hostInfo={hostInfo} startupResult={startupResult} onConfirm={handleConfirm} />` (rendered only when `startupResult` is available).
+  - Added `ConfirmationPlaceholder` component (temporary, for Task 16): shows script count.
+  - Added `ScriptEntry` import from `parseManifest.js`; added `Text` import back to `ink` (needed for `ConfirmationPlaceholder`).
+- Applied Biome auto-fixes (`bunx biome format --write` + `bunx biome check --write`) to sort imports and reformat long lines.
+- `bun test` (full suite) → 221 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 16 — Confirmation Screen
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Build the confirmation screen showing the full ordered execution list before any scripts run.
@@ -520,11 +570,26 @@ Build the confirmation screen showing the full ordered execution list before any
   - `Escape` or `N` returns to the Script List screen without clearing selections.
 - No unit tests for the Ink component itself; Biome lint must pass.
 
+**Implementation Notes:**
+- Created `source/src/tui/ConfirmationScreen.tsx` exporting:
+  - `ConfirmationScreenProps` interface: `{ scripts: ScriptEntry[]; onConfirm: () => void; onBack: () => void }`.
+  - `ConfirmationScreen` component: renders a numbered ordered list of all scripts to be executed (name + description for each). Renders a key binding legend at the bottom (`Y / Enter` to run, `N / Esc` to go back). Handles `Enter`, `y`/`Y`, `Escape`, and `n`/`N` via `useInput`; `q` / `Ctrl+C` exits the application.
+- Updated `source/src/tui/App.tsx`:
+  - `Screen` type extended from `"fetch" | "script-list" | "confirmation"` to also include `"execution"`.
+  - Replaced `ConfirmationPlaceholder` with real `<ConfirmationScreen scripts={resolvedScripts} onConfirm={handleExecute} onBack={handleBack} />`.
+  - Added `handleBack()`: transitions back to `"script-list"` and restores `DEFAULT_BINDINGS` in the footer.
+  - Added `handleExecute()`: transitions to `"execution"` and clears footer bindings (Task 17 will populate them).
+  - `handleConfirm()` now also updates footer bindings to `[Y / Enter Run scripts, N / Esc Back, Q Quit]` for contextual key hint display.
+  - Added `ExecutionPlaceholder` component (temporary, for Task 17): renders an empty structure keyed on the resolved scripts list.
+  - Removed `Text` import from `ink` (no longer needed after removing `ConfirmationPlaceholder`); `ConfirmationScreen` import added.
+- `bun test` (full suite) → 221 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 17 — Execution Progress Screen
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Build the real-time execution progress screen and wire it to the Script Execution Engine.
@@ -535,6 +600,27 @@ Build the real-time execution progress screen and wire it to the Script Executio
   - Blocks `Q` and `Ctrl+C` while any script is running, displaying `"A script is running — please wait for it to finish."`.
   - After all scripts finish (or on failure halt), the app exits automatically and prints the log file path to stdout.
 - No unit tests for the Ink component itself; integration is verified manually. Biome lint must pass.
+
+**Implementation Notes:**
+- Created `source/src/tui/ExecutionScreen.tsx`:
+  - `ScriptStatus` union type: `pending | running | done | failed` (with `exitCode` on failed).
+  - `ExecutionScreenProps` interface with `scripts: ScriptEntry[]` and injectable `runExecution: (onProgress) => Promise<ScriptRunResult>`.
+  - Spinner animation implemented with `setInterval` at 80ms using braille frames, tracked via `useRef` and cleaned up on unmount.
+  - Progress events update a `Map<string, ScriptStatus>` via `setStatuses` with the functional form to avoid stale closures.
+  - `useInput` handler checks `isRunning` state: swallows Q/Ctrl+C while running, allows quit after completion.
+  - On completion, defers 150ms then writes log file path to stdout via `useStdout().stdout.write` and calls `exit()`.
+  - `StatusIcon` helper renders the appropriate icon for each status variant.
+- Updated `source/src/tui/App.tsx`:
+  - Added `runExecution` prop to `AppProps` (injectable for testability).
+  - Replaced `ExecutionPlaceholder` with `<ExecutionScreen>`, passing a closure that binds `resolvedScripts`.
+  - Removed `ExecutionPlaceholder` function entirely.
+- Updated `source/src/index.ts`:
+  - Imported `ScriptRunner`, `ProgressEvent`, `ScriptEntry`, and `LogService`.
+  - Created `LogService` instance alongside the existing `CacheService`.
+  - Added `runExecutionForApp` function: creates a log file, instantiates `ScriptRunner`, registers the progress listener, then calls `runner.runScripts`.
+  - Passed `runExecution: runExecutionForApp` to `App`.
+- `bun test` → 221 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings.
 
 ---
 
