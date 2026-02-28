@@ -143,7 +143,7 @@ Implement and test automatic detection of OS, architecture, and (for Linux) dist
 
 ## Task 5 — Manifest Parser
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test parsing and validation of the `scriptor.yaml` manifest schema.
@@ -157,6 +157,23 @@ Implement and test parsing and validation of the `scriptor.yaml` manifest schema
   - Non-Linux entries with `distro`/`version` present are also rejected.
   - An empty scripts list (valid YAML with no entries) returns an empty array.
 - Implement `parseManifest(yaml: string): ScriptEntry[]` in `source/src/manifest/`.
+
+**Implementation Notes:**
+- Created `source/src/manifest/parseManifest.test.ts` with 24 unit tests covering:
+  - Happy path: empty list, windows entry, mac entry, linux entry (with distro/version), entry with dependencies, multiple entries, entry with no dependencies defaults to `[]`.
+  - Missing required fields: `id`, `name`, `description`, `platform`, `arch`, `script` each throw a descriptive error.
+  - Invalid enum values: bad `platform` value (e.g. `bsd`), bad `arch` value (e.g. `mips`) throw descriptive errors.
+  - Linux-only rules: linux missing `distro` throws, linux missing `version` throws; windows/mac with `distro` throws, windows/mac with `version` throws.
+  - Malformed input: unparseable YAML throws, non-array top-level value (object, scalar) throws with "array" in message.
+- Created `source/src/manifest/parseManifest.ts` exporting:
+  - `ScriptEntry` interface: `{ id, name, description, platform, arch, script, distro?, version?, dependencies }`.
+  - `parseManifest(yaml: string): ScriptEntry[]` — uses `js-yaml` to parse, validates each entry, throws descriptive errors on any schema violation.
+  - Private `validateEntry(raw, index)` helper performing all field and enum validation.
+  - `dependencies` defaults to `[]` when absent from the YAML entry.
+  - `version` is coerced to `String()` to handle numeric YAML values (e.g. `version: 40`).
+- Applied Biome auto-fixes (`--write --unsafe`) to replace computed string keys with dot notation and non-null assertions with optional chaining.
+- `bun test src/manifest/parseManifest.test.ts` → 24 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
 
 ---
 
