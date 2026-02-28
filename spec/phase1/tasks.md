@@ -107,7 +107,7 @@ Implement and test reading and writing the `~/.scriptor/config` YAML file.
 
 ## Task 4 — Host Detection Module
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test automatic detection of OS, architecture, and (for Linux) distro and version.
@@ -119,6 +119,25 @@ Implement and test automatic detection of OS, architecture, and (for Linux) dist
   - On Linux, distro and version are parsed from `/etc/os-release` (test with fixture files).
   - Unknown platform or arch values produce a descriptive error.
 - Implement `detectHost()` in `source/src/host/`, using injectable file-read/process-info functions so tests can mock OS-level calls.
+
+**Implementation Notes:**
+- Created `source/src/host/detectHost.test.ts` with 18 unit tests covering:
+  - Platform normalization: `linux`→`linux`, `darwin`→`mac`, `win32`→`windows`, unknown platform throws.
+  - Arch normalization: `x64`/`ia32`→`x86`, `arm64`/`arm`→`arm`, unknown arch throws.
+  - Linux distro parsing: Ubuntu 24.04, Fedora 40, os-release missing `NAME`, absent file, empty file.
+  - Non-Linux platforms have no `distro`/`version`.
+  - Full `HostInfo` shape assertions.
+- Created fixture files in `source/src/host/fixtures/`:
+  - `ubuntu-24-04.os-release` — NAME="Ubuntu", VERSION_ID="24.04".
+  - `fedora-40.os-release` — NAME="Fedora Linux", VERSION_ID=40.
+  - `no-name.os-release` — only VERSION_ID, no NAME field.
+- Created `source/src/host/detectHost.ts` exporting:
+  - `HostInfo` interface: `{ platform: 'windows'|'linux'|'mac'; arch: 'x86'|'arm'; distro?: string; version?: string }`.
+  - `HostDeps` interface: `{ getPlatform(): string; getArch(): string; readOsRelease(): Promise<string|null> }`.
+  - `detectHost(deps?: HostDeps): Promise<HostInfo>` — defaults to real `process.platform`, `process.arch`, and `Bun.file('/etc/os-release')`.
+  - Private helpers: `normalizePlatform`, `normalizeArch`, `parseOsRelease`.
+- `bun test src/host/detectHost.test.ts` → 18 pass, 0 fail.
+- `bun run lint` → 0 errors.
 
 ---
 
