@@ -212,7 +212,7 @@ Implement and test filtering a parsed manifest down to entries matching the curr
 
 ## Task 7 — Dependency Resolver
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test resolving the ordered execution list from a selection of scripts, respecting declared dependencies.
@@ -226,11 +226,28 @@ Implement and test resolving the ordered execution list from a selection of scri
   - A circular dependency is detected and throws a `CircularDependencyError`.
 - Implement `resolveDependencies(selected: string[], available: ScriptEntry[]): ScriptEntry[]` in `source/src/manifest/`.
 
+**Implementation Notes:**
+- Created `source/src/manifest/resolveDependencies.test.ts` with 21 unit tests covering:
+  - No dependencies: single script returns `[script]`; multiple independent scripts returned in selection order.
+  - Single-level: dependency comes before the script that declares it; multiple deps of one script all precede it.
+  - Multi-level chains: A→B→C returns `[C, B, A]`; four-level chain resolves deepest dependency first.
+  - Shared dependency deduplication: shared dep between two selected scripts included once; diamond dependency (A→B→D and A→C→D) includes D once; explicitly selected script also used as dep not duplicated.
+  - `MissingDependencyError`: thrown when declared dep absent from available list; `missingId` property set to missing id; thrown for selected id not in available; message contains missing id; thrown for transitive missing dependency.
+  - `CircularDependencyError`: self-dependency, two-node cycle (A→B→A), three-node cycle; message matches `/circular|cycle/i`.
+  - Edge cases: empty selected returns `[]`; both empty returns `[]`; order of independent selected scripts preserved.
+- Created `source/src/manifest/resolveDependencies.ts` exporting:
+  - `MissingDependencyError` class: extends `Error`, has `readonly missingId: string` property, message includes the missing id and optionally the dependent script.
+  - `CircularDependencyError` class: extends `Error`, message includes the cycle path joined with `→`.
+  - `resolveDependencies(selected: string[], available: ScriptEntry[]): ScriptEntry[]` — pure function, no I/O, no side effects. Uses depth-first post-order topological sort with a per-path ancestor stack for cycle detection. Deduplicates via a `visited` Set.
+- Applied Biome auto-format (`bunx biome format --write`) to collapse ternary expressions to single lines.
+- `bun test src/manifest/resolveDependencies.test.ts` → 21 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 8 — GitHub API Client
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test the GitHub API client for fetching the latest commit hash, manifest file, and script files.
@@ -245,11 +262,27 @@ Implement and test the GitHub API client for fetching the latest commit hash, ma
   - An Authorization header is included when a token is provided; omitted when no token is provided.
 - Implement `GitHubClient` in `source/src/github/`, with an injectable `fetch`-compatible function for testability.
 
+**Implementation Notes:**
+- Created `source/src/github/githubClient.test.ts` with 18 unit tests covering:
+  - `getLatestCommitHash`: correct URL, SHA extraction, Authorization header present/absent, 401/403 throws `AuthRequiredError`, timeout throws `NetworkTimeoutError`.
+  - `fetchFile`: correct URL, raw content returned (base64 decoded), Authorization header present/absent, 404 for `scriptor.yaml` throws `ManifestNotFoundError`, 404 for other files throws `ScriptFetchError` with `scriptPath` property and descriptive message, 401/403 throws `AuthRequiredError`, timeout throws `NetworkTimeoutError`.
+  - Timeout configuration: `AbortSignal` is passed to fetch with a 10-second timeout.
+- Created `source/src/github/githubClient.ts` exporting:
+  - `NetworkTimeoutError` class: extends `Error`, message includes the URL and timeout duration.
+  - `AuthRequiredError` class: extends `Error`, message includes the URL and HTTP status.
+  - `ManifestNotFoundError` class: extends `Error`, message identifies the repo and `scriptor.yaml`.
+  - `ScriptFetchError` class: extends `Error`, has `readonly scriptPath: string` property, message includes the script filename and path.
+  - `GitHubClientOptions` interface: `{ fetch?: typeof fetch; token?: string }`.
+  - `GitHubClient` class: constructor accepts `GitHubClientOptions`; uses `AbortController` with a 10-second timeout on every request; includes `Authorization: Bearer <token>` header when a token is provided; wraps `AbortError`/`TimeoutError` into `NetworkTimeoutError`; decodes base64 content from the GitHub Contents API response.
+- Applied Biome auto-fixes (`--write --unsafe`) to replace computed string keys with dot notation and reformat long call expressions to multi-line style.
+- `bun test src/github/githubClient.test.ts` → 18 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 9 — Cache Service
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test the local cache in `~/.scriptor/cache/`, including commit-hash-based invalidation.
@@ -265,11 +298,33 @@ Implement and test the local cache in `~/.scriptor/cache/`, including commit-has
   - `isCacheStale(latestHash)` returns `true` when the stored hash differs from the latest; `false` when they match.
 - Implement the `CacheService` in `source/src/cache/`, with injectable base-path for testing without touching the real home directory.
 
+**Implementation Notes:**
+- Created `source/src/cache/cacheService.test.ts` with 19 unit tests covering:
+  - `getStoredCommitHash`: returns `null` when absent, returns hash after save, returns `null` when cache dir doesn't exist.
+  - `saveCommitHash`: creates cache directory on first save, overwrites previously stored hash.
+  - `getCachedManifest`: returns `null` when absent, returns YAML string after save.
+  - `saveManifest`: creates cache directory on first save, overwrites previously cached manifest.
+  - `getCachedScript`: returns `null` when absent, returns content after save, returns `null` for different id.
+  - `saveScript`: creates cache directory on first save, overwrites existing script, stores multiple scripts independently.
+  - `isCacheStale`: returns `true` when no hash stored, `true` when hashes differ, `false` when hashes match, correctly handles updates.
+- Created `source/src/cache/cacheService.ts` exporting:
+  - `CacheService` class: constructor accepts optional `baseDir` (defaults to `os.homedir()`); computes `cacheDir` as `<baseDir>/.scriptor/cache/`.
+  - `getStoredCommitHash(): Promise<string | null>` — reads `<cacheDir>/commit-hash`, returns `null` if absent.
+  - `saveCommitHash(hash: string): Promise<void>` — creates cache dir then writes `<cacheDir>/commit-hash`.
+  - `getCachedManifest(): Promise<string | null>` — reads `<cacheDir>/scriptor.yaml`, returns `null` if absent.
+  - `saveManifest(yaml: string): Promise<void>` — creates cache dir then writes `<cacheDir>/scriptor.yaml`.
+  - `getCachedScript(id: string): Promise<string | null>` — reads `<cacheDir>/scripts/<id>`, returns `null` if absent.
+  - `saveScript(id: string, content: string): Promise<void>` — creates `<cacheDir>/scripts/` then writes file.
+  - `isCacheStale(latestHash: string): Promise<boolean>` — delegates to `getStoredCommitHash()`, returns `stored !== latestHash`.
+  - Private helpers `ensureCacheDir()` and `ensureScriptsDir()` use `mkdirSync({ recursive: true })`.
+- `bun test src/cache/cacheService.test.ts` → 19 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 10 — OAuth Flow
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test the GitHub OAuth Authorization Code flow triggered only when a private repository is encountered.
@@ -285,11 +340,29 @@ Implement and test the GitHub OAuth Authorization Code flow triggered only when 
 - Token is held in memory only — no persistence to disk.
 - Implement `startOAuthFlow` in `source/src/github/oauth.ts`.
 
+**Implementation Notes:**
+- Created `source/src/github/oauth.test.ts` with 17 unit tests covering:
+  - Server creation: primary port tried first; EADDRINUSE causes fallback to next port; `OAuthPortUnavailableError` thrown when all ports are busy; error message lists all attempted ports.
+  - Browser opening: `openBrowser` called once with a URL containing `github.com/login/oauth/authorize`; URL includes `client_id` param; URL includes `redirect_uri` pointing to the bound callback port.
+  - Callback parsing: resolved access token matches token-exchange response; `code` query parameter extracted correctly from callback URL; non-empty string returned.
+  - Token exchange: POST to `github.com/login/oauth/access_token`; `client_id` and `code` sent in request body; `OAuthError` thrown when GitHub response contains `error` field; `OAuthError` message contains the GitHub error code; `OAuthError` thrown on network failure.
+  - Server shutdown: server stopped after successful exchange; server stopped even when token exchange fails.
+- Created `source/src/github/oauth.ts` exporting:
+  - `OAuthError` class: extends `Error`, message describes the failure (error code from GitHub, network error text, etc.).
+  - `OAuthPortUnavailableError` class: extends `Error`, message lists all candidate ports that were tried.
+  - `OAuthServer` interface: `{ port: number; stop(): void }` — minimal server handle (production: `Bun.Server`; tests: fake).
+  - `OAuthDeps` interface: `{ createServer, openBrowser, fetch, primaryPort, fallbackPorts }` — all injectable.
+  - `startOAuthFlow(clientId, deps?): Promise<string>` — runs the full Authorization Code flow; defaults `primaryPort` to 9876 and `fallbackPorts` to [9877, 9878]; uses `Bun.serve` / `Bun.$` in production; token never written to disk.
+  - Private `handleRequest` and `exchangeCode` closures inside `startOAuthFlow` keep state minimal and ensure the server is always stopped (via `shutdownAndResolve` / `shutdownAndReject`) regardless of success or failure.
+- Applied Biome auto-format (`bunx biome format --write`) and unsafe fix (`--write --unsafe`) to address import ordering and unused-variable diagnostic.
+- `bun test src/github/oauth.test.ts` → 17 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 11 — Log Service
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test per-run log file creation and structured output writing.
@@ -302,11 +375,28 @@ Implement and test per-run log file creation and structured output writing.
   - Log directory is created automatically if it does not exist.
 - Implement `LogService` in `source/src/log/`, with an injectable base-path for testing.
 
+**Implementation Notes:**
+- Created `source/src/log/logService.test.ts` with 17 unit tests covering:
+  - `createLogFile`: file is created on disk; path is inside `<baseDir>/.scriptor/logs/`; file name matches `YYYY-MM-DDTHH-MM-SS(-N)?.log` pattern; logs directory auto-created when absent; two calls within the same second produce distinct paths (module-level counter suffix `-N`).
+  - `writeScriptBanner`: script name present in output; a separator of 5+ repeated characters written; start time year present.
+  - `appendOutput`: text appended to file; multiple appends accumulate (no overwrite); empty string is a no-op; stderr content appended correctly.
+  - `writeScriptFooter`: exit code 0 present; non-zero exit code present; closing separator written; end time year present; banner + output + footer all coexist in a single file.
+- Created `source/src/log/logService.ts` exporting:
+  - `LogService` class: constructor accepts optional `baseDir` (defaults to `os.homedir()`); computes `logsDir` as `<baseDir>/.scriptor/logs/`.
+  - `createLogFile(): Promise<string>` — ensures logs dir exists, generates `YYYY-MM-DDTHH-MM-SS.log` name from UTC timestamp; a module-level counter appends `-N` when two calls share the same second, ensuring uniqueness.
+  - `writeScriptBanner(logFile, scriptName, startTime): Promise<void>` — writes `====` separator, script name line, and ISO start time.
+  - `appendOutput(logFile, output): Promise<void>` — appends raw text; no-op on empty string. Uses read-then-write pattern (Bun has no native append API).
+  - `writeScriptFooter(logFile, exitCode, endTime): Promise<void>` — writes ISO end time and exit code between `====` separators.
+  - Private `_appendRaw(filePath, data)` helper used by all write methods.
+- Applied Biome auto-format (`bunx biome format --write`) to wrap long `expect().toMatch()` call to multi-line style.
+- `bun test src/log/logService.test.ts` → 17 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 12 — Script Execution Engine
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test sequential child-process execution of scripts with log capture and failure halting.
@@ -321,11 +411,31 @@ Implement and test sequential child-process execution of scripts with log captur
 - No execution timeout — scripts run until they exit naturally.
 - Implement `ScriptRunner` in `source/src/execution/`.
 
+**Implementation Notes:**
+- Created `source/src/execution/scriptRunner.test.ts` with 20 unit tests covering:
+  - `ScriptSuccessResult`: single script exits 0 returns `{ success: true, logFile }`, multiple scripts all exit 0 also succeeds.
+  - `ScriptFailureResult`: non-zero exit returns `{ success: false }`, includes the failing `ScriptEntry`, includes the non-zero exit code, includes the log file path.
+  - Sequential execution: scripts run in the exact order given; halts after a failure (later scripts not spawned); empty list returns success.
+  - Log capture: `writeScriptBanner` called with log path and script name; `writeScriptFooter` called with log path and exit code; stdout chunks passed to `appendOutput`; stderr chunks passed to `appendOutput`; footer written with exit code 1 on failure.
+  - Progress events: `pending` emitted for every script before any run; `running` emitted at script start; `done` emitted on success; `failed` emitted on non-zero exit; event order is `pending → running → done`; `failed` event carries the exit code.
+- Created `source/src/execution/scriptRunner.ts` exporting:
+  - `ProgressEvent` discriminated union type: `{ status: "pending" | "running" | "done" | "failed"; scriptId: string; exitCode?: number }`.
+  - `ScriptSuccessResult` interface: `{ success: true; logFile: string }`.
+  - `ScriptFailureResult` interface: `{ success: false; logFile: string; failedScript: ScriptEntry; exitCode: number }`.
+  - `ScriptRunResult` union type alias.
+  - `Spawner` type: injectable async function that runs a script and streams stdout/stderr to callbacks, returning the exit code.
+  - `ScriptRunnerOptions` interface: `{ logService: Pick<LogService, ...>; spawner?: Spawner }`.
+  - `ScriptRunner` class: minimal event emitter (`on("progress", listener)` + private `emit`); `runScripts(scripts, logFile)` emits pending for all scripts up-front, then iterates sequentially — emit running, write banner, spawn, stream output, write footer, emit done or failed, halt on failure.
+  - Default production `Spawner` using `Bun.spawn(["sh", "-c", script])` with piped stdout/stderr drained via `ReadableStreamDefaultReader`.
+- Applied Biome auto-fixes (`--write` and `--write --unsafe`) to fix import ordering, formatting, unused import, and unused parameter prefix.
+- `bun test src/execution/scriptRunner.test.ts` → 20 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
+
 ---
 
 ## Task 13 — TUI Shell: App Entry, Header & Footer
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Build the foundational Ink.js app structure with persistent header and footer components.
@@ -336,6 +446,25 @@ Build the foundational Ink.js app structure with persistent header and footer co
   - Renders a `<Footer>` showing a key binding legend (updated contextually by each screen).
   - Renders a content area that switches between screens based on app state.
 - No unit tests for rendering output; verify visually during development. Biome lint must pass.
+
+**Implementation Notes:**
+- Created `source/src/tui/Header.tsx` exporting:
+  - `HeaderProps` interface: `{ hostInfo: HostInfo; repoUrl: string }`.
+  - `Header` component: renders a bottom-bordered box using Ink's `Box`/`Text`. Left side shows `Scriptor [platform / arch]` (with `/ distro version` appended for Linux hosts). Right side shows the active `repoUrl` in dim text. Private `buildHostLabel(host)` helper builds the bracketed label string.
+- Created `source/src/tui/Footer.tsx` exporting:
+  - `FooterBinding` interface: `{ key: string; description: string }`.
+  - `FooterProps` interface: `{ bindings: FooterBinding[] }`.
+  - `Footer` component: renders a top-bordered box mapping each binding to a `<Text>` with bold key and dim description, separated by `gap={2}`.
+  - `DEFAULT_BINDINGS` constant: `[↑↓ Navigate, Space Select, Enter Confirm, Q Quit]`.
+- Created `source/src/tui/App.tsx` exporting:
+  - `Screen` type: `"placeholder"` (extended by future tasks).
+  - `AppProps` interface: `{ hostInfo: HostInfo; repoUrl: string }`.
+  - `App` component: holds `screen` and `footerBindings` state; uses `useInput` to handle global `q` / `Ctrl+C` quit via `useApp().exit()`; renders `<Header>` + flexible content area + `<Footer>` in a column layout filling 100% height. `_setScreen` and `_setFooterBindings` are intentionally underscore-prefixed to satisfy Biome while making them available to future screen transitions.
+  - Private `PlaceholderScreen` component: temporary content shown until FetchScreen/ScriptListScreen are wired in future tasks.
+- Updated `source/src/index.ts` (entry point): calls `parseCli`, `readConfig`, `detectHost`, persists any CLI `--repo` override via `writeConfig`, then calls `render(<App hostInfo={...} repoUrl={...} />)` with a hardcoded default repo slug `"owner/scriptor-scripts"`.
+- Applied Biome auto-fixes (`--write --unsafe`) to remove now-redundant explicit `React` default imports (the `react-jsx` transform handles JSX without them) and sort Footer/Header imports.
+- `bun test` → 198 pass, 0 fail (all existing tests unaffected).
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
 
 ---
 
