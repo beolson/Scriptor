@@ -179,7 +179,7 @@ Implement and test parsing and validation of the `scriptor.yaml` manifest schema
 
 ## Task 6 — Platform & Architecture Filter
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Implement and test filtering a parsed manifest down to entries matching the current host.
@@ -190,6 +190,23 @@ Implement and test filtering a parsed manifest down to entries matching the curr
   - Non-Linux entries are not filtered by distro/version.
   - Case-insensitive matching for platform/distro strings.
 - Implement `filterManifest(entries: ScriptEntry[], host: HostInfo): ScriptEntry[]` in `source/src/manifest/`.
+
+**Implementation Notes:**
+- Created `source/src/manifest/filterManifest.test.ts` with 23 unit tests covering:
+  - Platform matching: windows/mac/linux entries returned only for matching host platform.
+  - Arch matching: x86/arm entries excluded when host arch differs.
+  - Linux distro+version matching: exact match required (case-insensitive distro).
+  - Linux host with no distro/version info excludes all linux entries.
+  - Non-Linux entries matched by platform+arch only (distro/version ignored).
+  - Empty manifest returns empty array; no matching entries returns empty array (no error).
+  - Mixed manifests: only correctly matching entries returned, original order preserved.
+  - Case-insensitive distro matching: host lowercase vs entry mixed-case, and both uppercase.
+- Created `source/src/manifest/filterManifest.ts` exporting:
+  - `filterManifest(entries: ScriptEntry[], host: HostInfo): ScriptEntry[]` — pure filter function, no I/O, no side effects.
+  - Platform and arch must match exactly; for Linux entries distro also matches case-insensitively and version matches exactly.
+- Applied Biome auto-fix to sort imports and reformat multi-line array literals.
+- `bun test src/manifest/filterManifest.test.ts` → 23 pass, 0 fail.
+- `bun run lint` → 0 errors, 0 warnings, 0 diagnostics.
 
 ---
 
