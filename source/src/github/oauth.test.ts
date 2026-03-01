@@ -91,7 +91,7 @@ describe("startOAuthFlow — device code request", () => {
 
 	test("includes client_id and scope in the device code request", async () => {
 		const requestBodies: string[] = [];
-		const capturingFetch: typeof fetch = async (input, _init) => {
+		const capturingFetch: typeof fetch = async (input, init) => {
 			const body = await new Request(input as string, init).text();
 			requestBodies.push(body);
 			if (requestBodies.length === 1) {
@@ -252,7 +252,7 @@ describe("startOAuthFlow — token polling", () => {
 	test("sends device_code and grant_type in poll request", async () => {
 		const pollBodies: string[] = [];
 		let call = 0;
-		const capturingFetch: typeof fetch = async (input, _init) => {
+		const capturingFetch: typeof fetch = async (input, init) => {
 			if (call++ === 0) {
 				return new Response(makeDeviceCodeBody(), {
 					status: 200,
