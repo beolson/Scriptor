@@ -14,7 +14,7 @@ import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
 import { App } from "./tui/App.js";
 
-const DEFAULT_REPO = "owner/scriptor-scripts";
+const DEFAULT_REPO = "beolson/scriptor";
 const OAUTH_CLIENT_ID = "Ov23liXXXXXXXXXXXXXX"; // TODO: replace with real OAuth App client ID
 
 async function main() {
