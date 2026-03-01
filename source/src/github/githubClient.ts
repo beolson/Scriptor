@@ -143,7 +143,11 @@ export class GitHubClient {
 		const url = `${GITHUB_API_BASE}/repos/${repo}/commits?per_page=1`;
 		const response = await this.doFetch(url);
 
-		if (response.status === 401 || response.status === 403) {
+		if (
+			response.status === 401 ||
+			response.status === 403 ||
+			response.status === 404
+		) {
 			this.handleAuthError(url, response.status);
 		}
 
@@ -203,8 +207,8 @@ export class GitHubClient {
 			);
 		}
 
-		// GitHub's base64 may contain newlines — strip them before decoding.
-		const cleaned = data.content.replace(/\n/g, "");
-		return atob(cleaned);
+		// Buffer.from handles embedded newlines in GitHub's base64 and correctly
+		// decodes multi-byte UTF-8 characters (unlike atob which is Latin-1 only).
+		return Buffer.from(data.content, "base64").toString("utf-8");
 	}
 }

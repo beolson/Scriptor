@@ -58,7 +58,7 @@ export function ExecutionScreen({
 	runExecution,
 }: ExecutionScreenProps) {
 	const { exit } = useApp();
-	const { write: writeToStdout } = useStdout().stdout;
+	const { write: writeToStdout } = useStdout();
 
 	// Map from script id → current status
 	const [statuses, setStatuses] = useState<Map<string, ScriptStatus>>(

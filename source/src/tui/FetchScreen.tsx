@@ -108,10 +108,22 @@ export function FetchScreen({ currentEvent, done, offline }: FetchScreenProps) {
 		case "oauth-started":
 			return (
 				<Box flexDirection="column" gap={1}>
-					<Text>Opening browser for GitHub authentication…</Text>
-					<Text dimColor={true}>
-						Complete the authorization in your browser to continue.
+					<Text>Requesting GitHub device authorization…</Text>
+				</Box>
+			);
+
+		case "oauth-device-code":
+			return (
+				<Box flexDirection="column" gap={1}>
+					<Text>
+						{"Open "}
+						<Text bold={true}>{currentEvent.verificationUri}</Text>
+						{" and enter this code:"}
 					</Text>
+					<Text bold={true} color="cyan">
+						{currentEvent.userCode}
+					</Text>
+					<Text dimColor={true}>Waiting for authorization…</Text>
 				</Box>
 			);
 

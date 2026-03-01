@@ -48,9 +48,19 @@ export interface ScriptErrorEvent {
 	error: string;
 }
 
-/** Emitted when a 401/403 triggers the OAuth authorization code flow. */
+/** Emitted when a 401/403 triggers the OAuth Device Flow. */
 export interface OAuthStartedEvent {
 	type: "oauth-started";
+}
+
+/**
+ * Emitted once GitHub returns the device code so the UI can display
+ * the user-facing code and verification URL.
+ */
+export interface OAuthDeviceCodeEvent {
+	type: "oauth-device-code";
+	userCode: string;
+	verificationUri: string;
 }
 
 export type StartupEvent =
@@ -59,7 +69,8 @@ export type StartupEvent =
 	| OfflineWarningEvent
 	| ManifestErrorEvent
 	| ScriptErrorEvent
-	| OAuthStartedEvent;
+	| OAuthStartedEvent
+	| OAuthDeviceCodeEvent;
 
 // ---------------------------------------------------------------------------
 // Injectable dependencies

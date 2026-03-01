@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const COMMIT_HASH_FILE = "commit-hash";
 const MANIFEST_FILE = "scriptor.yaml";
@@ -19,10 +19,6 @@ export class CacheService {
 
 	private ensureCacheDir(): void {
 		mkdirSync(this.cacheDir, { recursive: true });
-	}
-
-	private ensureScriptsDir(): void {
-		mkdirSync(join(this.cacheDir, SCRIPTS_SUBDIR), { recursive: true });
 	}
 
 	/**
@@ -85,8 +81,9 @@ export class CacheService {
 	 * Creates the cache and scripts directories if they do not exist.
 	 */
 	async saveScript(id: string, content: string): Promise<void> {
-		this.ensureScriptsDir();
-		await Bun.write(join(this.cacheDir, SCRIPTS_SUBDIR, id), content);
+		const filePath = join(this.cacheDir, SCRIPTS_SUBDIR, id);
+		mkdirSync(dirname(filePath), { recursive: true });
+		await Bun.write(filePath, content);
 	}
 
 	/**

@@ -14,8 +14,8 @@ import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
 import { App } from "./tui/App.js";
 
-const DEFAULT_REPO = "beolson/scriptor";
-const OAUTH_CLIENT_ID = "Ov23liXXXXXXXXXXXXXX"; // TODO: replace with real OAuth App client ID
+const DEFAULT_REPO = "beolson/Scriptor";
+const OAUTH_CLIENT_ID = "Ov23liczBZbFw43X0aFI"; // TODO: replace with real OAuth App client ID
 
 async function main() {
 	const cliArgs = parseCli(process.argv.slice(2));
@@ -36,6 +36,10 @@ async function main() {
 
 	const cache = new CacheService();
 	const logService = new LogService();
+
+	// Script content fetched during startup, keyed by the repo-relative path.
+	// Populated by runStartupForApp and consumed by runExecutionForApp.
+	let fetchedScripts: Record<string, string> = {};
 
 	// Build the runStartup adapter that wires the real GitHubClient and
 	// CacheService into the startup orchestration logic.
@@ -60,7 +64,11 @@ async function main() {
 				cache.saveScript(id, content),
 			isCacheStale: (latestHash: string) => cache.isCacheStale(latestHash),
 			startOAuthFlow: async (clientId: string) => {
-				const token = await startOAuthFlow(clientId);
+				const token = await startOAuthFlow(clientId, {
+					onDeviceCode: (userCode, verificationUri) => {
+						onEvent({ type: "oauth-device-code", userCode, verificationUri });
+					},
+				});
 				// Recreate the client with the obtained token so subsequent requests
 				// in the same startup pass are authenticated.
 				client = new GitHubClient({ token });
@@ -70,7 +78,9 @@ async function main() {
 			onEvent,
 		};
 
-		return runStartup(repo, deps);
+		const result = await runStartup(repo, deps);
+		fetchedScripts = result.scripts;
+		return result;
 	}
 
 	// Build the runExecution adapter that wires LogService and ScriptRunner
@@ -79,10 +89,17 @@ async function main() {
 		scripts: ScriptEntry[],
 		onProgress: (event: ProgressEvent) => void,
 	) {
+		// Replace each entry's repo-relative script path with the fetched content
+		// so the runner executes the actual script, not a missing local file.
+		const withContent = scripts.map((entry) => ({
+			...entry,
+			script: fetchedScripts[entry.script] ?? entry.script,
+		}));
+
 		const logFile = await logService.createLogFile();
 		const runner = new ScriptRunner({ logService });
 		runner.on("progress", onProgress);
-		return runner.runScripts(scripts, logFile);
+		return runner.runScripts(withContent, logFile);
 	}
 
 	render(
