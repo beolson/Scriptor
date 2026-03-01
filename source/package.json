@@ -1,5 +1,6 @@
 {
 	"name": "scriptor",
+	"version": "0.1.0",
 	"module": "src/index.ts",
 	"type": "module",
 	"private": true,
@@ -8,7 +9,9 @@
 		"build": "bun build src/index.ts --compile --outfile ../dist/scriptor",
 		"test": "bun test",
 		"lint": "biome check .",
-		"format": "biome format --write ."
+		"format": "biome format --write .",
+		"changeset": "changeset",
+		"version": "changeset version"
 	},
 	"dependencies": {
 		"commander": "^14.0.3",
@@ -18,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.4",
+		"@changesets/cli": "^2.27.12",
 		"@types/bun": "latest",
 		"@types/js-yaml": "^4.0.9",
 		"@types/react": "^19.2.14"
