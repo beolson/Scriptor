@@ -4,12 +4,7 @@ CLI tool that runs host-specific setup scripts from a GitHub repo.
 
 ## Releasing a New Version
 
-Releases are automated via [Changesets](https://github.com/changesets/changesets). The flow is:
-
-1. Developer adds a changeset alongside their code changes
-2. After merge, the bot opens a "Version PR" that bumps `package.json` and `CHANGELOG.md`
-3. Merging the Version PR automatically pushes a `v*` tag
-4. The tag triggers `release.yml`, which builds and publishes the binaries to a GitHub Release
+Releases use [Changesets](https://github.com/changesets/changesets) to track what changed, and a local `release.sh` script to apply the version bump, tag, and push. Pushing a `v*` tag triggers `release.yml`, which builds and publishes the binaries.
 
 ---
 
@@ -41,34 +36,30 @@ This creates a file in `source/.changeset/` such as `source/.changeset/fuzzy-dog
 
 ---
 
-### Step 3 — Open a PR
+### Step 3 — Open a PR and merge
 
-Open a pull request as normal. CI runs tests and lint checks. The changeset file must be included in the PR.
-
----
-
-### Step 4 — Merge the PR
-
-After approval, merge into `main`. The `changeset.yml` workflow runs automatically and either:
-
-- **Opens a "Version PR"** titled `chore: version packages` if changesets were found. This PR bumps `source/package.json` and updates `CHANGELOG.md`. No action needed yet.
-- **Does nothing** if no changesets are pending.
+Open a pull request as normal. CI runs tests and lint checks. The changeset file must be included in the PR. After approval, merge into `main`.
 
 ---
 
-### Step 5 — Review and merge the Version PR
+### Step 4 — Run the release script
 
-When you are ready to ship the release, review the Version PR (check the version bump and changelog entry look correct), then merge it.
+When you are ready to ship, run from the repo root:
 
-Merging triggers the `changeset.yml` workflow again, which:
+```sh
+./release.sh
+```
 
-1. Detects no pending changesets
-2. Reads the version from `source/package.json`
-3. Pushes a `v{version}` tag (e.g. `v0.2.0`)
+This will:
+
+1. Apply all pending changesets (`changeset version`) — bumps `source/package.json` and writes `source/CHANGELOG.md`
+2. Commit the version bump
+3. Tag the commit as `v{version}` (e.g. `v0.2.0`)
+4. Push the commit and tag to `main`
 
 ---
 
-### Step 6 — Wait for the release build
+### Step 5 — Wait for the release build
 
 The `v*` tag triggers `release.yml`, which:
 
@@ -77,19 +68,3 @@ The `v*` tag triggers `release.yml`, which:
 3. Creates a GitHub Release and attaches all six binaries
 
 Monitor progress at: `github.com/beolson/Scriptor/actions`
-
----
-
-## One-time Setup (repository maintainers only)
-
-The workflow requires a `CHANGESET_TOKEN` secret — a fine-grained PAT with these permissions on this repository:
-
-| Permission | Level |
-|------------|-------|
-| Contents | Read and write |
-| Pull requests | Read and write |
-| Metadata | Read |
-
-Create the token at `github.com/settings/personal-access-tokens/new`, then add it as a repository secret at `github.com/beolson/Scriptor/settings/secrets/actions` named `CHANGESET_TOKEN`.
-
-The default `GITHUB_TOKEN` cannot be used here because commits pushed by Actions do not trigger other workflows unless a PAT is used.
