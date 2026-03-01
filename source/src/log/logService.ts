@@ -1,4 +1,3 @@
-import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -61,16 +60,11 @@ export class LogService {
 		this.logsDir = join(baseDir, ".scriptor", "logs");
 	}
 
-	private ensureLogsDir(): void {
-		mkdirSync(this.logsDir, { recursive: true });
-	}
-
 	/**
 	 * Creates a new log file named by the current UTC timestamp.
 	 * Returns the absolute path of the created file.
 	 */
 	async createLogFile(): Promise<string> {
-		this.ensureLogsDir();
 		const name = `${uniqueLogStem()}.log`;
 		const filePath = join(this.logsDir, name);
 		// Write an empty file to ensure it exists on disk immediately.

@@ -7,6 +7,15 @@
   version: "13"
   script: scripts/update-system.sh
 
+- id: broken-script
+  name: Broken Script (Test Failure)
+  description: A script that intentionally fails — used to test error handling in the TUI
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/broken-script.sh
+  
 - id: setup-prereqs
   name: Setup Prerequisites
   description: Installs common build tools and prerequisites (curl, git, build-essential)
@@ -49,11 +58,4 @@
   version: "13"
   script: scripts/install-nvm.sh
 
-- id: broken-script
-  name: Broken Script (Test Failure)
-  description: A script that intentionally fails — used to test error handling in the TUI
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/broken-script.sh
+

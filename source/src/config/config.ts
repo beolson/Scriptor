@@ -1,4 +1,3 @@
-import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import * as yaml from "js-yaml";
@@ -58,7 +57,6 @@ export async function writeConfig(
 	config: ScriptorConfig,
 	baseDir: string = homedir(),
 ): Promise<void> {
-	mkdirSync(configDir(baseDir), { recursive: true });
 	const text = yaml.dump(config);
 	await Bun.write(configPath(baseDir), text);
 }

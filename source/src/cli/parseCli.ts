@@ -1,41 +1,37 @@
+import { Command, InvalidArgumentError } from "commander";
+
 export interface CliArgs {
 	repo: string | null;
 }
 
+/** owner/repo: both owner and repo must be non-empty, exactly one slash */
+function parseRepo(value: string): string {
+	const slashIndex = value.indexOf("/");
+	if (slashIndex <= 0 || slashIndex === value.length - 1) {
+		throw new InvalidArgumentError(
+			`Expected format owner/repo, got "${value}"`,
+		);
+	}
+	return value;
+}
+
 /**
- * Parses process.argv-style argument list.
+ * Parses process.argv-style argument list via commander.
  * Supported flags:
  *   --repo <owner/repo>  Override the default script repository.
  *
- * Throws a descriptive Error for invalid flag usage.
  * Returns { repo: null } when --repo is not provided.
  */
 export function parseCli(argv: string[]): CliArgs {
-	let repo: string | null = null;
+	const program = new Command()
+		.name("scriptor")
+		.description("Run host-specific setup scripts from a GitHub repository")
+		.option("--repo <owner/repo>", "override the script repository", parseRepo)
+		.allowExcessArguments(false)
+		.exitOverride(); // throw instead of calling process.exit
 
-	for (let i = 0; i < argv.length; i++) {
-		if (argv[i] === "--repo") {
-			const value = argv[i + 1];
-			if (value === undefined || value.startsWith("--")) {
-				throw new Error("--repo requires a value in the format owner/repo");
-			}
-			if (!isValidRepo(value)) {
-				throw new Error(
-					`Invalid --repo value "${value}": expected format owner/repo`,
-				);
-			}
-			repo = value;
-			i++; // consume the value token
-		}
-	}
+	program.parse(argv, { from: "user" });
 
-	return { repo };
-}
-
-/** owner/repo: both owner and repo must be non-empty, exactly one slash */
-function isValidRepo(value: string): boolean {
-	const slashIndex = value.indexOf("/");
-	if (slashIndex <= 0) return false; // no slash, or slash is the first char
-	if (slashIndex === value.length - 1) return false; // slash is the last char
-	return true;
+	const opts = program.opts<{ repo?: string }>();
+	return { repo: opts.repo ?? null };
 }
