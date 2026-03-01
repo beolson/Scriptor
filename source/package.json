@@ -6,7 +6,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "bun run src/index.ts",
-		"build": "bun build src/index.ts --compile --outfile ../dist/scriptor",
+		"build": "bun build src/index.ts --compile --external react-devtools-core --outfile ../dist/scriptor",
 		"test": "bun test",
 		"lint": "biome check .",
 		"format": "biome format --write .",
