@@ -626,7 +626,7 @@ Build the real-time execution progress screen and wire it to the Script Executio
 
 ## Task 18 — GitHub Actions CI/CD Pipeline
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Create the GitHub Actions workflows for continuous integration and release artifact publishing.
@@ -645,3 +645,17 @@ Create the GitHub Actions workflows for continuous integration and release artif
   - Uploads all 6 artifacts as GitHub Release assets.
 
 - No unit tests for workflow YAML; verify by inspection and a test tag push.
+
+**Implementation Notes:**
+- Created `.github/workflows/ci.yml`:
+  - Triggers on `push` to `main` branch and on any `pull_request`.
+  - Single job `test-and-lint` on `ubuntu-latest`.
+  - Steps: checkout → `oven-sh/setup-bun@v2` (latest Bun) → `bun install --frozen-lockfile` (from `source/` working directory) → `bun test` → `bun run lint`.
+  - Both `bun test` and `bun run lint` are non-zero exit on failure, which GitHub Actions automatically treats as job failure.
+- Created `.github/workflows/release.yml`:
+  - Triggers on `push` to tags matching `v*`.
+  - Single job `build-and-release` on `ubuntu-latest` with `permissions: contents: write` (required to create GitHub Releases).
+  - Steps: checkout → setup Bun → `bun install --frozen-lockfile` → `bun test` → `bun run lint` (gate: release only ships if tests and lint pass) → six `bun build --compile --target=bun-<platform>-<arch>` commands writing to `../dist/` (repository root `dist/` folder, one level above `source/`).
+  - Target strings used: `bun-linux-x64`, `bun-linux-arm64`, `bun-darwin-x64`, `bun-darwin-arm64`, `bun-windows-x64`, `bun-windows-arm64` — matches Bun cross-compilation target format.
+  - Upload step uses `softprops/action-gh-release@v2` to create the GitHub Release from the pushed tag and attach all 6 binary files from `dist/`.
+  - Verified existing source lint passes clean: `bun run lint` → 0 errors, 0 warnings, 0 diagnostics (36 files checked).
