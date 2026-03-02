@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Web Project Scaffolding & Tooling
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Initialize the `web/` Next.js project and configure all tooling before any feature work begins. Establishes the foundation for the entire Phase 2 website (referenced by all subsequent tasks).
@@ -29,7 +29,7 @@ Initialize the `web/` Next.js project and configure all tooling before any featu
 
 ## Task 2 — YAML Schema Extension, Sample Data & Build-Time Loader
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Define TypeScript types for the extended `scriptor.yaml` schema (FR-2-001), create a sample `scriptor.yaml` at the repository root with the new `spec` field, and implement the data loader that all Next.js pages use at build time.
@@ -44,11 +44,17 @@ Define TypeScript types for the extended `scriptor.yaml` schema (FR-2-001), crea
 - **GREEN:** Create `scriptor.yaml` and implement the loader to make all tests pass.
 - Cover: correct parsing of all fields including optional `spec`, platform filtering returns correct subset, id lookup is exact match, missing optional fields are `undefined` not missing keys, `getAllScriptIds()` returns IDs for every entry.
 
+**Implementation Notes:**
+- `web/lib/types.ts` — `ScriptEntry` interface with all required and optional fields.
+- `scriptor.yaml` extended to 12 entries: 2 Windows, 8 Linux (Debian + Ubuntu), 2 macOS; 2 entries (`install-docker`, `install-bun`) have multi-line markdown `spec` fields.
+- `web/lib/loadScripts.ts` — async loader using `Bun.file()` + `js-yaml`; exports `loadScripts()`, `getScriptsByPlatform()`, `getScriptById()`, `getAllScriptIds()`.
+- `web/lib/loadScripts.test.ts` — 12 tests, all passing. `bun run lint` passes with zero violations.
+
 ---
 
 ## Task 3 — Homepage: Hero Section & Platform Navigation Cards
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Build the homepage server component (`app/page.tsx`) with a hero/welcome section and three platform navigation cards (FR-2-003). The install command component is a placeholder here and will be replaced in Task 4.
@@ -64,11 +70,18 @@ Build the homepage server component (`app/page.tsx`) with a hero/welcome section
 - **GREEN:** Implement `app/page.tsx` to make all tests pass.
 - Cover: heading text, three cards with correct hrefs (accounting for `basePath: '/Scriptor'`), install command placeholder present, page renders without hydration errors.
 
+**Implementation Notes:**
+- `web/app/page.tsx` — server component with `<h1>Scriptor</h1>`, tagline `<p>`, `<div data-testid="install-command">` placeholder, and three Next.js `<Link>` cards with `data-testid="platform-card-{platform}"` targeting `/scripts/windows`, `/scripts/linux`, `/scripts/mac`. Tailwind grid (`grid-cols-1 sm:grid-cols-3`) for responsive layout.
+- `web/playwright/homepage.spec.ts` — 6 tests all passing: h1 text, card count (3), card hrefs (using `data-testid^='platform-card-'` prefix selector accounting for basePath), install-command placeholder attached.
+- `web/lib/loadScripts.ts` — migrated from `Bun.file()` to `node:fs/promises` `readFile()` so the Next.js TypeScript build succeeds (no `bun-types` in web project).
+- `web/.gitignore` — added `/test-results` and `/playwright-report` so Biome VCS integration excludes generated Playwright artifacts from lint checks.
+- All 7 Playwright E2E tests pass; all 12 unit tests pass; `bun run lint` passes with zero violations.
+
 ---
 
 ## Task 4 — OS-Detected Install Command Component
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Build the `InstallCommand` client component (FR-2-002) that detects the visitor's OS via `navigator.userAgent` and surfaces the appropriate command (PowerShell on Windows, Bash otherwise) in a styled code block with a one-click copy button. Replaces the placeholder from Task 3.
@@ -92,11 +105,17 @@ Build the `InstallCommand` client component (FR-2-002) that detects the visitor'
 - **GREEN:** Implement `InstallCommand.tsx` and wire it into `page.tsx` to make all tests pass.
 - Cover: Bash command shown by default (non-Windows UA), Windows UA triggers PowerShell command, copy button visible, "Copied!" feedback appears after click, code block clearly styled.
 
+**Implementation Notes:**
+- `web/app/components/InstallCommand.tsx` — `'use client'` component with `useState(BASH_COMMAND)` as SSR default; `useEffect` checks `/windows/i` against `navigator.userAgent` and calls `setCommand(POWERSHELL_COMMAND)` if matched; `handleCopy` sets `setCopied(true)` immediately (so feedback shows regardless of clipboard permission), then calls `navigator.clipboard.writeText()` in a try/catch; "Copied!" replaces "Copy" on the button for 2 seconds.
+- `web/app/page.tsx` — imports `<InstallCommand />` and replaces the empty `<div data-testid="install-command">` placeholder with the real component.
+- `web/playwright/homepage.spec.ts` — 4 new tests added: code/pre child with non-empty text, Copy button visible, "Copied!" feedback after click, Windows UA shows Invoke-WebRequest. The two client-side tests (`Copied!` feedback and Windows UA) use `page.route("/Scriptor/_next/**", ...)` to rewrite JS asset paths so React hydrates in the static-export test environment (where `bunx serve out/` maps `/_next/` but the HTML references `/Scriptor/_next/`).
+- All 11 Playwright E2E tests pass; `bun run lint` passes with zero violations.
+
 ---
 
 ## Task 5 — Platform Listing Pages
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Build the platform listing pages (`/scripts/[platform]/page.tsx`) for Windows, Linux, and macOS (FR-2-004, FR-2-005), generated fully at build time via `generateStaticParams()`.
@@ -114,11 +133,17 @@ Build the platform listing pages (`/scripts/[platform]/page.tsx`) for Windows, L
 - **GREEN:** Implement the listing page to make all tests pass.
 - Cover: platform filtering correct, Linux distro grouping present, alphabetical ordering within groups, arch badge visible, entry links navigate to correct detail URL.
 
+**Implementation Notes:**
+- `web/app/scripts/[platform]/page.tsx` — server component with `generateStaticParams()` returning all three platforms; calls `getScriptsByPlatform()` from the data loader; renders `<FlatList>` for Windows/macOS and `<LinuxGroupedList>` for Linux; each `<ScriptItem>` has `data-testid="script-entry"`, an arch badge with `data-testid="arch-badge"`, and a `<Link>` to `/scripts/[id]`; distro headings have `data-testid="distro-heading"`. Tailwind for responsive layout.
+- `web/lib/loadScripts.ts` — updated `YAML_PATH` from `path.resolve(__dirname, ...)` to `path.resolve(process.cwd(), "../scriptor.yaml")` so the path resolves correctly in Next.js prerender workers (which set `__dirname` to `/`).
+- `web/playwright/listings.spec.ts` — 5 tests, all passing: Windows page has no distro headings, Linux page has at least one distro heading, arch badge text is "x86" or "arm", clicking a script link navigates to `/scripts/[id]`, macOS page has no distro headings.
+- All 16 Playwright E2E tests pass; all 12 unit tests pass; `bun run lint` passes with zero violations.
+
 ---
 
 ## Task 6 — Script Detail Page with Markdown Rendering
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Build the script detail page (`/scripts/[id]/page.tsx`) that renders the full script specification as markdown and displays all script metadata (FR-2-006).
@@ -135,11 +160,19 @@ Build the script detail page (`/scripts/[id]/page.tsx`) that renders the full sc
 - **GREEN:** Implement the detail page and add the highlight.js import to `layout.tsx` to make all tests pass.
 - Cover: name heading present, description text rendered, arch badge, spec markdown → HTML (headings, paragraphs, code blocks), dependency links correct, `notFound()` reached for unknown id.
 
+**Implementation Notes:**
+- Merged `web/app/scripts/[platform]/page.tsx` and the new detail page into a single `web/app/scripts/[slug]/page.tsx` to resolve the Next.js "ambiguous app routes" error that occurs when two sibling dynamic segments exist at the same level. The unified route dispatches on slug: if it matches a known platform (`windows`, `linux`, `mac`) it renders `<PlatformListingPage>`; otherwise it looks up by script id and renders `<ScriptDetailContent>`, calling `notFound()` for unknown ids.
+- `generateStaticParams()` emits all three platform slugs plus all script ids returned by `getAllScriptIds()`, resulting in 15 pre-rendered static paths.
+- `<ScriptDetailContent>` renders: `<h1>` name, `<ArchBadge>` with `data-testid="arch-badge"`, description, metadata `<dl>`, dependency `<Link>` list with `data-testid="dependency-link"`, and `<ReactMarkdown rehypePlugins={[rehypeHighlight]}>` inside a `<div data-testid="spec-content">`.
+- `web/app/layout.tsx` — added `import 'highlight.js/styles/github.css'` for syntax highlighting.
+- `web/playwright/detail.spec.ts` — 5 tests, all passing: h1 name, arch badge visible, spec renders `<h2>` elements, dependency link href matches `/scripts/[id]`, 404 for unknown slug.
+- All 21 Playwright E2E tests pass; `bun run lint` passes with zero violations.
+
 ---
 
 ## Task 7 — GitHub Actions Build-and-Deploy Pipeline
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Create the GitHub Actions workflow that builds the static site, runs Biome and Playwright, and deploys to GitHub Pages on every push to `main` that touches `web/**` or `scriptor.yaml` (FR-2-001, Constraints).
@@ -156,3 +189,8 @@ Create the GitHub Actions workflow that builds the static site, runs Biome and P
 - **RED:** Write `web/lib/workflow.test.ts` using `bun test`. Parse `.github/workflows/deploy-web.yml` with `js-yaml` and assert: the `on.push.paths` array includes `'scriptor.yaml'` and `'web/**'`, at least one step contains `bun run build`, at least one step references `actions/deploy-pages`, at least one step references `bun run lint`. Test fails because the file doesn't exist.
 - **GREEN:** Create the workflow file to make all assertions pass.
 - Cover: trigger paths include `scriptor.yaml`, Biome lint step present, build step produces artifact, deploy step uses deploy-pages action, deploy depends on both build and test jobs.
+
+**Implementation Notes:**
+- `.github/workflows/deploy-web.yml` — three-job workflow: `build` (lint + build + upload artifact), `test` (download artifact, serve with `bunx serve`, run Playwright), `deploy` (OIDC-based Pages deploy via `actions/deploy-pages@v4`). Trigger path filter covers `web/**` and `scriptor.yaml`. `deploy` job has `concurrency` group `pages-deploy` and `permissions: pages: write, id-token: write`.
+- `web/lib/workflow.test.ts` — 6 tests using `bun test` + `js-yaml`: trigger paths contain `scriptor.yaml` and `web/**`, a step runs `bun run build`, a step runs `bun run lint`, a step uses `actions/deploy-pages`, deploy job has `needs` referencing another job. All 6 tests pass.
+- `bun test lib/` — 18 pass, 0 fail. `bun run lint` — zero violations.
