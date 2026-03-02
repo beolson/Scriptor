@@ -6,7 +6,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "bun run src/index.ts",
-		"build": "bun build src/index.ts --compile --external react-devtools-core --outfile ../dist/scriptor",
+		"build": "bun build src/index.ts --compile --outfile ../dist/scriptor",
 		"test": "bun test",
 		"lint": "biome check .",
 		"format": "biome format --write .",
@@ -22,6 +22,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.4",
 		"@changesets/cli": "^2.27.12",
+		"react-devtools-core": "file:./stubs/react-devtools-core",
 		"@types/bun": "latest",
 		"@types/js-yaml": "^4.0.9",
 		"@types/react": "^19.2.14"
