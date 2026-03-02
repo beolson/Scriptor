@@ -1,6 +1,7 @@
 ---
 name: whig-out
 description: Use when the user wants to automatically complete all remaining tasks in the current phase. Dispatches subagents sequentially to exhaust every "not started" task using the next-task skill.
+disable-model-invocation: true
 ---
 
 # WhigOut
