@@ -1,0 +1,5908 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "0uQF8",
+      "x": -1000,
+      "y": 0,
+      "name": "__ components",
+      "width": 800,
+      "height": 2000,
+      "fill": "#111111",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "u1PM6",
+          "name": "comp_arch_badge",
+          "reusable": true,
+          "padding": [
+            4,
+            6
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "QGtK1",
+              "name": "archbadge_txt",
+              "fill": "#6B7280",
+              "content": "[x86]",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LUjW3",
+          "name": "comp_dependency_tag",
+          "reusable": true,
+          "padding": [
+            4,
+            6
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "z9217",
+              "name": "deptag_txt",
+              "fill": "#6B7280",
+              "content": "[curl]",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MiLvz",
+          "name": "comp_cta_button",
+          "reusable": true,
+          "fill": "#10B981",
+          "padding": [
+            10,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "zwxke",
+              "name": "ctabtn_txt",
+              "fill": "#0A0A0A",
+              "content": "$ install",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IEp6k",
+          "name": "comp_code_block",
+          "reusable": true,
+          "width": 400,
+          "fill": "transparent",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "TsCnO",
+              "name": "header_row",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uys23",
+                  "name": "label",
+                  "fill": "#6B7280",
+                  "content": "// powershell",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "OZeOU",
+                  "name": "copy_label",
+                  "fill": "#6B7280",
+                  "content": "[copy]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "F50nM",
+              "name": "command",
+              "fill": "#10B981",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Fn9B6",
+          "name": "comp_metadata_row",
+          "reusable": true,
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "gap": 16,
+          "padding": [
+            10,
+            0
+          ],
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "text",
+              "id": "4RAx6",
+              "name": "key",
+              "fill": "#6B7280",
+              "content": "platform",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "thfjU",
+              "name": "value",
+              "fill": "#FAFAFA",
+              "content": "windows",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VswOa",
+          "name": "comp_distro_group_header",
+          "reusable": true,
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            12,
+            0
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Bj5Zm",
+              "name": "label",
+              "fill": "#6B7280",
+              "content": "// debian",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal",
+              "letterSpacing": 1
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gAmQi",
+          "name": "comp_script_row",
+          "reusable": true,
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "gap": 16,
+          "padding": [
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "AYn2V",
+              "name": "left",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "3E7rb",
+                  "name": "script_name",
+                  "fill": "#FAFAFA",
+                  "content": "install-docker",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "SxmRP",
+                  "name": "script_desc",
+                  "fill": "#6B7280",
+                  "content": "// installs docker engine and cli",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "yoU9x",
+              "name": "right",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "RqBbx",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "sr_badge"
+                },
+                {
+                  "type": "text",
+                  "id": "A22Ka",
+                  "name": "arrow",
+                  "fill": "#6B7280",
+                  "content": ">>",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "83vWD",
+          "name": "comp_platform_card",
+          "reusable": true,
+          "width": 300,
+          "fill": "transparent",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "bUKKl",
+              "name": "prompt_char",
+              "fill": "#6B7280",
+              "content": "C:\\",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "58BRW",
+              "name": "platform_name",
+              "fill": "#FAFAFA",
+              "content": "windows",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "06Sqn",
+              "name": "desc_wrapper",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "phif7",
+                  "name": "platform_desc",
+                  "fill": "#6B7280",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "// powershell & cmd scripts for windows environments",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "YJtpP",
+              "name": "view_link",
+              "fill": "#10B981",
+              "content": "> view scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uYndP",
+          "name": "comp_breadcrumb",
+          "reusable": true,
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "78EXN",
+              "name": "home",
+              "fill": "#6B7280",
+              "content": "home",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "CxY00",
+              "name": "sep1",
+              "fill": "#6B7280",
+              "content": ">",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "6ZRgN",
+              "name": "section",
+              "fill": "#6B7280",
+              "content": "scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "lQkZ1",
+              "name": "sep2",
+              "fill": "#6B7280",
+              "content": ">",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "kxa7U",
+              "name": "active",
+              "fill": "#FAFAFA",
+              "content": "windows",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ANshg",
+          "name": "comp_nav_bar",
+          "reusable": true,
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "GxXSo",
+              "name": "logo",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "SmlF0",
+              "name": "nav_links",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sgPEv",
+                  "name": "link_github",
+                  "fill": "#6B7280",
+                  "content": "github",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "QhPVI",
+          "name": "comp_footer",
+          "reusable": true,
+          "width": "fill_container",
+          "height": 80,
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "SF8mI",
+              "name": "brand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "tgnHi",
+              "name": "footer_links",
+              "gap": 24,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bUnFQ",
+                  "name": "link_github",
+                  "fill": "#6B7280",
+                  "content": "github",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "UpYZe",
+          "type": "ref",
+          "ref": "MiLvz",
+          "name": "lm_comp_cta_button",
+          "fill": "#059669",
+          "descendants": {
+            "zwxke": {
+              "fill": "#FFFFFF"
+            }
+          }
+        },
+        {
+          "id": "NV4xD",
+          "type": "ref",
+          "ref": "IEp6k",
+          "name": "lm_comp_code_block",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "F50nM": {
+              "fill": "#059669"
+            }
+          }
+        },
+        {
+          "id": "ItHPc",
+          "type": "ref",
+          "ref": "Fn9B6",
+          "name": "lm_comp_metadata_row",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "thfjU": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "id": "c1v1c",
+          "type": "ref",
+          "ref": "VswOa",
+          "name": "lm_comp_distro_group_header",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        },
+        {
+          "id": "P8pAa",
+          "type": "ref",
+          "ref": "gAmQi",
+          "name": "lm_comp_script_row",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "3E7rb": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "id": "dkIKB",
+          "type": "ref",
+          "ref": "83vWD",
+          "name": "lm_comp_platform_card",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "58BRW": {
+              "fill": "#111111"
+            },
+            "YJtpP": {
+              "fill": "#059669"
+            }
+          }
+        },
+        {
+          "id": "kUgWo",
+          "type": "ref",
+          "ref": "uYndP",
+          "name": "lm_comp_breadcrumb",
+          "descendants": {
+            "kxa7U": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "id": "oZMJy",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "lm_comp_nav_bar",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "id": "5Bddv",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "lm_comp_footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "kIl3i",
+      "x": 0,
+      "y": 0,
+      "name": "homepage_desktop",
+      "width": 1440,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "nXCoK",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav"
+        },
+        {
+          "type": "frame",
+          "id": "tdbTJ",
+          "name": "hero",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "gap": 32,
+          "padding": [
+            80,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "MoIse",
+              "name": "badge",
+              "fill": "#6B7280",
+              "content": "// cross-platform script management",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "yIy74",
+              "name": "headline",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 48,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "FuSDn",
+              "name": "subheadline",
+              "fill": "#6B7280",
+              "content": "install, manage, and run scripts across windows, linux, and macos with a single command.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "AICNC",
+              "name": "code_grid",
+              "width": "fill_container",
+              "gap": 24,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "MoKlw",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "name": "code_win",
+                  "width": 600,
+                  "descendants": {
+                    "uys23": {
+                      "content": "// detected: windows"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "GvG1u",
+              "name": "note",
+              "fill": "#6B7280",
+              "content": "// not on windows? → select your platform below",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "R46oI",
+          "name": "platforms_section",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            60,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "D72Y4",
+              "name": "section_label",
+              "fill": "#6B7280",
+              "content": "// platforms",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "VEqC7",
+              "name": "platforms_heading",
+              "fill": "#FAFAFA",
+              "content": "> browse by platform",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "vksd7",
+              "name": "platform_cards",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "HKBmY",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_windows",
+                  "width": "fill_container",
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "C:\\"
+                    },
+                    "58BRW": {
+                      "content": "windows"
+                    },
+                    "06Sqn": {
+                      "content": "// powershell & cmd scripts for windows environments"
+                    }
+                  }
+                },
+                {
+                  "id": "uJVIQ",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_linux",
+                  "width": "fill_container",
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "$"
+                    },
+                    "58BRW": {
+                      "content": "linux"
+                    },
+                    "06Sqn": {
+                      "content": "// bash & shell scripts for linux distributions"
+                    }
+                  }
+                },
+                {
+                  "id": "T2Htg",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_macos",
+                  "width": "fill_container",
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "%"
+                    },
+                    "58BRW": {
+                      "content": "macos"
+                    },
+                    "06Sqn": {
+                      "content": "// zsh & shell scripts for macos environments"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "hxV9R",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "8PTul",
+      "x": 0,
+      "y": 1088,
+      "name": "platform_windows_desktop",
+      "width": 1440,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "A2On9",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav"
+        },
+        {
+          "type": "frame",
+          "id": "RXqC7",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "otFT5",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "windows"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "Ln4xg",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> windows scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "1y9wR",
+              "name": "ww",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "hZxY2",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "codeWin",
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all windows scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IfDUe",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JFPDZ",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ogo71",
+                  "name": "any1",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "n1IY6",
+                  "fill": "#10B981",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Ac7RT",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "KDB2V",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 12 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WT1Jk",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "h458S",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row1",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "euFFl",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row2",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nodejs"
+                },
+                "SxmRP": {
+                  "content": "// installs node.js lts via nvm"
+                }
+              }
+            },
+            {
+              "id": "15rFv",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row3",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-wsl2"
+                },
+                "SxmRP": {
+                  "content": "// configures windows subsystem for linux 2"
+                }
+              }
+            },
+            {
+              "id": "qQrXa",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row4",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-git"
+                },
+                "SxmRP": {
+                  "content": "// installs git with default configuration"
+                }
+              }
+            },
+            {
+              "id": "e5DNr",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row5",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-ssh-keys"
+                },
+                "SxmRP": {
+                  "content": "// generates and configures ssh key pairs"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "10Ev6",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "576mM",
+      "x": 0,
+      "y": 2041,
+      "name": "platform_linux_desktop",
+      "width": 1440,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "EwCDh",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav"
+        },
+        {
+          "type": "frame",
+          "id": "cvp9b",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "QQezu",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "linux"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "rxD78",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> linux scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "oHkyB",
+              "name": "wl",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "n8iVH",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "codeLinux",
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all linux scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ curl -fsSL https://scriptor.dev/install.sh | sh"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v1QNB",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "F4pYY",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "gHhG9",
+                  "name": "any2",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "AL25p",
+                  "fill": "#10B981",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "zYVSS",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MTPyJ",
+              "name": "distro_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gsn1P",
+                  "fill": "#6B7280",
+                  "content": "// distro:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "P5Zdn",
+                  "name": "any3",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "rTD6O",
+                  "fill": "#10B981",
+                  "content": "[debian / ubuntu]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Q89pJ",
+                  "fill": "#6B7280",
+                  "content": "[arch]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "CXDOW",
+                  "fill": "#6B7280",
+                  "content": "[fedora]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "2g1PD",
+              "name": "version_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "trENd",
+                  "fill": "#6B7280",
+                  "content": "// version:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "U3UQV",
+                  "name": "any4",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "TNVD6",
+                  "fill": "#10B981",
+                  "content": "[22.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "NPOzY",
+                  "fill": "#6B7280",
+                  "content": "[20.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "0vahA",
+                  "fill": "#6B7280",
+                  "content": "[24.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "4jbTa",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 24 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "O3L96",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "c6RA0",
+              "type": "ref",
+              "ref": "VswOa",
+              "name": "group_debian",
+              "width": "fill_container",
+              "descendants": {
+                "Bj5Zm": {
+                  "content": "// debian / ubuntu"
+                }
+              }
+            },
+            {
+              "id": "AZwF3",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow1",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "wz7HK",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow2",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-ufw-firewall"
+                },
+                "SxmRP": {
+                  "content": "// configures ufw with sensible defaults"
+                }
+              }
+            },
+            {
+              "id": "TYCB3",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow3",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nginx"
+                },
+                "SxmRP": {
+                  "content": "// installs and configures nginx web server"
+                }
+              }
+            },
+            {
+              "id": "eb3f3",
+              "type": "ref",
+              "ref": "VswOa",
+              "name": "group_arch",
+              "width": "fill_container",
+              "descendants": {
+                "Bj5Zm": {
+                  "content": "// arch linux"
+                }
+              }
+            },
+            {
+              "id": "sBiD3",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "arow1",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-aur-helper"
+                },
+                "SxmRP": {
+                  "content": "// installs yay aur helper"
+                }
+              }
+            },
+            {
+              "id": "ECXFn",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "arow2",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-base-devel"
+                },
+                "SxmRP": {
+                  "content": "// installs base development tools"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "GTiiK",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "M9XtD",
+      "x": 0,
+      "y": 3130,
+      "name": "platform_mac_desktop",
+      "width": 1440,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Kc9o6",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav"
+        },
+        {
+          "type": "frame",
+          "id": "m1QrI",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "WYlqN",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "macos"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "D5KOq",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> macos scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Fv8vq",
+              "name": "wm",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "zb832",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "codeMac",
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all macos scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ curl -fsSL https://scriptor.dev/install.sh | sh"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Sphm6",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pvfHF",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "6ngjv",
+                  "name": "any5",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "OEclM",
+                  "fill": "#10B981",
+                  "content": "[apple silicon]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "uqso7",
+                  "fill": "#6B7280",
+                  "content": "[intel]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "KsUbB",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 8 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oBt8Q",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "904D2",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow1",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-homebrew"
+                },
+                "SxmRP": {
+                  "content": "// installs homebrew package manager"
+                }
+              }
+            },
+            {
+              "id": "huScK",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow2",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-dev-tools"
+                },
+                "SxmRP": {
+                  "content": "// installs xcode cli tools and common dev utilities"
+                }
+              }
+            },
+            {
+              "id": "zLtfs",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow3",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "configure-zsh"
+                },
+                "SxmRP": {
+                  "content": "// sets up oh-my-zsh with sensible defaults"
+                }
+              }
+            },
+            {
+              "id": "kXfVY",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow4",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker-desktop"
+                },
+                "SxmRP": {
+                  "content": "// installs docker desktop for mac"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "P8BcI",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "rK8aO",
+      "x": 0,
+      "y": 4013,
+      "name": "script_detail_desktop",
+      "width": 1440,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "xxcxb",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav"
+        },
+        {
+          "type": "frame",
+          "id": "fZRvd",
+          "name": "detail_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "Pht5m",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "windows"
+                },
+                "kxa7U": {
+                  "content": "install-docker"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "jxwsB",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> install-docker",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "dvLdv",
+              "name": "description",
+              "fill": "#6B7280",
+              "content": "// installs docker engine and cli on windows via powershell",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "259cz",
+              "name": "badge_row",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "48PNd",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "plat_badge",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[windows]"
+                    }
+                  }
+                },
+                {
+                  "id": "h10IX",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "arch_badge",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[x86_64]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jfP70",
+          "name": "detail_body",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "gap": 48,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "AimCo",
+              "name": "main_col",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VoD8x",
+                  "name": "spec_label",
+                  "fill": "#6B7280",
+                  "content": "// spec",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "hDtoM",
+                  "name": "markdown_content",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#2a2a2a"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yFqnD",
+                      "name": "md_heading",
+                      "fill": "#FAFAFA",
+                      "content": "## overview",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KQr94",
+                      "name": "md_body1",
+                      "fill": "#6B7280",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "this script automates the installation of docker engine and the docker cli on windows systems via powershell. it handles all prerequisites, registry checks, and service configuration.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "71Yok",
+                      "name": "md_h2",
+                      "fill": "#FAFAFA",
+                      "content": "## usage",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Usr2G",
+                      "name": "wsd",
+                      "width": "fill_container",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "id": "HXymp",
+                          "type": "ref",
+                          "ref": "IEp6k",
+                          "name": "inline_code",
+                          "width": 600,
+                          "descendants": {
+                            "uys23": {
+                              "content": "// powershell"
+                            },
+                            "F50nM": {
+                              "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "orPJp",
+                      "name": "md_h3",
+                      "fill": "#FAFAFA",
+                      "content": "## notes",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "TEDk6",
+                      "name": "md_body2",
+                      "fill": "#6B7280",
+                      "content": "// requires administrator privileges\n// compatible with windows 10 (build 1903+) and windows 11\n// automatically enables hyperv and wsl2 backend",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "7ByTR",
+              "name": "sidebar",
+              "width": 280,
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pi34T",
+                  "name": "metadata_card",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#2a2a2a"
+                  },
+                  "layout": "vertical",
+                  "padding": 20,
+                  "children": [
+                    {
+                      "id": "FVZk9",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_platform",
+                      "width": "fill_container",
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "platform"
+                        },
+                        "thfjU": {
+                          "content": "windows"
+                        }
+                      }
+                    },
+                    {
+                      "id": "jnhF3",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_arch",
+                      "width": "fill_container",
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "arch"
+                        },
+                        "thfjU": {
+                          "content": "x86_64"
+                        }
+                      }
+                    },
+                    {
+                      "id": "8VqgY",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_distro",
+                      "width": "fill_container",
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "shell"
+                        },
+                        "thfjU": {
+                          "content": "powershell"
+                        }
+                      }
+                    },
+                    {
+                      "id": "WAEb7",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_version",
+                      "width": "fill_container",
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "version"
+                        },
+                        "thfjU": {
+                          "content": "2.1.0"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nLAse",
+                  "name": "deps_card",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#2a2a2a"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "AdpdG",
+                      "name": "deps_label",
+                      "fill": "#6B7280",
+                      "content": "// dependencies",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "gOCI1",
+                      "name": "deps_row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "NyoJm",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_curl",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[curl]"
+                            }
+                          }
+                        },
+                        {
+                          "id": "Vs4Y6",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_winget",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[winget]"
+                            }
+                          }
+                        },
+                        {
+                          "id": "9ZpDm",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_psv5",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[powershell 5+]"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ix8Us",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "gVj9a",
+      "x": 1640,
+      "y": 0,
+      "name": "homepage_mobile",
+      "width": 390,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "r8hWV",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "WYzvG",
+              "name": "logo",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "BUVIu",
+              "name": "gh1",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pU9hj",
+          "name": "hero",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            48,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "sAfpx",
+              "name": "badge",
+              "fill": "#6B7280",
+              "content": "// cross-platform script management",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "K76n3",
+              "name": "headline",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 32,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "Hv3IA",
+              "name": "subheadline",
+              "fill": "#6B7280",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "install, manage, and run scripts across all platforms with one command.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "gdI70",
+              "type": "ref",
+              "ref": "IEp6k",
+              "name": "code_win",
+              "width": "fill_container",
+              "descendants": {
+                "uys23": {
+                  "content": "// detected: windows"
+                },
+                "F50nM": {
+                  "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "FlKMJ",
+              "name": "note",
+              "fill": "#6B7280",
+              "content": "// not on windows? → select your platform below",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "6vRxb",
+          "name": "platforms_section",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            40,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "amLqA",
+              "name": "section_label",
+              "fill": "#6B7280",
+              "content": "// platforms",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "VHNM7",
+              "name": "platforms_heading",
+              "fill": "#FAFAFA",
+              "content": "> browse by platform",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "id": "yeWOx",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_windows",
+              "width": "fill_container",
+              "descendants": {
+                "bUKKl": {
+                  "content": "C:\\"
+                },
+                "58BRW": {
+                  "content": "windows"
+                },
+                "06Sqn": {
+                  "content": "// powershell & cmd scripts for windows"
+                }
+              }
+            },
+            {
+              "id": "MwNUl",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_linux",
+              "width": "fill_container",
+              "descendants": {
+                "bUKKl": {
+                  "content": "$"
+                },
+                "58BRW": {
+                  "content": "linux"
+                },
+                "06Sqn": {
+                  "content": "// bash & shell scripts for linux"
+                }
+              }
+            },
+            {
+              "id": "8ZJH3",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_macos",
+              "width": "fill_container",
+              "descendants": {
+                "bUKKl": {
+                  "content": "%"
+                },
+                "58BRW": {
+                  "content": "macos"
+                },
+                "06Sqn": {
+                  "content": "// zsh & shell scripts for macos"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DlH2T",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "37PtR",
+              "name": "brand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "EqQc6",
+              "name": "footer_links",
+              "width": "fill_container",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HoNDS",
+                  "name": "mft_l3",
+                  "fill": "#6B7280",
+                  "content": "github",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Ox3IY",
+      "x": 1640,
+      "y": 1492,
+      "name": "platform_listing_mobile",
+      "width": 390,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "EzQw9",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "pdgzL",
+              "name": "logo",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "QVFzk",
+              "name": "gh3",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "TwwIV",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "id": "yyXnW",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "windows"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "BV59D",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> windows scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "id": "SzjiL",
+              "type": "ref",
+              "ref": "IEp6k",
+              "width": "fill_container",
+              "name": "mobCodeDark",
+              "descendants": {
+                "uys23": {
+                  "content": "// install all windows scripts"
+                },
+                "F50nM": {
+                  "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "OR43a",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qMwuR",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "0F7RE",
+                  "name": "any6",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "5l3Er",
+                  "fill": "#10B981",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "4vcD5",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "MDUjf",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 12 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "6Gn4c",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "padding": 24,
+          "children": [
+            {
+              "id": "xAUhL",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row1",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "Wflbx",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row2",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nodejs"
+                },
+                "SxmRP": {
+                  "content": "// installs node.js lts via nvm"
+                }
+              }
+            },
+            {
+              "id": "oOj0T",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row3",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-wsl2"
+                },
+                "SxmRP": {
+                  "content": "// configures windows subsystem for linux"
+                }
+              }
+            },
+            {
+              "id": "D7Pmg",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row4",
+              "width": "fill_container",
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-git"
+                },
+                "SxmRP": {
+                  "content": "// installs git with default config"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ERNcL",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "us97g",
+              "name": "brand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dWPZd",
+      "x": 1640,
+      "y": 2450,
+      "name": "script_detail_mobile",
+      "width": 390,
+      "fill": "#0A0A0A",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "9s3KV",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Lsr2N",
+              "name": "logo",
+              "fill": "#FAFAFA",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "QhZpq",
+              "name": "gh5",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HVxUt",
+          "name": "detail_header",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "id": "DexkG",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "windows"
+                },
+                "kxa7U": {
+                  "content": "install-docker"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "eJhMt",
+              "name": "heading",
+              "fill": "#FAFAFA",
+              "content": "> install-docker",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "DBkqk",
+              "name": "description",
+              "fill": "#6B7280",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "// installs docker engine and cli on windows via powershell",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "kD59w",
+              "name": "badge_row",
+              "gap": 8,
+              "children": [
+                {
+                  "id": "srI3X",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "msd_pb",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[windows]"
+                    }
+                  }
+                },
+                {
+                  "id": "wm9VO",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "msd_ab",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[x86_64]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mOapH",
+          "name": "metadata_card",
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "padding": [
+            20,
+            24
+          ],
+          "children": [
+            {
+              "id": "Gm7ba",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_platform",
+              "width": "fill_container",
+              "descendants": {
+                "4RAx6": {
+                  "content": "platform"
+                },
+                "thfjU": {
+                  "content": "windows"
+                }
+              }
+            },
+            {
+              "id": "IODN3",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_arch",
+              "width": "fill_container",
+              "descendants": {
+                "4RAx6": {
+                  "content": "arch"
+                },
+                "thfjU": {
+                  "content": "x86_64"
+                }
+              }
+            },
+            {
+              "id": "f6Zco",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_shell",
+              "width": "fill_container",
+              "descendants": {
+                "4RAx6": {
+                  "content": "shell"
+                },
+                "thfjU": {
+                  "content": "powershell"
+                }
+              }
+            },
+            {
+              "id": "26eh5",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_ver",
+              "width": "fill_container",
+              "descendants": {
+                "4RAx6": {
+                  "content": "version"
+                },
+                "thfjU": {
+                  "content": "2.1.0"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "3YPfZ",
+          "name": "markdown_body",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "lxaMZ",
+              "name": "spec_label",
+              "fill": "#6B7280",
+              "content": "// spec",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "ToxHm",
+              "name": "md_content",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#2a2a2a"
+              },
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pGhSS",
+                  "name": "msd_mh1",
+                  "fill": "#FAFAFA",
+                  "content": "## overview",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "raTmi",
+                  "name": "msd_mp1",
+                  "fill": "#6B7280",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "this script automates installation of docker engine on windows systems via powershell with all prerequisites handled.",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "4kRYy",
+                  "name": "msd_mh2",
+                  "fill": "#FAFAFA",
+                  "content": "## usage",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "id": "uhlyU",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "name": "code_block",
+                  "width": "fill_container",
+                  "descendants": {
+                    "uys23": {
+                      "content": "// powershell"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZUfLm",
+          "name": "deps_section",
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            20,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "V53YE",
+              "name": "deps_label",
+              "fill": "#6B7280",
+              "content": "// dependencies",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "rq4YF",
+              "name": "deps_row",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "id": "JPoZb",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d1",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[curl]"
+                    }
+                  }
+                },
+                {
+                  "id": "xl0HX",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d2",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[winget]"
+                    }
+                  }
+                },
+                {
+                  "id": "bEXqM",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d3",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[powershell 5+]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K8psp",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#0A0A0A",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "0z9hR",
+              "name": "msd_fbrand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "DmMJb",
+      "x": 2300,
+      "y": 0,
+      "name": "lm_homepage_desktop",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Jl9pq",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "8P6XN",
+          "name": "hero",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 32,
+          "padding": [
+            80,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "1zsE4",
+              "name": "badge",
+              "fill": "#6B7280",
+              "content": "// cross-platform script management",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "7owPn",
+              "name": "headline",
+              "fill": "#111111",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 48,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "MHOf4",
+              "name": "subheadline",
+              "fill": "#6B7280",
+              "content": "install, manage, and run scripts across windows, linux, and macos with a single command.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "CJa4T",
+              "name": "code_grid",
+              "width": "fill_container",
+              "gap": 24,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "2WNx0",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "name": "code_win",
+                  "width": 600,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "uys23": {
+                      "content": "// detected: windows"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "xpEZD",
+              "name": "note",
+              "fill": "#6B7280",
+              "content": "// not on windows? → select your platform below",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sGeOQ",
+          "name": "platforms_section",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            60,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "om2lK",
+              "name": "section_label",
+              "fill": "#6B7280",
+              "content": "// platforms",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "iD1NB",
+              "name": "platforms_heading",
+              "fill": "#111111",
+              "content": "> browse by platform",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "IjazT",
+              "name": "platform_cards",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "VAxAS",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_windows",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "C:\\"
+                    },
+                    "58BRW": {
+                      "content": "windows",
+                      "fill": "#111111"
+                    },
+                    "06Sqn": {
+                      "content": "// powershell & cmd scripts for windows environments"
+                    },
+                    "YJtpP": {
+                      "fill": "#059669"
+                    }
+                  }
+                },
+                {
+                  "id": "n4ISZ",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_linux",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "$"
+                    },
+                    "58BRW": {
+                      "content": "linux",
+                      "fill": "#111111"
+                    },
+                    "06Sqn": {
+                      "content": "// bash & shell scripts for linux distributions"
+                    },
+                    "YJtpP": {
+                      "fill": "#059669"
+                    }
+                  }
+                },
+                {
+                  "id": "ZmSV4",
+                  "type": "ref",
+                  "ref": "83vWD",
+                  "name": "card_macos",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "bUKKl": {
+                      "content": "%"
+                    },
+                    "58BRW": {
+                      "content": "macos",
+                      "fill": "#111111"
+                    },
+                    "06Sqn": {
+                      "content": "// zsh & shell scripts for macos environments"
+                    },
+                    "YJtpP": {
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "hFWdR",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "8jPRy",
+      "x": 2300,
+      "y": 1088,
+      "name": "lm_platform_windows_desktop",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "IMcvA",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "IGmVR",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "qMnsK",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "windows",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "J7hXh",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> windows scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "3Q3Na",
+              "name": "lww",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "idBJ5",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "lmCodeWin",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all windows scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "2PGLI",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vFImm",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "aujWZ",
+                  "name": "la1",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "eExLl",
+                  "fill": "#059669",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "9NStq",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "zli93",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 12 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pzVAG",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "HbLUm",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row1",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "cMDg2",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row2",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nodejs",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs node.js lts via nvm"
+                }
+              }
+            },
+            {
+              "id": "BtWhM",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row3",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-wsl2",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// configures windows subsystem for linux 2"
+                }
+              }
+            },
+            {
+              "id": "n4Lgp",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row4",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-git",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs git with default configuration"
+                }
+              }
+            },
+            {
+              "id": "nHNYF",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row5",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-ssh-keys",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// generates and configures ssh key pairs"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "GTu0J",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "NwaXP",
+      "x": 2300,
+      "y": 2041,
+      "name": "lm_platform_linux_desktop",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "dFgau",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "dkvfy",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "ANbyC",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "linux",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "YtL6Y",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> linux scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "xbSTT",
+              "name": "lwl",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "g0W5J",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "lmCodeLinux",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all linux scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ curl -fsSL https://scriptor.dev/install.sh | sh",
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KME6y",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x3G2p",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "pOlAO",
+                  "name": "la2",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WzQzL",
+                  "fill": "#059669",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "OTW24",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nJVBn",
+              "name": "distro_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rt2Ys",
+                  "fill": "#6B7280",
+                  "content": "// distro:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "CznDn",
+                  "name": "la3",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "zawwh",
+                  "fill": "#059669",
+                  "content": "[debian / ubuntu]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "FV8GZ",
+                  "fill": "#6B7280",
+                  "content": "[arch]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "QZTQ8",
+                  "fill": "#6B7280",
+                  "content": "[fedora]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hJpYb",
+              "name": "version_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "o9xTO",
+                  "fill": "#6B7280",
+                  "content": "// version:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "pjUxb",
+                  "name": "la4",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "dNvWF",
+                  "fill": "#059669",
+                  "content": "[22.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WRqJg",
+                  "fill": "#6B7280",
+                  "content": "[20.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "0feev",
+                  "fill": "#6B7280",
+                  "content": "[24.04 lts]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "6jbYx",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 24 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DmU1C",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "qZSia",
+              "type": "ref",
+              "ref": "VswOa",
+              "name": "group_debian",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "Bj5Zm": {
+                  "content": "// debian / ubuntu"
+                }
+              }
+            },
+            {
+              "id": "isx2G",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow1",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "ZXqH5",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow2",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-ufw-firewall",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// configures ufw with sensible defaults"
+                }
+              }
+            },
+            {
+              "id": "KR1pb",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "drow3",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nginx",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs and configures nginx web server"
+                }
+              }
+            },
+            {
+              "id": "qTJG8",
+              "type": "ref",
+              "ref": "VswOa",
+              "name": "group_arch",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "Bj5Zm": {
+                  "content": "// arch linux"
+                }
+              }
+            },
+            {
+              "id": "qRLUp",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "arow1",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-aur-helper",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs yay aur helper"
+                }
+              }
+            },
+            {
+              "id": "ixESw",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "arow2",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-base-devel",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs base development tools"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "dwFBq",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "rqGgN",
+      "x": 2300,
+      "y": 3130,
+      "name": "lm_platform_mac_desktop",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "PpvzI",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "tuNBK",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "QFmjp",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "macos",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "Lr3A0",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> macos scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "2uJpS",
+              "name": "lwm",
+              "width": "fill_container",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "JGWGv",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "width": 600,
+                  "name": "lmCodeMac",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "uys23": {
+                      "content": "// install all macos scripts"
+                    },
+                    "F50nM": {
+                      "content": "$ curl -fsSL https://scriptor.dev/install.sh | sh",
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "0bknS",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "1ikV3",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Rp1V1",
+                  "name": "la5",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "x2qPW",
+                  "fill": "#059669",
+                  "content": "[apple silicon]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "AomrY",
+                  "fill": "#6B7280",
+                  "content": "[intel]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "KXGbs",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 8 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "F9xNf",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "padding": [
+            40,
+            120
+          ],
+          "children": [
+            {
+              "id": "xdXKH",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow1",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-homebrew",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs homebrew package manager"
+                }
+              }
+            },
+            {
+              "id": "CW9PS",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow2",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-dev-tools",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs xcode cli tools and common dev utilities"
+                }
+              }
+            },
+            {
+              "id": "zSDAK",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow3",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "configure-zsh",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// sets up oh-my-zsh with sensible defaults"
+                }
+              }
+            },
+            {
+              "id": "2iW6E",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "mrow4",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker-desktop",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs docker desktop for mac"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "2gTLM",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VOIHA",
+      "x": 2300,
+      "y": 4013,
+      "name": "lm_script_detail_desktop",
+      "width": 1440,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "F70lx",
+          "type": "ref",
+          "ref": "ANshg",
+          "name": "nav",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "descendants": {
+            "GxXSo": {
+              "fill": "#111111"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "GQJIq",
+          "name": "detail_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "id": "2eORQ",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "windows"
+                },
+                "kxa7U": {
+                  "content": "install-docker",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "qgSMF",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> install-docker",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "1TB4A",
+              "name": "description",
+              "fill": "#6B7280",
+              "content": "// installs docker engine and cli on windows via powershell",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "3Jz9S",
+              "name": "badge_row",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "vdpQB",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "plat_badge",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[windows]"
+                    }
+                  }
+                },
+                {
+                  "id": "0iSQU",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "arch_badge",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[x86_64]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "1sk0n",
+          "name": "detail_body",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "gap": 48,
+          "padding": [
+            48,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "arSzL",
+              "name": "main_col",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Pa26b",
+                  "name": "spec_label",
+                  "fill": "#6B7280",
+                  "content": "// spec",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "LhV7R",
+                  "name": "markdown_content",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lsZX0",
+                      "name": "md_heading",
+                      "fill": "#111111",
+                      "content": "## overview",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XqgtB",
+                      "name": "md_body1",
+                      "fill": "#6B7280",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "this script automates the installation of docker engine and the docker cli on windows systems via powershell. it handles all prerequisites, registry checks, and service configuration.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ntIZi",
+                      "name": "md_h2",
+                      "fill": "#111111",
+                      "content": "## usage",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IXb7N",
+                      "name": "lwsd",
+                      "width": "fill_container",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "id": "uIEFZ",
+                          "type": "ref",
+                          "ref": "IEp6k",
+                          "name": "inline_code",
+                          "width": 600,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#E5E7EB"
+                          },
+                          "descendants": {
+                            "uys23": {
+                              "content": "// powershell"
+                            },
+                            "F50nM": {
+                              "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                              "fill": "#059669"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "wB0Mb",
+                      "name": "md_h3",
+                      "fill": "#111111",
+                      "content": "## notes",
+                      "fontFamily": "JetBrains Mono",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pJRm8",
+                      "name": "md_body2",
+                      "fill": "#6B7280",
+                      "content": "// requires administrator privileges\n// compatible with windows 10 (build 1903+) and windows 11\n// automatically enables hyperv and wsl2 backend",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TupEX",
+              "name": "sidebar",
+              "width": 280,
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iZxxU",
+                  "name": "metadata_card",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "layout": "vertical",
+                  "padding": 20,
+                  "children": [
+                    {
+                      "id": "79gpv",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_platform",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "#E5E7EB"
+                      },
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "platform"
+                        },
+                        "thfjU": {
+                          "content": "windows",
+                          "fill": "#111111"
+                        }
+                      }
+                    },
+                    {
+                      "id": "nkUX5",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_arch",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "#E5E7EB"
+                      },
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "arch"
+                        },
+                        "thfjU": {
+                          "content": "x86_64",
+                          "fill": "#111111"
+                        }
+                      }
+                    },
+                    {
+                      "id": "KckS3",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_distro",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "#E5E7EB"
+                      },
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "shell"
+                        },
+                        "thfjU": {
+                          "content": "powershell",
+                          "fill": "#111111"
+                        }
+                      }
+                    },
+                    {
+                      "id": "MpR9R",
+                      "type": "ref",
+                      "ref": "Fn9B6",
+                      "name": "meta_version",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "#E5E7EB"
+                      },
+                      "descendants": {
+                        "4RAx6": {
+                          "content": "version"
+                        },
+                        "thfjU": {
+                          "content": "2.1.0",
+                          "fill": "#111111"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sq33I",
+                  "name": "deps_card",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HvUn4",
+                      "name": "deps_label",
+                      "fill": "#6B7280",
+                      "content": "// dependencies",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Havwy",
+                      "name": "deps_row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "7dQgS",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_curl",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[curl]"
+                            }
+                          }
+                        },
+                        {
+                          "id": "R5Rt3",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_winget",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[winget]"
+                            }
+                          }
+                        },
+                        {
+                          "id": "jOe1U",
+                          "type": "ref",
+                          "ref": "LUjW3",
+                          "name": "dep_psv5",
+                          "descendants": {
+                            "z9217": {
+                              "content": "[powershell 5+]"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "x2YAL",
+          "type": "ref",
+          "ref": "QhPVI",
+          "name": "footer",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "3doEv",
+      "x": 3900,
+      "y": 0,
+      "name": "lm_homepage_mobile",
+      "width": 390,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "YO1A6",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Lzghf",
+              "name": "logo",
+              "fill": "#111111",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "VKQGH",
+              "name": "gh2",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ln7Pb",
+          "name": "hero",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            48,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "dJFFP",
+              "name": "badge",
+              "fill": "#6B7280",
+              "content": "// cross-platform script management",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "PpzKj",
+              "name": "headline",
+              "fill": "#111111",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 32,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "Mxtvy",
+              "name": "subheadline",
+              "fill": "#6B7280",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "install, manage, and run scripts across all platforms with one command.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "qX5Uk",
+              "type": "ref",
+              "ref": "IEp6k",
+              "name": "code_win",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "uys23": {
+                  "content": "// detected: windows"
+                },
+                "F50nM": {
+                  "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                  "fill": "#059669"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "idtbu",
+              "name": "note",
+              "fill": "#6B7280",
+              "content": "// not on windows? → select your platform below",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DWldl",
+          "name": "platforms_section",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            40,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "QhrhW",
+              "name": "section_label",
+              "fill": "#6B7280",
+              "content": "// platforms",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "jIBrM",
+              "name": "platforms_heading",
+              "fill": "#111111",
+              "content": "> browse by platform",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "id": "Vhorh",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_windows",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "bUKKl": {
+                  "content": "C:\\"
+                },
+                "58BRW": {
+                  "content": "windows",
+                  "fill": "#111111"
+                },
+                "06Sqn": {
+                  "content": "// powershell & cmd scripts for windows"
+                },
+                "YJtpP": {
+                  "fill": "#059669"
+                }
+              }
+            },
+            {
+              "id": "yMYcj",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_linux",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "bUKKl": {
+                  "content": "$"
+                },
+                "58BRW": {
+                  "content": "linux",
+                  "fill": "#111111"
+                },
+                "06Sqn": {
+                  "content": "// bash & shell scripts for linux"
+                },
+                "YJtpP": {
+                  "fill": "#059669"
+                }
+              }
+            },
+            {
+              "id": "7UMP6",
+              "type": "ref",
+              "ref": "83vWD",
+              "name": "card_macos",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "bUKKl": {
+                  "content": "%"
+                },
+                "58BRW": {
+                  "content": "macos",
+                  "fill": "#111111"
+                },
+                "06Sqn": {
+                  "content": "// zsh & shell scripts for macos"
+                },
+                "YJtpP": {
+                  "fill": "#059669"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ag0is",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "YiTde",
+              "name": "brand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "AHpUH",
+              "name": "footer_links",
+              "width": "fill_container",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "58kUF",
+                  "name": "mft_l3",
+                  "fill": "#6B7280",
+                  "content": "github",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "XZsRE",
+      "x": 3900,
+      "y": 1492,
+      "name": "lm_platform_listing_mobile",
+      "width": 390,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "7uoLd",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "yitDY",
+              "name": "logo",
+              "fill": "#111111",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "cZeS6",
+              "name": "gh4",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "vey9A",
+          "name": "page_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "id": "Du2YA",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "scripts"
+                },
+                "kxa7U": {
+                  "content": "windows",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "OLCDn",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> windows scripts",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "id": "W85Qv",
+              "type": "ref",
+              "ref": "IEp6k",
+              "width": "fill_container",
+              "name": "mobCodeLight",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "uys23": {
+                  "content": "// install all windows scripts"
+                },
+                "F50nM": {
+                  "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                  "fill": "#059669"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "KKz0Z",
+              "name": "arch_filter",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sF3AE",
+                  "fill": "#6B7280",
+                  "content": "// arch:",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "IIRKW",
+                  "name": "la6",
+                  "fill": "#6B7280",
+                  "content": "[any]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "HdZTs",
+                  "fill": "#059669",
+                  "content": "[x86_64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "IHCT4",
+                  "fill": "#6B7280",
+                  "content": "[arm64]",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "J8DpJ",
+              "name": "count",
+              "fill": "#6B7280",
+              "content": "// 12 scripts available",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dtJgb",
+          "name": "script_list",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "padding": 24,
+          "children": [
+            {
+              "id": "sEPhE",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row1",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-docker",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs docker engine and cli"
+                }
+              }
+            },
+            {
+              "id": "kycTV",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row2",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-nodejs",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs node.js lts via nvm"
+                }
+              }
+            },
+            {
+              "id": "nQYHB",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row3",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "setup-wsl2",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// configures windows subsystem for linux"
+                }
+              }
+            },
+            {
+              "id": "cyoIs",
+              "type": "ref",
+              "ref": "gAmQi",
+              "name": "row4",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "3E7rb": {
+                  "content": "install-git",
+                  "fill": "#111111"
+                },
+                "SxmRP": {
+                  "content": "// installs git with default config"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "e9kuU",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "2f7cQ",
+              "name": "brand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Z5Wzq",
+      "x": 3900,
+      "y": 2450,
+      "name": "lm_script_detail_mobile",
+      "width": 390,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "t0va0",
+          "name": "mobile_nav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "j5xdL",
+              "name": "logo",
+              "fill": "#111111",
+              "content": "> scriptor",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 14,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "hhLAl",
+              "name": "gh6",
+              "fill": "#6B7280",
+              "content": "github",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "83ZFv",
+          "name": "detail_header",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "id": "ujz2a",
+              "type": "ref",
+              "ref": "uYndP",
+              "name": "breadcrumb",
+              "descendants": {
+                "6ZRgN": {
+                  "content": "windows"
+                },
+                "kxa7U": {
+                  "content": "install-docker",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "baLA8",
+              "name": "heading",
+              "fill": "#111111",
+              "content": "> install-docker",
+              "fontFamily": "JetBrains Mono",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "d808E",
+              "name": "description",
+              "fill": "#6B7280",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "// installs docker engine and cli on windows via powershell",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "zZIKF",
+              "name": "badge_row",
+              "gap": 8,
+              "children": [
+                {
+                  "id": "8BxpA",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "msd_pb",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[windows]"
+                    }
+                  }
+                },
+                {
+                  "id": "1cXav",
+                  "type": "ref",
+                  "ref": "u1PM6",
+                  "name": "msd_ab",
+                  "descendants": {
+                    "QGtK1": {
+                      "content": "[x86_64]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K1PC8",
+          "name": "metadata_card",
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "bottom": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "padding": [
+            20,
+            24
+          ],
+          "children": [
+            {
+              "id": "y5CSv",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_platform",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "4RAx6": {
+                  "content": "platform"
+                },
+                "thfjU": {
+                  "content": "windows",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "id": "S9Kw0",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_arch",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "4RAx6": {
+                  "content": "arch"
+                },
+                "thfjU": {
+                  "content": "x86_64",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "id": "QCZVQ",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_shell",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "4RAx6": {
+                  "content": "shell"
+                },
+                "thfjU": {
+                  "content": "powershell",
+                  "fill": "#111111"
+                }
+              }
+            },
+            {
+              "id": "ctuPd",
+              "type": "ref",
+              "ref": "Fn9B6",
+              "name": "meta_ver",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E7EB"
+              },
+              "descendants": {
+                "4RAx6": {
+                  "content": "version"
+                },
+                "thfjU": {
+                  "content": "2.1.0",
+                  "fill": "#111111"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Ypp63",
+          "name": "markdown_body",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "2qc3g",
+              "name": "spec_label",
+              "fill": "#6B7280",
+              "content": "// spec",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "YnCTu",
+              "name": "md_content",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "v9xe3",
+                  "name": "msd_mh1",
+                  "fill": "#111111",
+                  "content": "## overview",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "xPANx",
+                  "name": "msd_mp1",
+                  "fill": "#6B7280",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "this script automates installation of docker engine on windows systems via powershell with all prerequisites handled.",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "KMCN8",
+                  "name": "msd_mh2",
+                  "fill": "#111111",
+                  "content": "## usage",
+                  "fontFamily": "JetBrains Mono",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "id": "NiKam",
+                  "type": "ref",
+                  "ref": "IEp6k",
+                  "name": "code_block",
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "descendants": {
+                    "uys23": {
+                      "content": "// powershell"
+                    },
+                    "F50nM": {
+                      "content": "$ irm https://scriptor.dev/install.ps1 | iex",
+                      "fill": "#059669"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "8u8YA",
+          "name": "deps_section",
+          "width": "fill_container",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            20,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "3URAt",
+              "name": "deps_label",
+              "fill": "#6B7280",
+              "content": "// dependencies",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Chns8",
+              "name": "deps_row",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "id": "Rr8Ji",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d1",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[curl]"
+                    }
+                  }
+                },
+                {
+                  "id": "g23Id",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d2",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[winget]"
+                    }
+                  }
+                },
+                {
+                  "id": "GgvIz",
+                  "type": "ref",
+                  "ref": "LUjW3",
+                  "name": "msd_d3",
+                  "descendants": {
+                    "z9217": {
+                      "content": "[powershell 5+]"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zMSWG",
+          "name": "mobile_footer",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#E5E7EB"
+          },
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            32,
+            24
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "h74n6",
+              "name": "msd_fbrand",
+              "fill": "#6B7280",
+              "content": "> scriptor // manage your scripts",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "color-accent-amber": {
+      "type": "color",
+      "value": "#F59E0B"
+    },
+    "color-accent-cyan": {
+      "type": "color",
+      "value": "#06B6D4"
+    },
+    "color-accent-green": {
+      "type": "color",
+      "value": "#10B981"
+    },
+    "color-bg": {
+      "type": "color",
+      "value": "#0A0A0A"
+    },
+    "color-border": {
+      "type": "color",
+      "value": "#2a2a2a"
+    },
+    "color-text-primary": {
+      "type": "color",
+      "value": "#FAFAFA"
+    },
+    "color-text-secondary": {
+      "type": "color",
+      "value": "#6B7280"
+    }
+  }
+}
