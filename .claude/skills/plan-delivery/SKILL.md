@@ -20,12 +20,13 @@ Reads `FunctionalRequirements.md` and `tech-standards.md` for the current phase 
 
 ### Step 2 — Read Requirements
 
-Load both documents before generating any tasks:
+Load all available requirement documents before generating any tasks:
 
 1. Read `spec/phase{N}/FunctionalRequirements.md`
 2. Read `spec/phase{N}/tech-standards.md`
+3. If `spec/phase{N}/UX.requirements.md` exists, read it too
 
-Do not proceed until both files have been read in full.
+Do not proceed until all available files have been read in full.
 
 ### Step 3 — Read Prior Art
 
@@ -77,7 +78,7 @@ Order tasks so dependencies come first:
 3. **Leaf-node services** — modules with no dependencies on other custom modules (parsers, validators, pure utilities)
 4. **Dependent modules** — modules that import from leaf services
 5. **Integration points** — where modules connect (coordinators, orchestrators)
-6. **TUI / UI layers** — depend on business logic being complete
+6. **TUI / UI layers** — depend on business logic being complete; within UI, create reusable components before pages that compose them
 7. **CI/CD and release pipeline** — last, after everything else works
 
 When two tasks are at the same dependency level, order by functional risk: higher-risk (more unknowns) first.
@@ -119,4 +120,5 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 | Forgetting to reference FRs | Include `FR-{N}-NNN` in descriptions |
 | Ordering by feature area instead of dependency | Order by what each module imports, not by topic |
 | Skipping Step 3 (prior art) | Prior phase tasks reveal naming conventions and pitfalls |
-| Writing tasks before reading both requirement docs | Always read both docs fully before generating tasks |
+| Writing tasks before reading both requirement docs | Always read all available docs (including UX.requirements.md) fully before generating tasks |
+| Creating pages before reusable UI components | Components must come first; pages compose them |

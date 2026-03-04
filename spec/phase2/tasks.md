@@ -6,191 +6,259 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Web Project Scaffolding & Tooling
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Initialize the `web/` Next.js project and configure all tooling before any feature work begins. Establishes the foundation for the entire Phase 2 website (referenced by all subsequent tasks).
+Initialize the Bun/Next.js project in `web/` and configure all tooling before feature work begins. References FR-2-001 (static site, GitHub Pages hosting).
 
-- Create the `web/` directory at the repository root, peer to `source/`.
-- Bootstrap a Next.js + TypeScript + Tailwind + App Router project via `bunx create-next-app@latest`.
-- Configure `web/next.config.ts`: `output: 'export'`, `basePath: '/Scriptor'`, `trailingSlash: true`, `images.unoptimized: true`.
-- Install Biome in `web/`: add `@biomejs/biome` (dev), create `web/biome.json` matching Phase 1 conventions (tab indent, recommended rules).
-- Install additional dependencies: `react-markdown`, `rehype-highlight`, `highlight.js`, `js-yaml`, `@types/js-yaml`, `@playwright/test`.
-- Configure Playwright: create `web/playwright.config.ts` pointing at `web/playwright/` for test files and targeting the built `web/out/` static export served locally during test runs.
-- Add scripts to `web/package.json`: `dev` → `next dev`, `build` → `next build`, `lint` → `biome check`, `format` → `biome format --write`, `test:e2e` → `playwright test`.
-- Create a minimal `web/app/layout.tsx` with `<html>` and `<body>` wrappers and a placeholder `<title>Scriptor</title>`.
+- Create `web/` at repository root. Run `bun create next-app@latest web --ts --no-eslint --no-tailwind --no-src-dir --app` (or manual equivalent) to generate the Bun/Next.js project.
+- Configure `web/next.config.ts`: `output: 'export'`, `basePath: '/Scriptor'`, `trailingSlash: true`, `images: { unoptimized: true }`.
+- Install runtime deps: `react-markdown`, `rehype-highlight`, `highlight.js`, `js-yaml`.
+- Install dev deps: `@biomejs/biome`, `@playwright/test`.
+- Add Biome config at `web/biome.json` (same tab-indent, recommended rules as Phase 1).
+- Add scripts to `web/package.json`: `dev` → `next dev`, `build` → `next build`, `test:e2e` → `playwright test`, `lint` → `biome check .`, `format` → `biome format --write .`.
+- Create `web/playwright.config.ts` pointing at `playwright/` test directory, webServer pointing at built `out/` served locally.
+- Create directory stubs: `web/app/components/`, `web/lib/`, `web/playwright/`.
+- Create a sample `scriptor.yaml` at the repository root with at least 3 scripts spanning windows, linux (ubuntu), and mac platforms — used by the data layer and Playwright tests.
 
 **TDD Approach:**
-- **RED:** Write `web/playwright/smoke.spec.ts` with a single test asserting the homepage has a `<title>` element containing "Scriptor". The test fails because no pages exist yet.
-- **GREEN:** Confirm the full toolchain works end-to-end: `bun run build` produces `web/out/`, `bun run lint` passes (Biome), and `bun run test:e2e` discovers and executes the smoke test (even if the assertion fails — the goal is infrastructure, not the page content).
-- Cover: project builds without TypeScript errors, Biome passes with zero violations, Playwright test runner discovers test files.
+- **RED:** Write `web/playwright/smoke.spec.ts` that runs `next build` and asserts `web/out/index.html` exists and contains the text `scriptor`.
+- **GREEN:** Complete scaffolding so `bun run build` succeeds and `out/index.html` is generated (can be the default Next.js starter page temporarily).
+- Cover: build succeeds without errors, `out/` directory is produced, Biome check passes.
 
 ---
 
-## Task 2 — YAML Schema Extension, Sample Data & Build-Time Loader
+## Task 2 — Design Tokens, Fonts & Root Layout
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Define TypeScript types for the extended `scriptor.yaml` schema (FR-2-001), create a sample `scriptor.yaml` at the repository root with the new `spec` field, and implement the data loader that all Next.js pages use at build time.
+Define all CSS custom properties from `UX.requirements.md §2–§4` in `app/globals.css` and establish the root layout with JetBrains Mono and IBM Plex Mono fonts loaded via `next/font/google`.
 
-- Define `web/lib/types.ts`: export a `ScriptEntry` interface with fields `id: string`, `name: string`, `description: string`, `spec?: string`, `platform: 'windows' | 'linux' | 'mac'`, `arch: 'x86' | 'arm'`, `distro?: string`, `version?: string`, `script: string`, `dependencies?: string[]`.
-- Create `scriptor.yaml` at the repository root with at least 6 sample entries: at least one Windows, at least two Linux entries (different distros), at least one macOS — and at least two entries with a populated `spec` field (multi-line markdown).
-- Implement `web/lib/loadScripts.ts`: reads `../scriptor.yaml` relative to `web/` using `Bun.file()`, parses with `js-yaml`, returns a typed `ScriptEntry[]`.
-- Export helper functions: `getScriptsByPlatform(platform: string): ScriptEntry[]`, `getScriptById(id: string): ScriptEntry | undefined`, `getAllScriptIds(): string[]`.
+- `web/app/globals.css`: define all color tokens (`--color-bg`, `--color-surface`, `--color-border`, `--color-text-primary`, `--color-text-muted`, `--color-accent`), typography tokens (`--text-hero`, `--text-h1`, …, `--text-script-name`), and spacing tokens (`--page-max-width`, `--page-px-desktop`, `--page-px-mobile`, `--nav-h`, `--footer-h`, `--gap-*`, etc.) as documented in UX.requirements.md.
+- `web/app/layout.tsx`: import `JetBrains_Mono` and `IBM_Plex_Mono` from `next/font/google`, apply both as CSS variables on `<html>`. Import `globals.css`. Include `<meta name="viewport" content="width=device-width, initial-scale=1">`.
+- Remove or replace the default Next.js starter styles.
+
+**Verify against design:** Use `mcp__pencil__batch_get({ filePath: "ui/Variant1.pen", nodeIds: ["oZMJy", "NV4xD", "dkIKB"], readDepth: 2 })` to confirm token values match the `fill`, `fontSize`, `fontFamily`, and `stroke` properties on the light-mode component refs.
 
 **TDD Approach:**
-- **RED:** Write `web/lib/loadScripts.test.ts` using `bun test`. Tests assert: `loadScripts()` returns a non-empty array of `ScriptEntry` objects, `getScriptsByPlatform('linux')` returns only entries with `platform === 'linux'`, `getScriptById('install-docker')` returns the expected entry, `getScriptById('nonexistent')` returns `undefined`, an entry with a `spec` field has it preserved as a string. All tests fail because loader and YAML don't exist yet.
-- **GREEN:** Create `scriptor.yaml` and implement the loader to make all tests pass.
-- Cover: correct parsing of all fields including optional `spec`, platform filtering returns correct subset, id lookup is exact match, missing optional fields are `undefined` not missing keys, `getAllScriptIds()` returns IDs for every entry.
-
-**Implementation Notes:**
-- `web/lib/types.ts` — `ScriptEntry` interface with all required and optional fields.
-- `scriptor.yaml` extended to 12 entries: 2 Windows, 8 Linux (Debian + Ubuntu), 2 macOS; 2 entries (`install-docker`, `install-bun`) have multi-line markdown `spec` fields.
-- `web/lib/loadScripts.ts` — async loader using `Bun.file()` + `js-yaml`; exports `loadScripts()`, `getScriptsByPlatform()`, `getScriptById()`, `getAllScriptIds()`.
-- `web/lib/loadScripts.test.ts` — 12 tests, all passing. `bun run lint` passes with zero violations.
+- **RED:** Write `web/playwright/smoke.spec.ts` (extend existing file) with a test that loads `/` and asserts `getComputedStyle(document.body).getPropertyValue('--color-accent')` equals `#059669`, and that `document.body` uses a monospace font family.
+- **GREEN:** Implement globals.css and layout.tsx so the tokens and fonts are applied.
+- Cover: all 6 color tokens present, JetBrains Mono and IBM Plex Mono loaded.
 
 ---
 
-## Task 3 — Homepage: Hero Section & Platform Navigation Cards
+## Task 3 — Data Layer: Types & Script Loader
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Build the homepage server component (`app/page.tsx`) with a hero/welcome section and three platform navigation cards (FR-2-003). The install command component is a placeholder here and will be replaced in Task 4.
+Define TypeScript types for the `scriptor.yaml` schema (extended with `spec` field per FR-2-001) and implement a `loadScripts()` function that reads and parses the manifest at build time.
 
-- Create `web/app/page.tsx` as a server component (no `'use client'`).
-- Render a hero section: Scriptor name as an `<h1>`, a one-sentence tagline describing what Scriptor does.
-- Render three platform navigation cards — Windows, Linux, macOS — each as an `<a>` (or Next.js `<Link>`) pointing to `/scripts/windows`, `/scripts/linux`, `/scripts/mac` respectively.
-- Render a `<div data-testid="install-command">` placeholder in the hero area (will hold the real component in Task 4).
-- Apply Tailwind utility classes for a responsive layout (stacked on mobile, side-by-side cards on desktop).
+- `web/lib/types.ts`: export `Script` interface with fields: `id`, `name`, `description`, `spec` (optional string), `platform` (`'windows' | 'linux' | 'mac'`), `arch` (`'x86' | 'arm'`), `distro` (optional string), `version` (optional string), `dependencies` (optional `string[]`), `script` (string).
+- `web/lib/loadScripts.ts`: export `loadScripts(): Script[]` that reads `../scriptor.yaml` via `Bun.file`, parses with `js-yaml`, validates and returns typed entries. Export `getScriptsByPlatform(platform: Script['platform']): Script[]`. Export `getScriptById(id: string): Script | undefined`.
+- `web/lib/loadScripts.test.ts`: unit tests using a fixture YAML string (not the real file).
 
 **TDD Approach:**
-- **RED:** Write `web/playwright/homepage.spec.ts` with tests asserting: (1) the page has an `<h1>` containing "Scriptor", (2) exactly three platform cards are present, (3) the Windows card `href` ends with `/scripts/windows`, the Linux card ends with `/scripts/linux`, the macOS card ends with `/scripts/mac`, (4) a `[data-testid="install-command"]` element is present. Tests fail because the page doesn't exist.
-- **GREEN:** Implement `app/page.tsx` to make all tests pass.
-- Cover: heading text, three cards with correct hrefs (accounting for `basePath: '/Scriptor'`), install command placeholder present, page renders without hydration errors.
-
-**Implementation Notes:**
-- `web/app/page.tsx` — server component with `<h1>Scriptor</h1>`, tagline `<p>`, `<div data-testid="install-command">` placeholder, and three Next.js `<Link>` cards with `data-testid="platform-card-{platform}"` targeting `/scripts/windows`, `/scripts/linux`, `/scripts/mac`. Tailwind grid (`grid-cols-1 sm:grid-cols-3`) for responsive layout.
-- `web/playwright/homepage.spec.ts` — 6 tests all passing: h1 text, card count (3), card hrefs (using `data-testid^='platform-card-'` prefix selector accounting for basePath), install-command placeholder attached.
-- `web/lib/loadScripts.ts` — migrated from `Bun.file()` to `node:fs/promises` `readFile()` so the Next.js TypeScript build succeeds (no `bun-types` in web project).
-- `web/.gitignore` — added `/test-results` and `/playwright-report` so Biome VCS integration excludes generated Playwright artifacts from lint checks.
-- All 7 Playwright E2E tests pass; all 12 unit tests pass; `bun run lint` passes with zero violations.
+- **RED:** Write `web/lib/loadScripts.test.ts` with failing tests using `bun test`: (1) parses valid YAML and returns a typed Script array, (2) `getScriptsByPlatform('linux')` returns only linux entries, (3) `getScriptById('install-docker')` finds the correct entry, (4) missing optional fields default to `undefined`, (5) returns empty array when no scripts match.
+- **GREEN:** Implement `loadScripts.ts` to make all tests pass.
+- Cover: all 5 scenarios above; `bun run lint` passes.
 
 ---
 
-## Task 4 — OS-Detected Install Command Component
+## Task 4 — Atom Components: ArchBadge & DependencyTag
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Build the `InstallCommand` client component (FR-2-002) that detects the visitor's OS via `navigator.userAgent` and surfaces the appropriate command (PowerShell on Windows, Bash otherwise) in a styled code block with a one-click copy button. Replaces the placeholder from Task 3.
+Implement the two smallest badge components. Both are static (no interactivity) and share the same visual spec: IBM Plex Mono 11px, `--color-text-muted`, padding `[4px, 6px]`.
 
-- Create `web/app/components/InstallCommand.tsx` with the `'use client'` directive.
-- Before hydration (SSR), render the Bash command (safe default). After hydration, use `useEffect` to check `navigator.userAgent` for Windows patterns and swap to the PowerShell command if detected.
-- Bash command (verbatim from FR-2-002):
-  ```
-  sudo curl -fsSL "https://github.com/beolson/Scriptor/releases/latest/download/scriptor-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')" -o /usr/local/bin/scriptor && sudo chmod +x /usr/local/bin/scriptor && scriptor
-  ```
-- PowerShell command (verbatim from FR-2-002):
-  ```
-  $tmp = "$env:TEMP\scriptor.exe"; Invoke-WebRequest -Uri "https://github.com/beolson/Scriptor/releases/latest/download/scriptor-windows-x64.exe" -OutFile $tmp; & $tmp
-  ```
-- Render a "Copy" button; on click, call `navigator.clipboard.writeText()` with the current command string and display "Copied!" feedback for 2 seconds.
-- Style the code block as a clearly distinct element (dark background, monospace font, horizontal scroll on overflow).
-- Replace the `[data-testid="install-command"]` placeholder in `web/app/page.tsx` with `<InstallCommand />`.
+- `web/app/components/ArchBadge/ArchBadge.tsx` + `ArchBadge.module.css` — renders `[{arch}]` text. Props: `arch: string`.
+- `web/app/components/DependencyTag/DependencyTag.tsx` + `DependencyTag.module.css` — renders `[{dep}]` text. Props: `dep: string`.
+
+**Verify against design:** `mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "u1PM6" })` for ArchBadge and `nodeId: "LUjW3"` for DependencyTag. Confirm `padding: [4, 6]`, `fontSize: 11`, `fontFamily: "IBM Plex Mono"`, `fill: "#6B7280"`.
 
 **TDD Approach:**
-- **RED:** Add tests to `web/playwright/homepage.spec.ts`: (1) the `[data-testid="install-command"]` element contains a `<code>` or `<pre>` child with non-empty text, (2) a "Copy" button is visible, (3) after clicking "Copy" the text "Copied!" appears within the button or adjacent element, (4) in a browser context with a Windows user agent the displayed command contains "Invoke-WebRequest". Tests fail because the component doesn't exist.
-- **GREEN:** Implement `InstallCommand.tsx` and wire it into `page.tsx` to make all tests pass.
-- Cover: Bash command shown by default (non-Windows UA), Windows UA triggers PowerShell command, copy button visible, "Copied!" feedback appears after click, code block clearly styled.
-
-**Implementation Notes:**
-- `web/app/components/InstallCommand.tsx` — `'use client'` component with `useState(BASH_COMMAND)` as SSR default; `useEffect` checks `/windows/i` against `navigator.userAgent` and calls `setCommand(POWERSHELL_COMMAND)` if matched; `handleCopy` sets `setCopied(true)` immediately (so feedback shows regardless of clipboard permission), then calls `navigator.clipboard.writeText()` in a try/catch; "Copied!" replaces "Copy" on the button for 2 seconds.
-- `web/app/page.tsx` — imports `<InstallCommand />` and replaces the empty `<div data-testid="install-command">` placeholder with the real component.
-- `web/playwright/homepage.spec.ts` — 4 new tests added: code/pre child with non-empty text, Copy button visible, "Copied!" feedback after click, Windows UA shows Invoke-WebRequest. The two client-side tests (`Copied!` feedback and Windows UA) use `page.route("/Scriptor/_next/**", ...)` to rewrite JS asset paths so React hydrates in the static-export test environment (where `bunx serve out/` maps `/_next/` but the HTML references `/Scriptor/_next/`).
-- All 11 Playwright E2E tests pass; `bun run lint` passes with zero violations.
+- **RED:** In `web/playwright/smoke.spec.ts`, add a test that loads the built homepage and asserts an element with `data-testid="arch-badge"` exists and has `font-family` containing `IBM Plex Mono` and computed `font-size` of `11px`. The test fails because the component isn't on the homepage yet.
+- **GREEN:** Implement both components (they'll be integrated in later page tasks; the Playwright test passes once the homepage uses ArchBadge via ScriptRow via the listing pages — final validation happens in Task 10).
+- Cover: correct text format `[x86]` / `[arm]`, correct font/size/color via CSS vars, `data-testid` attributes present.
 
 ---
 
-## Task 5 — Platform Listing Pages
+## Task 5 — Row Components: Breadcrumb, MetadataRow, DistroGroupHeader
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Build the platform listing pages (`/scripts/[platform]/page.tsx`) for Windows, Linux, and macOS (FR-2-004, FR-2-005), generated fully at build time via `generateStaticParams()`.
+Implement three list/row display components used in platform listings and script detail pages.
 
-- Create `web/app/scripts/[platform]/page.tsx` as a server component.
-- Implement `generateStaticParams()` returning `[{ platform: 'windows' }, { platform: 'linux' }, { platform: 'mac' }]`.
-- Call `getScriptsByPlatform(platform)` from the data loader; pass the result to the page UI.
-- For Windows and macOS: display scripts in a flat alphabetically sorted list.
-- For Linux: group scripts by `distro`, render a heading per distro, and sort entries alphabetically by name within each group.
-- For each entry render: script `name` as a Next.js `<Link>` to `/scripts/[id]`, `description`, and an arch badge (text label "x86" or "arm" styled as a small pill/badge).
-- Apply Tailwind utilities for a responsive layout.
+- `web/app/components/Breadcrumb/Breadcrumb.tsx` + `Breadcrumb.module.css` — Props: `segments: Array<{ label: string; href?: string }>`. Renders `home > scripts > active` with `>` separators. Ancestor segments in `--color-text-muted`, active segment in `--color-text-primary`. IBM Plex Mono 12px, gap 6px. Pen node: `kUgWo`.
+- `web/app/components/MetadataRow/MetadataRow.tsx` + `MetadataRow.module.css` — Props: `label: string; value: string`. Bottom border only, padding `[10px, 0]`, space-between. IBM Plex Mono 12px. Pen node: `ItHPc`.
+- `web/app/components/DistroGroupHeader/DistroGroupHeader.tsx` + `DistroGroupHeader.module.css` — Props: `distro: string`. Renders `// {distro}`, IBM Plex Mono 12px, `letter-spacing: 1px`, bottom border, padding `[12px, 0]`. Pen node: `c1v1c`.
+
+**Verify against design:** `mcp__pencil__get_screenshot` for each: `kUgWo`, `ItHPc`, `c1v1c`. Confirm border colors, spacing, text styles match `--color-border` and `--color-text-muted`.
 
 **TDD Approach:**
-- **RED:** Write `web/playwright/listings.spec.ts` with tests: (1) `/scripts/windows` shows only Windows scripts (no Linux or macOS entries), (2) `/scripts/linux` renders at least one distro sub-group heading element, (3) each listing entry contains an arch badge with text "x86" or "arm", (4) clicking a script name navigates to a URL matching `/scripts/[id]`. Tests fail because pages don't exist.
-- **GREEN:** Implement the listing page to make all tests pass.
-- Cover: platform filtering correct, Linux distro grouping present, alphabetical ordering within groups, arch badge visible, entry links navigate to correct detail URL.
-
-**Implementation Notes:**
-- `web/app/scripts/[platform]/page.tsx` — server component with `generateStaticParams()` returning all three platforms; calls `getScriptsByPlatform()` from the data loader; renders `<FlatList>` for Windows/macOS and `<LinuxGroupedList>` for Linux; each `<ScriptItem>` has `data-testid="script-entry"`, an arch badge with `data-testid="arch-badge"`, and a `<Link>` to `/scripts/[id]`; distro headings have `data-testid="distro-heading"`. Tailwind for responsive layout.
-- `web/lib/loadScripts.ts` — updated `YAML_PATH` from `path.resolve(__dirname, ...)` to `path.resolve(process.cwd(), "../scriptor.yaml")` so the path resolves correctly in Next.js prerender workers (which set `__dirname` to `/`).
-- `web/playwright/listings.spec.ts` — 5 tests, all passing: Windows page has no distro headings, Linux page has at least one distro heading, arch badge text is "x86" or "arm", clicking a script link navigates to `/scripts/[id]`, macOS page has no distro headings.
-- All 16 Playwright E2E tests pass; all 12 unit tests pass; `bun run lint` passes with zero violations.
+- **RED:** In `web/playwright/detail.spec.ts`, write a failing test that loads `/scripts/install-docker` and asserts `data-testid="breadcrumb"` is visible, `data-testid="metadata-row"` elements exist, and contain text `platform`. Test fails because the page doesn't exist yet.
+- **GREEN:** Implement all three components. They pass via the detail page task (Task 11); this task just creates the components and verifies lint passes.
+- Cover: breadcrumb renders correct number of segments, MetadataRow has `space-between` layout, DistroGroupHeader has `letter-spacing`.
 
 ---
 
-## Task 6 — Script Detail Page with Markdown Rendering
+## Task 6 — CodeBlock Component
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Build the script detail page (`/scripts/[id]/page.tsx`) that renders the full script specification as markdown and displays all script metadata (FR-2-006).
+Implement the interactive code block component with copy-to-clipboard. This is a `'use client'` component per FR-2-002. Pen node: `NV4xD` (`lm_comp_code_block`).
 
-- Create `web/app/scripts/[id]/page.tsx` as a server component.
-- Implement `generateStaticParams()` calling `getAllScriptIds()` from the data loader.
-- Call `getScriptById(params.id)`; call `notFound()` from `next/navigation` if the id is unknown.
-- Render metadata: `name` as an `<h1>`, `description`, platform, arch badge, `distro` + `version` (Linux only), and `dependencies` as a list of links to `/scripts/[dep-id]`.
-- If `spec` is present, render it with `<ReactMarkdown rehypePlugins={[rehypeHighlight]}>{entry.spec}</ReactMarkdown>`.
-- Import a highlight.js theme globally: add `import 'highlight.js/styles/github.css'` to `web/app/layout.tsx`.
+- `web/app/components/CodeBlock/CodeBlock.tsx` + `CodeBlock.module.css`
+- Props: `language: string` (rendered as `// {language}`); `command: string` (the copyable text).
+- `'use client'` directive — uses `useState` for `[copy]` → `[copied]` toggle (2 s revert via `setTimeout`), `navigator.clipboard.writeText()` on click.
+- Border 1px `--color-border`. Header row: label left (IBM Plex Mono 11px, muted), `[copy]` right (JetBrains Mono 12px, muted). Command: `--color-accent`, JetBrains Mono 13px, `white-space: pre`, `word-break: break-all`.
+- Default width: 400px; apply `width: 600px` via a `wide` prop; `width: 100%` via a `fullWidth` prop.
+
+**Verify against design:** `mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "NV4xD" })`. Confirm border `#E5E7EB`, command text `#059669`, label `11px` IBM Plex Mono, `[copy]` `12px` JetBrains Mono.
 
 **TDD Approach:**
-- **RED:** Write `web/playwright/detail.spec.ts` with tests: (1) `/scripts/install-docker` (or whichever sample Linux entry has a `spec`) has an `<h1>` containing the script name, (2) the arch badge is visible, (3) the rendered spec markdown contains `<h2>` or `<p>` elements (i.e. markdown was converted to HTML), (4) a dependency link is present and its `href` ends with `/scripts/[dep-id]`. Tests fail because the page doesn't exist.
-- **GREEN:** Implement the detail page and add the highlight.js import to `layout.tsx` to make all tests pass.
-- Cover: name heading present, description text rendered, arch badge, spec markdown → HTML (headings, paragraphs, code blocks), dependency links correct, `notFound()` reached for unknown id.
-
-**Implementation Notes:**
-- Merged `web/app/scripts/[platform]/page.tsx` and the new detail page into a single `web/app/scripts/[slug]/page.tsx` to resolve the Next.js "ambiguous app routes" error that occurs when two sibling dynamic segments exist at the same level. The unified route dispatches on slug: if it matches a known platform (`windows`, `linux`, `mac`) it renders `<PlatformListingPage>`; otherwise it looks up by script id and renders `<ScriptDetailContent>`, calling `notFound()` for unknown ids.
-- `generateStaticParams()` emits all three platform slugs plus all script ids returned by `getAllScriptIds()`, resulting in 15 pre-rendered static paths.
-- `<ScriptDetailContent>` renders: `<h1>` name, `<ArchBadge>` with `data-testid="arch-badge"`, description, metadata `<dl>`, dependency `<Link>` list with `data-testid="dependency-link"`, and `<ReactMarkdown rehypePlugins={[rehypeHighlight]}>` inside a `<div data-testid="spec-content">`.
-- `web/app/layout.tsx` — added `import 'highlight.js/styles/github.css'` for syntax highlighting.
-- `web/playwright/detail.spec.ts` — 5 tests, all passing: h1 name, arch badge visible, spec renders `<h2>` elements, dependency link href matches `/scripts/[id]`, 404 for unknown slug.
-- All 21 Playwright E2E tests pass; `bun run lint` passes with zero violations.
+- **RED:** In `web/playwright/homepage.spec.ts`, write a failing test that loads `/` and: (1) finds `data-testid="code-block"`, (2) clicks `[copy]`, (3) asserts the label changes to `[copied]`, (4) waits 2.5 s and asserts it reverts to `[copy]`. Test fails because the homepage doesn't use CodeBlock yet.
+- **GREEN:** Implement `CodeBlock.tsx` and integrate it into the homepage (Task 9 will finalize, but the component itself is complete here).
+- Cover: copy button state toggle, clipboard API called with command text, revert after 2 s.
 
 ---
 
-## Task 7 — GitHub Actions Build-and-Deploy Pipeline
+## Task 7 — ScriptRow & PlatformCard Components
 
-**Status:** complete
+**Status:** not started
 
 **Description:**
-Create the GitHub Actions workflow that builds the static site, runs Biome and Playwright, and deploys to GitHub Pages on every push to `main` that touches `web/**` or `scriptor.yaml` (FR-2-001, Constraints).
+Implement the two card/row components used in platform listing pages. Both use `ArchBadge` from Task 4.
 
-- Create `.github/workflows/deploy-web.yml`.
-- Triggers: `push` to `main` filtered to paths `web/**` and `scriptor.yaml`.
-- `build` job: check out repo, install Bun, run `bun install` inside `web/`, run `bun run lint` (Biome — fail on violations), run `bun run build`, upload `web/out/` as a GitHub Pages artifact via `actions/upload-pages-artifact`.
-- `test` job (depends on `build`): serve `web/out/` with a local static server (`bunx serve web/out/ -p 3000`), run `bun run test:e2e` via Playwright against `http://localhost:3000/Scriptor`.
-- `deploy` job: depends on both `build` and `test`; uses `actions/deploy-pages` to publish the artifact.
-- Set `permissions: pages: write` and `id-token: write` on the deploy job for OIDC-based Pages deployment.
-- Set `concurrency` group on the deploy job to prevent overlapping deployments.
+- `web/app/components/ScriptRow/ScriptRow.tsx` + `ScriptRow.module.css` — Props: `name: string; description: string; arch: string; href: string`. Full-width, bottom border only, space-between, padding `[16px, 0]`, gap 16px. Left column: name (JetBrains Mono 14px weight 500, `--color-text-primary`), description prefixed `//` (IBM Plex Mono 12px, `--color-text-muted`). Right: `<ArchBadge>` + `>>` arrow. Entire row links to `href`. Pen node: `P8pAa`.
+- `web/app/components/PlatformCard/PlatformCard.tsx` + `PlatformCard.module.css` — Props: `prompt: string; name: string; description: string; href: string`. Width 300px desktop / 100% mobile. Border 1px `--color-border`, vertical layout, gap 12px, padding 24px. Prompt (JetBrains Mono 12px, muted), name (JetBrains Mono 18px bold, primary), description (IBM Plex Mono 13px, muted, fixed-width). `> view scripts` link in `--color-accent`. Entire card links to `href`. Pen node: `dkIKB`.
+
+**Verify against design:** `mcp__pencil__get_screenshot` for `P8pAa` and `dkIKB`. Confirm border, spacing, font sizes, and `--color-accent` on `> view scripts`.
 
 **TDD Approach:**
-- **RED:** Write `web/lib/workflow.test.ts` using `bun test`. Parse `.github/workflows/deploy-web.yml` with `js-yaml` and assert: the `on.push.paths` array includes `'scriptor.yaml'` and `'web/**'`, at least one step contains `bun run build`, at least one step references `actions/deploy-pages`, at least one step references `bun run lint`. Test fails because the file doesn't exist.
-- **GREEN:** Create the workflow file to make all assertions pass.
-- Cover: trigger paths include `scriptor.yaml`, Biome lint step present, build step produces artifact, deploy step uses deploy-pages action, deploy depends on both build and test jobs.
+- **RED:** In `web/playwright/listings.spec.ts`, write a failing test that loads `/scripts/windows`, finds `data-testid="script-row"` elements, and asserts the first row contains a script name and a `>>` arrow. Test fails because the page doesn't exist.
+- **GREEN:** Implement `ScriptRow.tsx` and `PlatformCard.tsx`. Full Playwright validation happens in Task 10.
+- Cover: ScriptRow renders name + description + badge + arrow, PlatformCard renders prompt + name + description + link.
 
-**Implementation Notes:**
-- `.github/workflows/deploy-web.yml` — three-job workflow: `build` (lint + build + upload artifact), `test` (download artifact, serve with `bunx serve`, run Playwright), `deploy` (OIDC-based Pages deploy via `actions/deploy-pages@v4`). Trigger path filter covers `web/**` and `scriptor.yaml`. `deploy` job has `concurrency` group `pages-deploy` and `permissions: pages: write, id-token: write`.
-- `web/lib/workflow.test.ts` — 6 tests using `bun test` + `js-yaml`: trigger paths contain `scriptor.yaml` and `web/**`, a step runs `bun run build`, a step runs `bun run lint`, a step uses `actions/deploy-pages`, deploy job has `needs` referencing another job. All 6 tests pass.
-- `bun test lib/` — 18 pass, 0 fail. `bun run lint` — zero violations.
+---
+
+## Task 8 — NavBar & Footer Components
+
+**Status:** not started
+
+**Description:**
+Implement the global layout chrome components used on every page. Pen nodes: `oZMJy` (NavBar), `5Bddv` (Footer).
+
+- `web/app/components/NavBar/NavBar.tsx` + `NavBar.module.css` — Full-width, 56px height, sticky, `--color-bg` background, bottom border `--color-border`. Left: `> scriptor` (JetBrains Mono 16px bold, `--color-text-primary`). Right: `github` link (JetBrains Mono 13px, `--color-text-muted`). Horizontal padding: 120px desktop / 24px mobile.
+- `web/app/components/Footer/Footer.tsx` + `Footer.module.css` — Full-width, 80px height desktop (auto mobile). Top border `--color-border`, `--color-bg`. Left: `> scriptor // manage your scripts` (IBM Plex Mono 13px, muted). Right: `github` link (JetBrains Mono 12px, muted). Mobile: vertical layout, padding `[32px, 24px]`.
+
+**Verify against design:** `mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "oZMJy" })` and `nodeId: "5Bddv"`. Confirm fill `#FFFFFF`, stroke `#E5E7EB`, logo text color `#111111`.
+
+**TDD Approach:**
+- **RED:** In `web/playwright/smoke.spec.ts`, add tests that load `/` and assert `data-testid="navbar"` is visible with text `> scriptor`, and `data-testid="footer"` is visible with text `manage your scripts`. Tests fail because the homepage doesn't compose these components yet.
+- **GREEN:** Implement `NavBar.tsx` and `Footer.tsx`. Integrate into `app/layout.tsx` so both appear on every page.
+- Cover: NavBar is sticky (position fixed/sticky), Footer `github` link is present, mobile layout switches to vertical at 768px.
+
+---
+
+## Task 9 — Homepage (`/`)
+
+**Status:** not started
+
+**Description:**
+Implement the homepage at `/`. Server component hosts static content; a `'use client'` `InstallCommand` subcomponent handles OS detection (FR-2-002, FR-2-003). Pen nodes: desktop `kIl3i`, mobile `gVj9a`.
+
+- `web/app/page.tsx` — server component. Renders: hero section (badge, headline `> scriptor`, subheadline), `<InstallCommand />`, note text, platforms section (label, heading `> browse by platform`, 3 `<PlatformCard>` components linking to `/Scriptor/scripts/windows|linux|mac`).
+- `web/app/components/InstallCommand/InstallCommand.tsx` — `'use client'`. Reads `navigator.userAgent` on mount. Windows → PowerShell command; all others → Bash command (exact strings from FR-2-002). Renders `<CodeBlock wide language="// detected: windows|linux" command="..." />`.
+- Default (SSR): render the Bash command (prevents hydration mismatch; swap after mount).
+- Hero padding: `[80px, 120px]` desktop / `[48px, 24px]` mobile. Platforms section: `[60px, 120px]` desktop / `[40px, 24px]` mobile.
+
+**Verify against design:**
+```
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "kIl3i" })   // desktop
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "gVj9a" })   // mobile
+```
+Confirm hero gap 32px desktop / 24px mobile, platform cards 3-column desktop / stacked mobile.
+
+**TDD Approach:**
+- **RED:** In `web/playwright/homepage.spec.ts`, write failing tests: (1) hero headline `> scriptor` is visible; (2) CodeBlock shows a command string; (3) clicking `[copy]` changes label to `[copied]`; (4) three platform cards are visible with titles `windows`, `linux`, `macos`; (5) clicking the Windows card navigates to `/Scriptor/scripts/windows`.
+- **GREEN:** Implement `app/page.tsx` and `InstallCommand.tsx` composing all previous components.
+- Cover: all 5 scenarios above; mobile layout at 390px viewport shows stacked platform cards.
+
+---
+
+## Task 10 — Platform Listing Pages (`/scripts/windows|linux|mac`)
+
+**Status:** not started
+
+**Description:**
+Implement the three platform listing pages reading `scriptor.yaml` at build time (FR-2-001, FR-2-004, FR-2-005). Pen nodes: desktop `8PTul` (Windows), `576mM` (Linux), `M9XtD` (macOS); mobile `Ox3IY`.
+
+- `web/app/scripts/windows/page.tsx` — Server component. Calls `getScriptsByPlatform('windows')`. Renders: NavBar (via layout), Breadcrumb (`home > scripts > windows`), heading `> windows scripts`, `<CodeBlock wide>` with Windows install command, arch filter tabs (static display), script count, ScriptRows sorted alphabetically, Footer (via layout).
+- `web/app/scripts/linux/page.tsx` — Same structure. Groups scripts by `distro`, renders `<DistroGroupHeader>` before each group. Shows distro and version filter tabs (FR-2-004 Linux sub-grouping). Pen nodes: `cvp9b` (page header), `O3L96` (script list).
+- `web/app/scripts/mac/page.tsx` — Same structure, macOS scripts only. Pen node: `M9XtD`.
+- All three pages: `data-testid="platform-header"`, `data-testid="script-list"`.
+
+**Verify against design:**
+```
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "8PTul" })
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "576mM" })
+mcp__pencil__snapshot_layout({ filePath: "ui/Variant1.pen", parentId: "576mM", maxDepth: 3 })
+```
+Confirm Linux page has distro group headers, arch/distro/version filter rows.
+
+**TDD Approach:**
+- **RED:** In `web/playwright/listings.spec.ts`, write failing tests: (1) `/scripts/windows` shows heading `> windows scripts` and at least one `data-testid="script-row"`; (2) `/scripts/linux` has at least one `data-testid="distro-group-header"`; (3) clicking a ScriptRow navigates to `/scripts/{id}`; (4) Breadcrumb shows `home > scripts > windows`.
+- **GREEN:** Implement all three platform pages composing `getScriptsByPlatform`, `Breadcrumb`, `CodeBlock`, `DistroGroupHeader` (Linux only), and `ScriptRow`.
+- Cover: all 4 scenarios; scripts sorted alphabetically within groups; script count text visible.
+
+---
+
+## Task 11 — Script Detail Page (`/scripts/[id]`)
+
+**Status:** not started
+
+**Description:**
+Implement the script detail page at `/scripts/[id]` (FR-2-001, FR-2-006). Pen nodes: desktop `rK8aO`, mobile `dWPZd`.
+
+- `web/app/scripts/[id]/page.tsx` — `generateStaticParams()` returns all script IDs from `loadScripts()`. `getScriptById(id)` fetches the script or `notFound()`. Renders:
+  - `detail_header`: Breadcrumb (`home > {platform} > {id}`), heading `> {id}` (28px desktop / 22px mobile), description (IBM Plex Mono 16px, muted), badge row (`<ArchBadge>` for platform and arch).
+  - `detail_body` (2-column desktop, stacked mobile): `main_col` with `// spec` label and `<ReactMarkdown>` rendering the `spec` field; `sidebar` with `metadata_card` (`<MetadataRow>` for platform/arch/shell/version) and `deps_card` (`<DependencyTag>` per dependency).
+- Install `react-markdown` and `rehype-highlight`; import a Highlight.js CSS theme globally in `app/layout.tsx`.
+- `detail_body` horizontal layout: gap 48px desktop, stacked mobile. `sidebar` width: 280px desktop.
+
+**Verify against design:**
+```
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "rK8aO" })   // desktop
+mcp__pencil__get_screenshot({ filePath: "ui/Variant1.pen", nodeId: "dWPZd" })   // mobile
+mcp__pencil__batch_get({ filePath: "ui/Variant1.pen", nodeIds: ["jfP70", "7ByTR", "pi34T"], readDepth: 3 })
+```
+Confirm sidebar 280px, deps_card gap 12px, metadata_card padding 20px.
+
+**TDD Approach:**
+- **RED:** In `web/playwright/detail.spec.ts`, write failing tests: (1) `/scripts/install-docker` shows heading `> install-docker`; (2) `data-testid="metadata-row"` elements present; (3) `data-testid="arch-badge"` present; (4) `data-testid="spec-content"` contains rendered markdown (at least one `<p>` or `<h2>`); (5) `data-testid="deps-card"` lists at least one dependency tag.
+- **GREEN:** Implement `app/scripts/[id]/page.tsx` composing Breadcrumb, ArchBadge, DependencyTag, MetadataRow, and ReactMarkdown.
+- Cover: all 5 scenarios; missing `spec` field shows empty markdown section without errors; 404 for unknown id.
+
+---
+
+## Task 12 — GitHub Actions CI/CD Pipeline
+
+**Status:** not started
+
+**Description:**
+Implement the deploy workflow so every push to `main` builds and deploys the site to GitHub Pages (FR-2-001 "rebuilt whenever scriptor.yaml changes").
+
+- `.github/workflows/deploy.yml`: trigger on `push` to `main` and on changes to `scriptor.yaml`.
+- Steps: checkout, setup Bun, `cd web && bun install`, `bun run lint`, `bun run build`, `bunx playwright install --with-deps`, serve `out/` locally, `bun run test:e2e`, upload `out/` as pages artifact, deploy to GitHub Pages.
+- Required permissions: `pages: write`, `id-token: write`.
+- Use `actions/configure-pages`, `actions/upload-pages-artifact`, `actions/deploy-pages`.
+
+**TDD Approach:**
+- **RED:** Push a branch with the workflow file and a deliberate lint error; assert the CI job fails on the lint step. Fix the lint error; assert the job proceeds to build.
+- **GREEN:** Implement the full workflow YAML. Confirm on a test push that all steps pass and the site is reachable at `beolson.github.io/Scriptor`.
+- Cover: lint failure blocks deploy, Playwright test failure blocks deploy, successful run deploys to Pages.

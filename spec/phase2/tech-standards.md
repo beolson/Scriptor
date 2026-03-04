@@ -29,7 +29,6 @@ _Living document. Updated via Q&A elicitation. Last updated: 2026-03-02._
 └── web/                   ← Phase 2 Next.js website project
     ├── package.json
     ├── next.config.ts
-    ├── tailwind.config.ts
     ├── app/
     │   ├── page.tsx       ← / (homepage)
     │   ├── scripts/
@@ -49,14 +48,13 @@ _Living document. Updated via Q&A elicitation. Last updated: 2026-03-02._
 |---|---|---|
 | `next` | latest stable | Static site framework |
 | `react` / `react-dom` | latest stable (React 19) | UI rendering |
-| `tailwindcss` | latest stable | Utility-first CSS |
 | `react-markdown` | latest stable | Render `spec` field as markdown |
 | `rehype-highlight` | latest stable | Syntax highlighting for code blocks in markdown |
 | `highlight.js` | latest stable | Highlight.js core (peer dep of rehype-highlight) |
 | `js-yaml` | ^4 (inherited) | Parse `scriptor.yaml` at build time |
 | `@playwright/test` | latest stable | E2E testing |
 
-No UI component library — all components are custom, built with Tailwind utilities.
+No UI component library — all components are custom, styled with CSS Modules.
 
 ---
 
@@ -83,10 +81,10 @@ No UI component library — all components are custom, built with Tailwind utili
 
 ## Styling
 
-- **Tailwind CSS** — utility-first, no runtime overhead.
-- No UI component library. All interactive elements (copy button, nav cards, badges) are custom Tailwind components.
-- Site must be **responsive** (usable on mobile and desktop).
-- The install command block is styled as a clearly distinct copyable code element.
+- **CSS Modules** — one `.module.css` file per component/page; no global utility classes.
+- All design tokens (colors, type sizes, spacing) are defined as CSS custom properties in `app/globals.css` and consumed via `var()` inside module files.
+- No UI component library. All interactive elements (copy button, nav, cards, badges) are custom components styled with CSS Modules.
+- Site must be **responsive** (usable on mobile and desktop). Media queries live in each component's `.module.css` file; the shared breakpoint (`768px`) is documented in the UX requirements.
 
 ---
 

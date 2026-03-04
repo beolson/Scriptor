@@ -81,7 +81,7 @@ Example:
 
 ## Design
 
-- No specific visual requirements — functional and readable is the goal.
+- Visual requirements are fully specified in `UX.requirements.md`. Implementation must follow the light-mode color tokens, typography tokens, and component specs defined there.
 - The install command block must clearly distinguish itself as a copyable code element.
 - The site should be responsive (usable on mobile and desktop).
 
