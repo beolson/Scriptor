@@ -37,6 +37,9 @@ jobs:
         working-directory: web
         run: bun run build
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -75,12 +78,9 @@ jobs:
           mkdir -p web/out
           tar -xf web/out-artifact/artifact.tar -C web/out
 
-      - name: Serve static site and run E2E tests
+      - name: Run E2E tests
         working-directory: web
-        run: |
-          bunx serve out/ -p 3000 &
-          sleep 2
-          bun run test:e2e
+        run: bun run test:e2e
 
   deploy:
     name: Deploy to GitHub Pages

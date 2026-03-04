@@ -6,7 +6,16 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Web Project Scaffolding & Tooling
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/` directory already existed with package.json, next.config.ts, biome.json, playwright.config.ts, tsconfig.json, and node_modules from prior scaffolding work.
+- Created `web/app/components/`, `web/lib/`, `web/playwright/` directory stubs.
+- Created minimal Next.js app: `app/globals.css`, `app/layout.tsx`, `app/page.tsx`.
+- Created `web/playwright/smoke.spec.ts` with RED tests (build output assertion + homepage load assertion).
+- `bun run build` succeeds; `web/out/index.html` exists and contains "scriptor".
+- `bun run lint` passes (Biome check clean).
+- `scriptor.yaml` at repo root already contains scripts spanning windows (2), linux (8, including ubuntu), and mac (2) platforms.
 
 **Description:**
 Initialize the Bun/Next.js project in `web/` and configure all tooling before feature work begins. References FR-2-001 (static site, GitHub Pages hosting).
@@ -30,7 +39,14 @@ Initialize the Bun/Next.js project in `web/` and configure all tooling before fe
 
 ## Task 2 — Design Tokens, Fonts & Root Layout
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/globals.css`: replaced default starter styles with a full reset plus all 6 color tokens, 14 typography tokens, and all spacing/layout tokens from `UX.requirements.md §2–§4`. Hex values lowercased to satisfy Biome formatter.
+- `web/app/layout.tsx`: imports `JetBrains_Mono` (variable `--font-jetbrains`) and `IBM_Plex_Mono` (weights 400/500/700, variable `--font-ibmplex`) from `next/font/google`. Both applied as CSS variables on `<html>` via `className`. Existing `<meta name="viewport">` retained.
+- Design verification: inspected `oZMJy` (NavBar), `NV4xD` (CodeBlock), and `dkIKB` (PlatformCard) refs on the homepage frame in `ui/Variant1.pen`. Confirmed `--color-bg: #ffffff`, `--color-border: #e5e7eb`, `--color-accent: #059669`, and font families match the design.
+- Playwright tests added to `web/playwright/smoke.spec.ts` (RED→GREEN): `--color-accent` value, monospace font on body, all 6 tokens present, and font CSS variable names non-empty.
+- `bun run build` succeeds, `bun run lint` passes.
 
 **Description:**
 Define all CSS custom properties from `UX.requirements.md §2–§4` in `app/globals.css` and establish the root layout with JetBrains Mono and IBM Plex Mono fonts loaded via `next/font/google`.
@@ -50,7 +66,13 @@ Define all CSS custom properties from `UX.requirements.md §2–§4` in `app/glo
 
 ## Task 3 — Data Layer: Types & Script Loader
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/lib/types.ts`: exports `Script` interface with all required fields (`id`, `name`, `description`, `spec?`, `platform`, `arch`, `distro?`, `version?`, `dependencies?`, `script`).
+- `web/lib/loadScripts.ts`: exports `loadScripts(yamlContent?: string): Script[]` (accepts optional YAML string for testing, reads from disk when omitted), `getScriptsByPlatform(scripts, platform)`, and `getScriptById(scripts, id)`. Uses a `RawEntry` type alias to enable dot-notation property access on parsed YAML entries, satisfying Biome's `useLiteralKeys` rule.
+- `web/lib/loadScripts.test.ts`: 9 unit tests using `bun:test` with an inline fixture YAML string — covers parsing, optional field defaulting, spec/dependencies fields, platform filtering, empty-match case, and id lookup.
+- All 9 tests pass (`bun test`). `bun run lint` exits 0 with no errors.
 
 **Description:**
 Define TypeScript types for the `scriptor.yaml` schema (extended with `spec` field per FR-2-001) and implement a `loadScripts()` function that reads and parses the manifest at build time.
@@ -68,7 +90,14 @@ Define TypeScript types for the `scriptor.yaml` schema (extended with `spec` fie
 
 ## Task 4 — Atom Components: ArchBadge & DependencyTag
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/ArchBadge/ArchBadge.tsx` + `ArchBadge.module.css`: renders `[{arch}]` as an inline `<span>` with `data-testid="arch-badge"`. IBM Plex Mono via `--font-ibmplex` CSS variable, 11px, `--color-text-muted`, padding `--badge-py`/`--badge-px` (4px/6px).
+- `web/app/components/DependencyTag/DependencyTag.tsx` + `DependencyTag.module.css`: renders `[{dep}]` as an inline `<span>` with `data-testid="dependency-tag"`. Identical visual spec to ArchBadge (same font, size, color, padding).
+- Design verified against Pen nodes `u1PM6` (ArchBadge) and `LUjW3` (DependencyTag): `padding: [4, 6]`, `fontSize: 11`, `fontFamily: "IBM Plex Mono"`, `fill: "#6B7280"` — all match.
+- RED test added to `web/playwright/smoke.spec.ts` ("arch-badge has IBM Plex Mono font and 11px font size"). This test will fail until ArchBadge appears on the homepage (deferred to Task 10 per task spec).
+- `bun run build` succeeds, `bun run lint` exits 0.
 
 **Description:**
 Implement the two smallest badge components. Both are static (no interactivity) and share the same visual spec: IBM Plex Mono 11px, `--color-text-muted`, padding `[4px, 6px]`.
@@ -87,7 +116,15 @@ Implement the two smallest badge components. Both are static (no interactivity) 
 
 ## Task 5 — Row Components: Breadcrumb, MetadataRow, DistroGroupHeader
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/Breadcrumb/Breadcrumb.tsx` + `Breadcrumb.module.css`: renders segment array with `>` separators. Ancestor segments colored `--color-text-muted`, active segment `--color-text-primary`. IBM Plex Mono 12px, gap `--gap-xs` (6px). Ancestor segments with `href` render as `<Link>` elements.
+- `web/app/components/MetadataRow/MetadataRow.tsx` + `MetadataRow.module.css`: renders `label`/`value` pair with `justify-content: space-between`, padding `var(--meta-py) 0` (10px top/bottom), bottom border `--color-border`, IBM Plex Mono 12px. Label muted, value primary.
+- `web/app/components/DistroGroupHeader/DistroGroupHeader.tsx` + `DistroGroupHeader.module.css`: renders `// {distro}`, IBM Plex Mono 12px, `letter-spacing: 1px`, padding `12px 0`, bottom border `--color-border`, muted color.
+- Design verified against `comp_breadcrumb` (id `uYndP`), `comp_metadata_row` (id `Fn9B6`), and `comp_distro_group_header` (id `VswOa`) from `ui/Variant1.pen`. All gap/padding/font/color values match.
+- `web/playwright/detail.spec.ts` created with RED tests: (1) breadcrumb visible on `/scripts/install-docker`; (2) metadata-row elements present and contain text "platform". These fail until Task 11 adds the detail page.
+- `bun run build` succeeds, `bun run lint` exits 0.
 
 **Description:**
 Implement three list/row display components used in platform listings and script detail pages.
@@ -107,7 +144,16 @@ Implement three list/row display components used in platform listings and script
 
 ## Task 6 — CodeBlock Component
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/CodeBlock/CodeBlock.tsx` + `CodeBlock.module.css`: `'use client'` component. Props: `language`, `command`, `wide?`, `fullWidth?`. Uses `useState` for `[copy]` → `[copied]` toggle with `setTimeout` 2000ms revert. Calls `navigator.clipboard.writeText(command)` on click.
+- CSS: border 1px `--color-border`; header row flexbox with `language` (IBM Plex Mono 11px, muted) left and copy button (JetBrains Mono 12px, muted) right; command area (JetBrains Mono 13px, `--color-accent`, `white-space: pre`, `word-break: break-all`).
+- Width variants: default 400px, `wide` 600px, `fullWidth` 100%.
+- `data-testid="code-block"` on wrapper, `data-testid="copy-button"` on button.
+- Integrated into `web/app/page.tsx` (temporary placeholder) so Playwright tests can run against the built output.
+- `web/playwright/homepage.spec.ts` created with 3 tests: code-block visible, [copy] toggles to [copied], reverts after 2.5s. All 3 pass.
+- `bun run build` succeeds, `bun run lint` exits 0.
 
 **Description:**
 Implement the interactive code block component with copy-to-clipboard. This is a `'use client'` component per FR-2-002. Pen node: `NV4xD` (`lm_comp_code_block`).
@@ -129,7 +175,14 @@ Implement the interactive code block component with copy-to-clipboard. This is a
 
 ## Task 7 — ScriptRow & PlatformCard Components
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/ScriptRow/ScriptRow.tsx` + `ScriptRow.module.css`: full-width `<Link>` row, bottom border only, `space-between`, padding `var(--gap-lg) 0` (16px), gap 16px. Left column: name (JetBrains Mono 14px weight 500, `--color-text-primary`), description prefixed `"// "` (IBM Plex Mono 12px, `--color-text-muted`). Right: `<ArchBadge>` + `>>` arrow (JetBrains Mono 12px, muted). `data-testid="script-row"`.
+- `web/app/components/PlatformCard/PlatformCard.tsx` + `PlatformCard.module.css`: 300px desktop / 100% mobile. Border 1px `--color-border`, vertical layout, gap 12px (`--gap-md`), padding 24px (`--card-p`). Prompt (JetBrains Mono 12px, muted), name (JetBrains Mono 18px bold, primary), description wrapped in div (IBM Plex Mono 13px, muted). `> view scripts` in `--color-accent`. Entire card is a `<Link>`. `data-testid="platform-card"`.
+- Design verified against `gAmQi` (comp_script_row) and `83vWD` (comp_platform_card) in `ui/Variant1.pen`. Font sizes, weights, colors, gap, padding, border all match.
+- `web/playwright/listings.spec.ts` created with 5 RED tests (pages `/scripts/windows` and `/scripts/linux` do not exist yet — tests fail at page load time until Task 10).
+- `bun run build` succeeds, `bun run lint` exits 0.
 
 **Description:**
 Implement the two card/row components used in platform listing pages. Both use `ArchBadge` from Task 4.
@@ -148,7 +201,16 @@ Implement the two card/row components used in platform listing pages. Both use `
 
 ## Task 8 — NavBar & Footer Components
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/NavBar/NavBar.tsx` + `NavBar.module.css`: `<nav>` with `data-testid="navbar"`. Sticky, 56px height (`--nav-h`), `--color-bg` background, bottom border `--color-border`. Left: `> scriptor` (JetBrains Mono 16px bold, `--color-text-primary`). Right `<div>` with `github` `<a>` link (JetBrains Mono 13px, `--color-text-muted`). Horizontal padding: `--page-px-desktop` (120px) desktop / `--page-px-mobile` (24px) mobile via media query.
+- `web/app/components/Footer/Footer.tsx` + `Footer.module.css`: `<footer>` with `data-testid="footer"`. `--footer-h` (80px) min-height, top border `--color-border`, `--color-bg`. Left: `> scriptor // manage your scripts` (IBM Plex Mono 13px, `--color-text-muted`). Right: `github` `<a>` link (JetBrains Mono 12px, muted). Mobile: flex-direction column, padding `[32px, 24px]`, at `max-width: 768px`.
+- Both components integrated into `web/app/layout.tsx` as siblings wrapping `{children}`.
+- Design verified against `ANshg` (comp_nav_bar) and `QhPVI` (comp_footer) in `ui/Variant1.pen`. Fill `#FFFFFF`, border `#E5E7EB`, logo `#111111`, github `#6B7280` all confirmed.
+- JSX Biome lint issue: `//` in JSX text treated as comment — resolved by wrapping with `{"//"}`.
+- RED tests added to `web/playwright/smoke.spec.ts` ("layout chrome — Task 8"): navbar visible with `> scriptor`, navbar contains `github`, footer visible with `manage your scripts`, footer contains `github`.
+- `bun run build` succeeds, `bun run lint` exits 0.
 
 **Description:**
 Implement the global layout chrome components used on every page. Pen nodes: `oZMJy` (NavBar), `5Bddv` (Footer).
@@ -167,7 +229,15 @@ Implement the global layout chrome components used on every page. Pen nodes: `oZ
 
 ## Task 9 — Homepage (`/`)
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/components/InstallCommand/InstallCommand.tsx`: `'use client'` component. Reads `navigator.userAgent` on mount via `useEffect`. Default (SSR) state is `"other"` (renders Bash command) to prevent hydration mismatch; swaps to Windows PowerShell command if Windows is detected. Renders `<CodeBlock wide language="// detected: windows|linux" command="..." />`.
+- `web/app/page.tsx`: full server component homepage. Renders: hero section (`data-testid="hero-headline"` on `<h1>`), `<InstallCommand />`, note text, platforms section with three `<PlatformCard>` components linking to `/scripts/windows`, `/scripts/linux`, `/scripts/mac`.
+- `web/app/page.module.css`: hero `padding [80px, 120px]` desktop / `[48px, 24px]` mobile, gap 32px desktop / 24px mobile; platforms section `padding [60px, 120px]` desktop / `[40px, 24px]` mobile, gap 24px desktop / 20px mobile; cardGrid flex-row desktop / flex-column mobile.
+- `web/app/components/CodeBlock/CodeBlock.tsx`: added `data-testid="command-text"` to the command div.
+- Design verified against `homepage_desktop` node in `ui/Variant1.pen`: hero padding `[80, 120]` gap 32, subheadline IBM Plex Mono 18px, platforms section padding `[60, 120]` gap 24, card grid gap 16 — all match.
+- All 5 Task 9 Playwright tests pass. `bun run build` succeeds. `bun run lint` exits 0.
 
 **Description:**
 Implement the homepage at `/`. Server component hosts static content; a `'use client'` `InstallCommand` subcomponent handles OS detection (FR-2-002, FR-2-003). Pen nodes: desktop `kIl3i`, mobile `gVj9a`.
@@ -193,7 +263,15 @@ Confirm hero gap 32px desktop / 24px mobile, platform cards 3-column desktop / s
 
 ## Task 10 — Platform Listing Pages (`/scripts/windows|linux|mac`)
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/scripts/windows/page.tsx`: server component. Calls `getScriptsByPlatform('windows')`, sorts alphabetically. Renders Breadcrumb (`home > scripts > windows`), heading `> windows scripts`, `<CodeBlock wide>` with Windows install command, arch filter tabs (static display), script count, and ScriptRows. `data-testid="platform-header"` on the header div, `data-testid="script-list"` on the list div.
+- `web/app/scripts/linux/page.tsx`: same structure. Groups scripts by `distro` using a `Map`, renders `<DistroGroupHeader>` before each group. Includes arch, distro, and version filter rows (static display).
+- `web/app/scripts/mac/page.tsx`: same structure. macOS scripts only, arch filter only.
+- `web/app/scripts/platform-listing.module.css`: shared CSS module for all three pages. Padding `[48px, 120px]` desktop header / `[40px, 120px]` script list; mobile breakpoint at 768px collapses to `[32px, 24px]` / `[24px, 24px]`.
+- Fixed `web/lib/loadScripts.ts`: changed `resolve(__dirname, "../../scriptor.yaml")` to `resolve(process.cwd(), "../scriptor.yaml")` so Next.js build-time static rendering can locate the YAML file (Next.js workers run from `web/` as `cwd`).
+- All 5 listings Playwright tests pass. `bun run build` succeeds. `bun run lint` exits 0.
 
 **Description:**
 Implement the three platform listing pages reading `scriptor.yaml` at build time (FR-2-001, FR-2-004, FR-2-005). Pen nodes: desktop `8PTul` (Windows), `576mM` (Linux), `M9XtD` (macOS); mobile `Ox3IY`.
@@ -220,7 +298,15 @@ Confirm Linux page has distro group headers, arch/distro/version filter rows.
 
 ## Task 11 — Script Detail Page (`/scripts/[id]`)
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `web/app/scripts/[id]/page.tsx`: async server component. `generateStaticParams()` returns all script IDs from `loadScripts()`. Awaits `params` (Next.js 16 async params). Uses `getScriptById(scripts, id)` or calls `notFound()`. Renders: `detail_header` with Breadcrumb (`home > {platform} > {id}`), heading `> {id}` (28px desktop / 22px mobile), description prefixed `//` (IBM Plex Mono 16px, muted), badge row with two `<ArchBadge>` components for platform and arch.
+- `detail_body`: 2-column desktop (gap 48px), stacked mobile. `main_col` contains `// spec` label and `<ReactMarkdown rehypePlugins={[rehypeHighlight]}>` for the `spec` field. `sidebar` (280px desktop) contains `metadata_card` (`<MetadataRow>` for platform/arch/distro/version) and `deps_card` (`<DependencyTag>` per dependency, only rendered when dependencies exist).
+- `web/app/scripts/[id]/detail.module.css`: header `padding [48px, 120px]` desktop / `[32px, 24px]` mobile; body `padding [48px, 120px]` desktop / `[24px, 24px]` mobile; sidebar 280px desktop / 100% mobile; markdown prose styles for `h1-h3`, `p`, `ol/ul`, `pre`, `code`.
+- `web/app/layout.tsx`: added `import "highlight.js/styles/github.css"` for syntax highlighting in rendered markdown.
+- `web/playwright/detail.spec.ts`: extended with 5 Task 11 tests. All 7 tests in the file pass (including the 2 Task 5 RED tests that now pass too).
+- `bun run build` succeeds (18 static pages including 12 script detail pages). `bun run lint` exits 0.
 
 **Description:**
 Implement the script detail page at `/scripts/[id]` (FR-2-001, FR-2-006). Pen nodes: desktop `rK8aO`, mobile `dWPZd`.
@@ -248,7 +334,15 @@ Confirm sidebar 280px, deps_card gap 12px, metadata_card padding 20px.
 
 ## Task 12 — GitHub Actions CI/CD Pipeline
 
-**Status:** not started
+**Status:** complete
+
+**Implementation notes:**
+- `.github/workflows/deploy-web.yml` already existed with the core structure from prior work. Updated it with the following changes:
+- Added `actions/configure-pages@v5` step in the build job (after `bun run build`, before `actions/upload-pages-artifact`) to properly configure the GitHub Pages base URL before artifact upload.
+- Removed the manual `bunx serve out/ -p 3000 &` + `sleep 2` commands from the test job. The `playwright.config.ts` `webServer` config already handles serving `out/` on port 3000 with `reuseExistingServer: !process.env.CI` — in CI this starts the server automatically, so the manual serve was redundant and caused a port conflict.
+- The test job downloads the Pages artifact, extracts it to `web/out`, then runs `bun run test:e2e` — Playwright's webServer starts `bunx serve out/ -p 3000` and the `GITHUB_ACTIONS` env var in `playwright.config.ts` sets `baseURL` to `http://localhost:3000/Scriptor`.
+- Workflow structure: `build` job (lint → build → configure-pages → upload artifact) → `test` job (download artifact → extract → E2E) → `deploy` job (deploy-pages). Lint and Playwright failures both block the deploy.
+- Required `pages: write` and `id-token: write` permissions are scoped to the deploy job only.
 
 **Description:**
 Implement the deploy workflow so every push to `main` builds and deploys the site to GitHub Pages (FR-2-001 "rebuilt whenever scriptor.yaml changes").

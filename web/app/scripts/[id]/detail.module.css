@@ -1,0 +1,179 @@
+/* ── Detail Header ──────────────────────────────────────────────────────── */
+
+.detailHeader {
+	padding: var(--header-py) var(--page-px-desktop);
+	border-bottom: 1px solid var(--color-border);
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	background-color: var(--color-bg);
+}
+
+.heading {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--color-text-primary);
+}
+
+.description {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 16px;
+	font-weight: normal;
+	color: var(--color-text-muted);
+}
+
+.badgeRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
+
+/* ── Detail Body ────────────────────────────────────────────────────────── */
+
+.detailBody {
+	display: flex;
+	flex-direction: row;
+	gap: 48px;
+	padding: var(--body-py) var(--page-px-desktop);
+	background-color: var(--color-bg);
+}
+
+/* ── Main Column ────────────────────────────────────────────────────────── */
+
+.mainCol {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	flex: 1;
+	min-width: 0;
+}
+
+.specLabel {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	font-weight: normal;
+	color: var(--color-text-muted);
+}
+
+.markdownContent {
+	border: 1px solid var(--color-border);
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+}
+
+/* ReactMarkdown prose styles */
+.markdownContent h1,
+.markdownContent h2,
+.markdownContent h3 {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--color-text-primary);
+	margin-top: 8px;
+}
+
+.markdownContent p {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 13px;
+	color: var(--color-text-muted);
+	line-height: 1.6;
+}
+
+.markdownContent ol,
+.markdownContent ul {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 13px;
+	color: var(--color-text-muted);
+	padding-left: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.markdownContent pre {
+	background-color: var(--color-surface);
+	border: 1px solid var(--color-border);
+	padding: 12px 16px;
+	overflow-x: auto;
+}
+
+.markdownContent code {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 13px;
+	color: var(--color-accent);
+}
+
+.markdownContent pre code {
+	color: var(--color-accent);
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+
+.sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 280px;
+	flex-shrink: 0;
+}
+
+.metadataCard {
+	border: 1px solid var(--color-border);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+}
+
+.depsCard {
+	border: 1px solid var(--color-border);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.depsLabel {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	font-weight: normal;
+	color: var(--color-text-muted);
+}
+
+.depsRow {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+	.detailHeader {
+		padding: 32px var(--page-px-mobile);
+		gap: 12px;
+	}
+
+	.heading {
+		font-size: 22px;
+	}
+
+	.description {
+		font-size: 13px;
+	}
+
+	.detailBody {
+		flex-direction: column;
+		padding: 24px var(--page-px-mobile);
+		gap: 24px;
+	}
+
+	.sidebar {
+		width: 100%;
+	}
+}
