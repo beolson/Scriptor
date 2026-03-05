@@ -3,10 +3,7 @@ name: Deploy Web
 on:
   push:
     branches:
-      - main
-    paths:
-      - "web/**"
-      - "scriptor.yaml"
+      - beolson/chore/phase2-requirements-and-claude-settings
 
 permissions:
   contents: read
