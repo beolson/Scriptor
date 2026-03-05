@@ -1,10 +1,30 @@
-- id: update-system
+# Scriptor — host-specific setup script manifest
+
+- id: Cat-in-hat
+  name: Update System Packages
+  description: Updates apt package lists and upgrades installed packages
+  platform: linux
+  arch: x86
+  distro: RedHat
+  version: "13"
+  script: scripts/update-system.sh
+
+- id: update-system-debian-13
   name: Update System Packages
   description: Updates apt package lists and upgrades installed packages
   platform: linux
   arch: x86
   distro: Debian GNU/Linux
   version: "13"
+  script: scripts/update-system.sh
+
+- id: update-system-debian-12
+  name: Update System Packages
+  description: Updates apt package lists and upgrades installed packages
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "12"
   script: scripts/update-system.sh
 
 - id: broken-script
@@ -15,7 +35,7 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/broken-script.sh
-  
+
 - id: setup-prereqs
   name: Setup Prerequisites
   description: Installs common build tools and prerequisites (curl, git, build-essential)
@@ -35,6 +55,35 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/install-docker.sh
+  spec: |
+    ## Overview
+
+    Installs Docker Engine and the Docker Compose plugin on Debian 13 using
+    the official Docker apt repository.
+
+    ## Steps
+
+    1. Remove any conflicting packages
+    2. Add Docker's official GPG key
+    3. Add the Docker apt repository
+    4. Install `docker-ce`, `docker-ce-cli`, `containerd.io`, and `docker-compose-plugin`
+    5. Enable and start the Docker daemon
+
+    ## Post-install
+
+    Add your user to the `docker` group to run Docker without `sudo`:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ```
+
+    ## Verification
+
+    ```bash
+    docker --version
+    docker compose version
+    ```
   dependencies:
     - setup-prereqs
 
@@ -46,6 +95,22 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/install-bun.sh
+  spec: |
+    ## Overview
+
+    Installs the Bun JavaScript runtime using the official curl-based installer
+    from bun.sh.
+
+    ## Steps
+
+    1. Run the official Bun install script
+    2. Add `~/.bun/bin` to `PATH` in `~/.bashrc`
+
+    ## Verification
+
+    ```bash
+    bun --version
+    ```
   dependencies:
     - update-system
 
@@ -58,4 +123,50 @@
   version: "13"
   script: scripts/install-nvm.sh
 
+- id: install-git-ubuntu
+  name: Install Git
+  description: Installs the latest Git version on Ubuntu via the official PPA
+  platform: linux
+  arch: x86
+  distro: Ubuntu
+  version: "24.04"
+  script: scripts/install-git-ubuntu.sh
+  dependencies:
+    - update-system-ubuntu
 
+- id: update-system-ubuntu
+  name: Update System Packages (Ubuntu)
+  description: Updates apt package lists and upgrades installed packages on Ubuntu
+  platform: linux
+  arch: x86
+  distro: Ubuntu
+  version: "24.04"
+  script: scripts/update-system.sh
+
+- id: install-homebrew
+  name: Install Homebrew
+  description: Installs the Homebrew package manager on macOS
+  platform: mac
+  arch: x86
+  script: scripts/install-homebrew.sh
+
+- id: install-homebrew-arm
+  name: Install Homebrew (Apple Silicon)
+  description: Installs the Homebrew package manager on Apple Silicon macOS
+  platform: mac
+  arch: arm
+  script: scripts/install-homebrew-arm.sh
+
+- id: install-wsl
+  name: Install WSL2
+  description: Enables Windows Subsystem for Linux 2 and installs Ubuntu
+  platform: windows
+  arch: x86
+  script: scripts/install-wsl.ps1
+
+- id: install-scoop
+  name: Install Scoop
+  description: Installs the Scoop command-line installer for Windows
+  platform: windows
+  arch: x86
+  script: scripts/install-scoop.ps1

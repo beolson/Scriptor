@@ -1,0 +1,30 @@
+.breadcrumb {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-xs);
+	font-family: var(--font-ibmplex), "IBM Plex Mono", monospace;
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.segmentWrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-xs);
+}
+
+.separator {
+	color: var(--color-text-muted);
+}
+
+.ancestor {
+	color: var(--color-text-muted);
+}
+
+.ancestor:hover {
+	color: var(--color-text-primary);
+}
+
+.active {
+	color: var(--color-text-primary);
+}

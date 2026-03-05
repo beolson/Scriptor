@@ -1,0 +1,89 @@
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+/* ── Design Tokens ─────────────────────────────────────────────────────── */
+
+:root {
+	/* Color tokens */
+	--color-bg: #ffffff;
+	--color-surface: #f9fafb;
+	--color-border: #e5e7eb;
+	--color-text-primary: #111111;
+	--color-text-muted: #6b7280;
+	--color-accent: #059669;
+
+	/* Typography tokens */
+	--text-hero: 48px;
+	--text-h1: 28px;
+	--text-h2: 24px;
+	--text-h3: 18px;
+	--text-h4: 16px;
+	--text-nav-logo: 16px;
+	--text-code: 13px;
+	--text-nav-link: 13px;
+	--text-body-lg: 18px;
+	--text-body: 14px;
+	--text-label: 13px;
+	--text-caption: 12px;
+	--text-micro: 11px;
+	--text-script-name: 14px;
+
+	/* Spacing & layout tokens */
+	--page-max-width: 1440px;
+	--page-px-desktop: 120px;
+	--page-px-mobile: 24px;
+	--hero-py: 80px;
+	--section-py: 60px;
+	--header-py: 48px;
+	--body-py: 48px;
+	--nav-h: 56px;
+	--footer-h: 80px;
+	--gap-xs: 6px;
+	--gap-sm: 8px;
+	--gap-md: 12px;
+	--gap-lg: 16px;
+	--gap-xl: 24px;
+	--gap-2xl: 32px;
+	--gap-3xl: 48px;
+	--code-block-px: 20px;
+	--code-block-py: 16px;
+	--card-p: 24px;
+	--badge-py: 4px;
+	--badge-px: 6px;
+	--btn-py: 10px;
+	--btn-px: 16px;
+	--meta-py: 10px;
+}
+
+/* ── Base Styles ───────────────────────────────────────────────────────── */
+
+html {
+	font-family: var(--font-ibmplex), monospace;
+	background-color: var(--color-bg);
+	color: var(--color-text-primary);
+}
+
+body {
+	font-family: var(--font-ibmplex), monospace;
+	background-color: var(--color-bg);
+	color: var(--color-text-primary);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+main {
+	flex: 1;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
