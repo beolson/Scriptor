@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import CodeBlock from "../CodeBlock/CodeBlock";
 
-const PROD_ORIGIN = "https://scriptor.hero4hire.com";
-
 function detectOS(): "windows" | "other" {
 	if (typeof navigator === "undefined") return "other";
 	const ua = navigator.userAgent.toLowerCase();
@@ -17,9 +15,9 @@ function detectOS(): "windows" | "other" {
 }
 
 export default function InstallCommand() {
-	// Default to bash + prod origin (SSR-safe; prevents hydration mismatch)
+	// Default to empty origin (SSR-safe; useEffect sets window.location.origin after hydration)
 	const [os, setOs] = useState<"windows" | "other">("other");
-	const [origin, setOrigin] = useState(PROD_ORIGIN);
+	const [origin, setOrigin] = useState("");
 
 	useEffect(() => {
 		setOs(detectOS());

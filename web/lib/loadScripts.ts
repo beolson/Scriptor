@@ -1,7 +1,12 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { load } from "js-yaml";
+import { CORE_SCHEMA, load } from "js-yaml";
 import type { Script } from "./types";
+
+const PLATFORMS = ["windows", "linux", "mac"] as const;
+const ARCHES = ["x86", "arm"] as const;
+
+let _cache: Script[] | null = null;
 
 type RawEntry = {
 	id?: unknown;
@@ -21,6 +26,8 @@ type RawEntry = {
  * Accepts an optional yaml string for testing; reads from disk when omitted.
  */
 export function loadScripts(yamlContent?: string): Script[] {
+	if (yamlContent === undefined && _cache) return _cache;
+
 	let content: string;
 
 	if (yamlContent !== undefined) {
@@ -30,13 +37,13 @@ export function loadScripts(yamlContent?: string): Script[] {
 		content = readFileSync(yamlPath, "utf-8");
 	}
 
-	const parsed = load(content);
+	const parsed = load(content, { schema: CORE_SCHEMA });
 
 	if (!Array.isArray(parsed)) {
 		return [];
 	}
 
-	return parsed
+	const result = parsed
 		.filter(
 			(entry): entry is RawEntry => entry !== null && typeof entry === "object",
 		)
@@ -46,8 +53,12 @@ export function loadScripts(yamlContent?: string): Script[] {
 				name: String(entry.name ?? ""),
 				description: String(entry.description ?? ""),
 				spec: entry.spec !== undefined ? String(entry.spec) : undefined,
-				platform: (entry.platform as Script["platform"]) ?? "linux",
-				arch: (entry.arch as Script["arch"]) ?? "x86",
+				platform: PLATFORMS.includes(entry.platform as Script["platform"])
+					? (entry.platform as Script["platform"])
+					: "linux",
+				arch: ARCHES.includes(entry.arch as Script["arch"])
+					? (entry.arch as Script["arch"])
+					: "x86",
 				distro: entry.distro !== undefined ? String(entry.distro) : undefined,
 				version:
 					entry.version !== undefined ? String(entry.version) : undefined,
@@ -57,6 +68,9 @@ export function loadScripts(yamlContent?: string): Script[] {
 				script: String(entry.script ?? ""),
 			}),
 		);
+
+	if (yamlContent === undefined) _cache = result;
+	return result;
 }
 
 export function getScriptsByPlatform(
