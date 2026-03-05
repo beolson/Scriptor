@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "web/**"
-      - "scriptor.yaml"
 
 permissions:
   contents: read
