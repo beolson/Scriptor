@@ -3,7 +3,7 @@ name: Deploy Web
 on:
   push:
     branches:
-      - chore/phase2-requirements-and-claude-settings
+      - main
 
 permissions:
   contents: read
