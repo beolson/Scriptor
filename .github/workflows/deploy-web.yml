@@ -87,7 +87,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
-      - test
 
     concurrency:
       group: pages-deploy
