@@ -1,12 +1,30 @@
 # Scriptor — host-specific setup script manifest
 
-- id: update-system
+- id: Cat-in-hat
+  name: Update System Packages
+  description: Updates apt package lists and upgrades installed packages
+  platform: linux
+  arch: x86
+  distro: RedHat
+  version: "13"
+  script: scripts/update-system.sh
+
+- id: update-system-debian-13
   name: Update System Packages
   description: Updates apt package lists and upgrades installed packages
   platform: linux
   arch: x86
   distro: Debian GNU/Linux
   version: "13"
+  script: scripts/update-system.sh
+
+- id: update-system-debian-12
+  name: Update System Packages
+  description: Updates apt package lists and upgrades installed packages
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "12"
   script: scripts/update-system.sh
 
 - id: broken-script

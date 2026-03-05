@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import CodeBlock from "../CodeBlock/CodeBlock";
 
-const WINDOWS_COMMAND =
-	'$tmp = "$env:TEMP\\scriptor.exe"; Invoke-WebRequest -Uri "https://github.com/beolson/Scriptor/releases/latest/download/scriptor-windows-x64.exe" -OutFile $tmp; & $tmp';
-
-const BASH_COMMAND =
-	"sudo curl -fsSL \"https://github.com/beolson/Scriptor/releases/latest/download/scriptor-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')\" -o /usr/local/bin/scriptor && sudo chmod +x /usr/local/bin/scriptor && scriptor";
+const PROD_ORIGIN = "https://scriptor.hero4hire.com";
 
 function detectOS(): "windows" | "other" {
 	if (typeof navigator === "undefined") return "other";
@@ -21,16 +17,20 @@ function detectOS(): "windows" | "other" {
 }
 
 export default function InstallCommand() {
-	// Default to bash (SSR-safe; prevents hydration mismatch)
+	// Default to bash + prod origin (SSR-safe; prevents hydration mismatch)
 	const [os, setOs] = useState<"windows" | "other">("other");
+	const [origin, setOrigin] = useState(PROD_ORIGIN);
 
 	useEffect(() => {
 		setOs(detectOS());
+		setOrigin(window.location.origin);
 	}, []);
 
 	const isWindows = os === "windows";
 	const language = isWindows ? "// detected: windows" : "// detected: linux";
-	const command = isWindows ? WINDOWS_COMMAND : BASH_COMMAND;
+	const command = isWindows
+		? `iwr ${origin}/install.ps1 | iex`
+		: `curl -fsSL ${origin}/install.sh | bash`;
 
 	return <CodeBlock language={language} command={command} wide />;
 }

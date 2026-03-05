@@ -30,7 +30,9 @@
 .installWrapper {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: var(--gap-md);
+	width: 100%;
 }
 
 .heroNote {
@@ -67,6 +69,7 @@
 	flex-direction: row;
 	gap: var(--gap-lg);
 	flex-wrap: wrap;
+	justify-content: center;
 }
 
 /* ── Mobile ────────────────────────────────────────────────────────────── */

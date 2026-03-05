@@ -6,6 +6,8 @@ interface ScriptRowProps {
 	name: string;
 	description: string;
 	arch: string;
+	distro?: string;
+	version?: string;
 	href: string;
 }
 
@@ -13,6 +15,8 @@ export default function ScriptRow({
 	name,
 	description,
 	arch,
+	distro,
+	version,
 	href,
 }: ScriptRowProps) {
 	return (
@@ -25,6 +29,8 @@ export default function ScriptRow({
 				</span>
 			</div>
 			<div className={styles.right}>
+				{distro && distro !== "any" && <ArchBadge arch={distro} />}
+				{version && version !== "any" && <ArchBadge arch={version} />}
 				<ArchBadge arch={arch} />
 				<span className={styles.arrow}>&gt;&gt;</span>
 			</div>

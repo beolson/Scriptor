@@ -1,9 +1,10 @@
+import Link from "next/link";
 import styles from "./NavBar.module.css";
 
 export default function NavBar() {
 	return (
 		<nav className={styles.navbar} data-testid="navbar">
-			<span className={styles.logo}>&gt; scriptor</span>
+			<Link href="/" className={styles.logo}>&gt; scriptor</Link>
 			<div className={styles.navLinks}>
 				<a
 					className={styles.githubLink}
