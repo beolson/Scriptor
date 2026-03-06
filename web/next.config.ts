@@ -5,7 +5,6 @@ import type { NextConfig } from "next";
 // CDN/hosting layer (e.g. Cloudflare, GitHub Pages custom headers, Netlify _headers).
 const nextConfig: NextConfig = {
 	output: "export",
-	basePath: process.env.GITHUB_ACTIONS ? "/Scriptor" : "",
 	trailingSlash: true,
 	images: {
 		unoptimized: true,
