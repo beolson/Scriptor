@@ -8,9 +8,7 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: "list",
 	use: {
-		baseURL: process.env.GITHUB_ACTIONS
-			? "http://localhost:3000/Scriptor"
-			: "http://localhost:3000",
+		baseURL: "http://localhost:3000",
 		trace: "on-first-retry",
 	},
 	projects: [

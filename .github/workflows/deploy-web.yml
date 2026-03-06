@@ -42,48 +42,49 @@ jobs:
         with:
           path: web/out
 
-  # test:
-  #   name: Playwright E2E Tests
-  #   runs-on: ubuntu-latest
-  #   needs: build
+  test:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    needs: build
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup Bun
-  #       uses: oven-sh/setup-bun@v2
-  #       with:
-  #         bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-  #     - name: Install dependencies
-  #       working-directory: web
-  #       run: bun install --frozen-lockfile
+      - name: Install dependencies
+        working-directory: web
+        run: bun install --frozen-lockfile
 
-  #     - name: Install Playwright browsers
-  #       working-directory: web
-  #       run: bunx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        working-directory: web
+        run: bunx playwright install --with-deps chromium
 
-  #     - name: Download Pages artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: github-pages
-  #         path: web/out-artifact
+      - name: Download Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: web/out-artifact
 
-  #     - name: Extract artifact
-  #       run: |
-  #         mkdir -p web/out
-  #         tar -xf web/out-artifact/artifact.tar -C web/out
+      - name: Extract artifact
+        run: |
+          mkdir -p web/out
+          tar -xf web/out-artifact/artifact.tar -C web/out
 
-  #     - name: Run E2E tests
-  #       working-directory: web
-  #       run: bun run test:e2e
+      - name: Run E2E tests
+        working-directory: web
+        run: bun run test:e2e
 
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs:
       - build
+      - test
 
     concurrency:
       group: pages-deploy

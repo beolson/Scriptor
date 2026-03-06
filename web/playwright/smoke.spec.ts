@@ -22,7 +22,7 @@ test.describe("atom components — Task 4", () => {
 	test("arch-badge has IBM Plex Mono font and 11px font size", async ({
 		page,
 	}) => {
-		await page.goto("/");
+		await page.goto("/scripts/windows");
 		const badge = page.locator('[data-testid="arch-badge"]').first();
 		await expect(badge).toBeVisible();
 		const fontFamily = await badge.evaluate(
@@ -66,10 +66,10 @@ test.describe("design tokens — Task 2", () => {
 				accent: style.getPropertyValue("--color-accent").trim(),
 			};
 		});
-		expect(tokens.bg).toBe("#ffffff");
+		expect(tokens.bg).toMatch(/^#fff(fff)?$/i);
 		expect(tokens.surface).toBe("#f9fafb");
 		expect(tokens.border).toBe("#e5e7eb");
-		expect(tokens.textPrimary).toBe("#111111");
+		expect(tokens.textPrimary).toMatch(/^#111(111)?$/i);
 		expect(tokens.textMuted).toBe("#6b7280");
 		expect(tokens.accent).toBe("#059669");
 	});
