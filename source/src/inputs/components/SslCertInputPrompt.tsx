@@ -224,7 +224,7 @@ export function SslCertInputPrompt({
 									</Text>
 									{isFocused && (
 										<Text dimColor={true}>
-											{"  " + formatDate(cert.expiresAt)}
+											{`  ${formatDate(cert.expiresAt)}`}
 										</Text>
 									)}
 								</Box>

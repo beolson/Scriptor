@@ -1,5 +1,5 @@
-import { render } from "ink";
 import path from "node:path";
+import { render } from "ink";
 import React from "react";
 import { CacheService } from "./cache/cacheService.js";
 import { parseCli } from "./cli/parseCli.js";
