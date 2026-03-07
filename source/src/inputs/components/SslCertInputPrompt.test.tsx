@@ -137,11 +137,11 @@ describe("SslCertInputPrompt", () => {
 
 		// Drain all stdout frames and concatenate
 		const output = drainStdout(stdout);
-		// Both certs should appear
-		expect(output).toContain("CN=example.com");
-		expect(output).toContain("CN=Example CA");
-		// Expiry info should be shown
-		expect(output).toContain("2030");
+		// Both certs should appear (CN= prefix stripped)
+		expect(output).toContain("example.com");
+		expect(output).toContain("Example CA");
+		// Expiry shown for the focused cert (root, cursor=0, expires 2035)
+		expect(output).toContain("2035");
 	});
 
 	// Test 3: selecting a cert and pressing Enter calls onSubmit with download_path and certCN
@@ -235,10 +235,11 @@ describe("SslCertInputPrompt", () => {
 		await wait(150);
 
 		const output = drainStdout(stdout);
-		// Exactly fakeCert1 and fakeCert2 subjects should appear
-		expect(output).toContain("CN=example.com");
-		expect(output).toContain("CN=Example CA");
-		// The root CA cert's issuer
-		expect(output).toContain("CN=Root CA");
+		// Both cert CNs should appear (CN= prefix stripped, hierarchy makes issuer redundant)
+		expect(output).toContain("example.com");
+		expect(output).toContain("Example CA");
+		// Role labels should appear
+		expect(output).toContain("[root]");
+		expect(output).toContain("[site]");
 	});
 });

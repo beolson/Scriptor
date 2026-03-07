@@ -110,7 +110,8 @@ export function SslCertInputPrompt({
 	useEffect(() => {
 		if (step !== "downloading") return;
 
-		const selected = certs[cursor];
+		// certs is leaf-first; displayCerts is root-first, so map cursor back
+		const selected = certs[certs.length - 1 - cursor];
 		if (selected === undefined) {
 			setStep("select");
 			return;
@@ -201,16 +202,31 @@ export function SslCertInputPrompt({
 				<>
 					<Box flexDirection="column" marginTop={0}>
 						<Text>Select a certificate:</Text>
-						{certs.map((cert, idx) => {
-							const isFocused = idx === cursor;
+						{[...certs].reverse().map((cert, displayIdx) => {
+							const isFocused = displayIdx === cursor;
+							const indent = "  ".repeat(displayIdx);
+							const cn = cert.subject.replace(/^CN=/i, "");
+							const isRoot = displayIdx === 0;
+							const isSite = displayIdx === certs.length - 1;
+							const roleLabel = isSite
+								? "[site]"
+								: isRoot
+									? "[root]"
+									: "      ";
 							return (
-								<Box key={`${cert.subject}-${idx}`} flexDirection="row" gap={1}>
+								<Box key={`${cert.subject}-${displayIdx}`} flexDirection="row">
+									<Text dimColor={true}>{roleLabel}</Text>
 									<Text bold={isFocused} color={isFocused ? "blue" : undefined}>
-										{isFocused ? ">" : " "}
+										{isFocused ? ` ${indent}> ` : ` ${indent}  `}
 									</Text>
-									<Text bold={isFocused}>
-										{`${cert.subject}  Issuer: ${cert.issuer}  Expires: ${formatDate(cert.expiresAt)}`}
+									<Text bold={isFocused} dimColor={!isFocused}>
+										{cn}
 									</Text>
+									{isFocused && (
+										<Text dimColor={true}>
+											{"  " + formatDate(cert.expiresAt)}
+										</Text>
+									)}
 								</Box>
 							);
 						})}
