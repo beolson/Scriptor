@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
+import type { CollectedInput } from "../inputs/inputSchema";
 
 /**
  * Formats a Date into an ISO-8601-like string safe for use in file names.
@@ -120,6 +121,25 @@ export class LogService {
 			`Exit code: ${exitCode}\n` +
 			`${SEPARATOR}\n`;
 		await this._appendRaw(logFile, footer);
+	}
+
+	/**
+	 * Writes a block of collected input values to the log file (FR-3-060).
+	 * Each input is written as: `  [input] label={label} id={id} value={value}`.
+	 * If `inputs` is empty, nothing is written.
+	 *
+	 * @param logFile  Absolute path returned by `createLogFile`.
+	 * @param inputs   Collected inputs for the script.
+	 */
+	async writeScriptInputs(
+		logFile: string,
+		inputs: CollectedInput[],
+	): Promise<void> {
+		if (inputs.length === 0) return;
+		const lines = inputs
+			.map((i) => `  [input] label=${i.label} id=${i.id} value=${i.value}`)
+			.join("\n");
+		await this._appendRaw(logFile, `${lines}\n`);
 	}
 
 	/**

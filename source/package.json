@@ -14,10 +14,12 @@
 		"version": "changeset version"
 	},
 	"dependencies": {
+		"@peculiar/x509": "^1.14.3",
 		"commander": "^14.0.3",
 		"ink": "^6.8.0",
 		"js-yaml": "^4.1.1",
-		"react": "^19.2.4"
+		"react": "^19.2.4",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.4",

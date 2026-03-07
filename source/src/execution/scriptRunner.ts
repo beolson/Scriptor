@@ -1,3 +1,4 @@
+import type { ScriptInputs } from "../inputs/inputSchema";
 import type { LogService } from "../log/logService";
 import type { ScriptEntry } from "../manifest/parseManifest";
 
@@ -106,7 +107,10 @@ export interface ScriptRunnerOptions {
 	/** Log service used to write banners, output, and footers. */
 	logService: Pick<
 		LogService,
-		"writeScriptBanner" | "appendOutput" | "writeScriptFooter"
+		| "writeScriptBanner"
+		| "appendOutput"
+		| "writeScriptFooter"
+		| "writeScriptInputs"
 	>;
 	/** Injectable spawner (defaults to the real Bun spawner). */
 	spawner?: Spawner;
@@ -166,12 +170,15 @@ export class ScriptRunner {
 	 *   stdout/stderr to the log), then emits `done` or `failed`.
 	 * - Halts immediately on the first non-zero exit code.
 	 *
-	 * @param scripts  Ordered list of scripts to run (dependency-resolved order).
-	 * @param logFile  Absolute path to the log file created by LogService.
+	 * @param scripts       Ordered list of scripts to run (dependency-resolved order).
+	 * @param logFile       Absolute path to the log file created by LogService.
+	 * @param scriptInputs  Optional map of collected inputs keyed by script id.
+	 *                      Input values are appended as positional args (FR-3-030, FR-3-031).
 	 */
 	async runScripts(
 		scripts: ScriptEntry[],
 		logFile: string,
+		scriptInputs?: ScriptInputs,
 	): Promise<ScriptRunResult> {
 		// Emit pending for every script so the TUI can render the full queue.
 		for (const script of scripts) {
@@ -181,11 +188,20 @@ export class ScriptRunner {
 		for (const script of scripts) {
 			this.emit({ status: "running", scriptId: script.id });
 
+			// Build the command: append collected input values as positional args
+			// in declaration order (FR-3-030, FR-3-031, FR-3-032).
+			const collectedInputs = scriptInputs?.get(script.id) ?? [];
+			const command =
+				collectedInputs.length > 0
+					? `${script.script} ${collectedInputs.map((i) => i.value).join(" ")}`
+					: script.script;
+
 			const startTime = new Date();
 			await this.logService.writeScriptBanner(logFile, script.name, startTime);
+			await this.logService.writeScriptInputs(logFile, collectedInputs);
 
 			const exitCode = await this.spawner(
-				script.script,
+				command,
 				async (chunk) => {
 					await this.logService.appendOutput(logFile, chunk);
 				},

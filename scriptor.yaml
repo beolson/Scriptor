@@ -170,3 +170,27 @@
   platform: windows
   arch: x86
   script: scripts/install-scoop.ps1
+
+- id: configure-tls-endpoint
+  name: Configure TLS Endpoint
+  description: Configures a service endpoint with a custom TLS certificate
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/configure-tls-endpoint.sh
+  inputs:
+    - id: service-name
+      type: string
+      label: Service name
+      required: true
+    - id: port
+      type: number
+      label: Port number
+      required: true
+      default: 443
+    - id: cert
+      type: ssl-cert
+      label: TLS certificate
+      download_path: /tmp/scriptor-demo.pem
+      format: PEM

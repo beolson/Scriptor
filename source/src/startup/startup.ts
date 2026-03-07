@@ -63,6 +63,12 @@ export interface OAuthDeviceCodeEvent {
 	verificationUri: string;
 }
 
+/** Emitted when a local scriptor.yaml is found and used instead of GitHub. */
+export interface LocalModeEvent {
+	type: "local-mode";
+	cwd: string;
+}
+
 export type StartupEvent =
 	| FetchingManifestEvent
 	| FetchingScriptEvent
@@ -70,7 +76,8 @@ export type StartupEvent =
 	| ManifestErrorEvent
 	| ScriptErrorEvent
 	| OAuthStartedEvent
-	| OAuthDeviceCodeEvent;
+	| OAuthDeviceCodeEvent
+	| LocalModeEvent;
 
 // ---------------------------------------------------------------------------
 // Injectable dependencies

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { CollectedInput } from "../inputs/inputSchema";
 import { LogService } from "./logService";
 
 let testDir: string;
@@ -181,5 +182,88 @@ describe("writeScriptFooter", () => {
 		expect(content).toContain("Building...\n");
 		// exit code present
 		expect(content).toContain("0");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// writeScriptInputs (FR-3-060)
+// ---------------------------------------------------------------------------
+
+describe("writeScriptInputs", () => {
+	test("writes [input] lines for each collected input before the output section", async () => {
+		const filePath = await log.createLogFile();
+		const inputs: CollectedInput[] = [
+			{ id: "name", label: "Your Name", value: "Alice" },
+			{ id: "age", label: "Your Age", value: "30" },
+		];
+
+		await log.writeScriptInputs(filePath, inputs);
+
+		const content = readFileSync(filePath, "utf8");
+		expect(content).toContain("[input] label=Your Name id=name value=Alice");
+		expect(content).toContain("[input] label=Your Age id=age value=30");
+	});
+
+	test("each [input] line is indented with two spaces", async () => {
+		const filePath = await log.createLogFile();
+		const inputs: CollectedInput[] = [
+			{ id: "env", label: "Environment", value: "production" },
+		];
+
+		await log.writeScriptInputs(filePath, inputs);
+
+		const content = readFileSync(filePath, "utf8");
+		expect(content).toContain(
+			"  [input] label=Environment id=env value=production",
+		);
+	});
+
+	test("run log for a script with no inputs has no [input] lines", async () => {
+		const filePath = await log.createLogFile();
+
+		await log.writeScriptInputs(filePath, []);
+
+		const content = readFileSync(filePath, "utf8");
+		expect(content).not.toContain("[input]");
+	});
+
+	test("inputs appear before output section in full script log", async () => {
+		const filePath = await log.createLogFile();
+		const start = new Date("2026-02-28T14:32:00.000Z");
+		const end = new Date("2026-02-28T14:33:05.000Z");
+		const inputs: CollectedInput[] = [
+			{ id: "token", label: "API Token", value: "secret123" },
+		];
+
+		await log.writeScriptBanner(filePath, "deploy", start);
+		await log.writeScriptInputs(filePath, inputs);
+		await log.appendOutput(filePath, "Deploying...\n");
+		await log.writeScriptFooter(filePath, 0, end);
+
+		const content = readFileSync(filePath, "utf8");
+		const inputIdx = content.indexOf("[input]");
+		const outputIdx = content.indexOf("Deploying...");
+		expect(inputIdx).toBeGreaterThan(-1);
+		expect(outputIdx).toBeGreaterThan(-1);
+		expect(inputIdx).toBeLessThan(outputIdx);
+	});
+
+	test("ssl-cert input logs the download path as value", async () => {
+		const filePath = await log.createLogFile();
+		const inputs: CollectedInput[] = [
+			{
+				id: "cert",
+				label: "TLS Certificate",
+				value: "/tmp/server.pem",
+				certCN: "api.example.com",
+			},
+		];
+
+		await log.writeScriptInputs(filePath, inputs);
+
+		const content = readFileSync(filePath, "utf8");
+		expect(content).toContain(
+			"  [input] label=TLS Certificate id=cert value=/tmp/server.pem",
+		);
 	});
 });

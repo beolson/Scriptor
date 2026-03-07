@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseManifest } from "./parseManifest";
+import { getInputsForScript, parseManifest } from "./parseManifest";
 
 // ---------------------------------------------------------------------------
 // Happy path
@@ -30,6 +30,7 @@ describe("parseManifest — happy path", () => {
 			arch: "x86",
 			script: "scripts/windows/install-git.ps1",
 			dependencies: [],
+			inputs: [],
 		});
 	});
 
@@ -71,6 +72,7 @@ describe("parseManifest — happy path", () => {
 			distro: "ubuntu",
 			version: "24.04",
 			dependencies: [],
+			inputs: [],
 		});
 	});
 
@@ -331,5 +333,148 @@ scripts:
 
 	test("non-array YAML (scalar string) throws error", () => {
 		expect(() => parseManifest("just a string")).toThrow(/array/i);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// inputs field — Task 2
+// ---------------------------------------------------------------------------
+
+describe("parseManifest — inputs field", () => {
+	test("YAML with valid inputs on a script parses and returns InputDef[]", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+  inputs:
+    - id: username
+      type: string
+      label: GitHub Username
+      required: true
+`;
+		const result = parseManifest(yaml);
+		expect(result).toHaveLength(1);
+		const inputs = result[0]?.inputs ?? [];
+		expect(inputs).toHaveLength(1);
+		expect(inputs[0]?.id).toBe("username");
+		expect(inputs[0]?.type).toBe("string");
+		expect(inputs[0]?.label).toBe("GitHub Username");
+	});
+
+	test("script with no inputs field returns empty array", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.inputs).toEqual([]);
+	});
+
+	test("YAML with duplicate input id within one script throws a load error", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+  inputs:
+    - id: username
+      type: string
+      label: GitHub Username
+    - id: username
+      type: string
+      label: GitHub Username Again
+`;
+		expect(() => parseManifest(yaml)).toThrow(/duplicate/i);
+	});
+
+	test("YAML with an unknown input type throws a Zod validation error", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+  inputs:
+    - id: token
+      type: secret
+      label: API Token
+`;
+		expect(() => parseManifest(yaml)).toThrow();
+	});
+
+	test("ssl-cert input missing format throws a Zod validation error", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+  inputs:
+    - id: cert
+      type: ssl-cert
+      label: Server Certificate
+      download_path: /tmp/cert.pem
+`;
+		expect(() => parseManifest(yaml)).toThrow();
+	});
+});
+
+describe("getInputsForScript", () => {
+	test("returns the inputs for a known script id", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+  inputs:
+    - id: username
+      type: string
+      label: GitHub Username
+`;
+		const entries = parseManifest(yaml);
+		const inputs = getInputsForScript("install-git", entries);
+		expect(inputs).toHaveLength(1);
+		expect(inputs[0]?.id).toBe("username");
+	});
+
+	test("returns empty array for a script id with no inputs", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+`;
+		const entries = parseManifest(yaml);
+		const inputs = getInputsForScript("install-git", entries);
+		expect(inputs).toEqual([]);
+	});
+
+	test("returns empty array for an unknown script id", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git
+  platform: windows
+  arch: x86
+  script: scripts/windows/git.ps1
+`;
+		const entries = parseManifest(yaml);
+		const inputs = getInputsForScript("nonexistent", entries);
+		expect(inputs).toEqual([]);
 	});
 });
