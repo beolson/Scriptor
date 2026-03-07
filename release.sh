@@ -2,10 +2,8 @@
 # Usage: ./release.sh
 #
 # Applies pending changesets, commits the version bump, tags, and pushes.
-# Run `cd tui && bun run changeset` first to describe your changes.
+# Run `bun run changeset` from the repo root first to describe your changes.
 set -euo pipefail
-
-cd tui
 
 # Fail fast if there are no pending changesets
 if ! ls .changeset/*.md 2>/dev/null | grep -qv README; then
@@ -13,16 +11,14 @@ if ! ls .changeset/*.md 2>/dev/null | grep -qv README; then
   exit 1
 fi
 
-# Apply version bump and update CHANGELOG.md
+# Apply version bumps and update CHANGELOGs
 bun run version
 
-# Read the new version
-VERSION=$(node -p "require('./package.json').version")
-
-cd ..
+# Read the new TUI version (canonical release version)
+VERSION=$(node -p "require('./tui/package.json').version")
 
 # Commit, tag, and push
-git add tui/package.json tui/CHANGELOG.md "tui/.changeset/"
+git add .changeset/ tui/package.json tui/CHANGELOG.md web/package.json web/CHANGELOG.md
 git commit -m "chore: release v$VERSION"
 git tag "v$VERSION"
 git push
