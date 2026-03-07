@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ScriptInputs } from "../inputs/inputSchema";
 import { LogService } from "../log/logService";
 import type { ScriptEntry } from "../manifest/parseManifest";
 import { type ProgressEvent, ScriptRunner } from "./scriptRunner";
@@ -23,6 +24,7 @@ function makeEntry(
 		dependencies: overrides.dependencies ?? [],
 		distro: overrides.distro ?? "Ubuntu",
 		version: overrides.version ?? "24.04",
+		inputs: overrides.inputs ?? [],
 	};
 }
 
@@ -230,6 +232,7 @@ describe("log capture", () => {
 			},
 			appendOutput: async () => {},
 			writeScriptFooter: async () => {},
+			writeScriptInputs: async () => {},
 		};
 		const runner = new ScriptRunner({
 			logService: mockLogService as unknown as LogService,
@@ -255,6 +258,7 @@ describe("log capture", () => {
 			writeScriptFooter: async (f: string, code: number, t: Date) => {
 				footerCalls.push([f, code, t]);
 			},
+			writeScriptInputs: async () => {},
 		};
 		const runner = new ScriptRunner({
 			logService: mockLogService as unknown as LogService,
@@ -280,6 +284,7 @@ describe("log capture", () => {
 				appendedChunks.push(chunk);
 			},
 			writeScriptFooter: async () => {},
+			writeScriptInputs: async () => {},
 		};
 		const runner = new ScriptRunner({
 			logService: mockLogService as unknown as LogService,
@@ -303,6 +308,7 @@ describe("log capture", () => {
 				appendedChunks.push(chunk);
 			},
 			writeScriptFooter: async () => {},
+			writeScriptInputs: async () => {},
 		};
 		const runner = new ScriptRunner({
 			logService: mockLogService as unknown as LogService,
@@ -324,6 +330,7 @@ describe("log capture", () => {
 			writeScriptFooter: async (f: string, code: number, t: Date) => {
 				footerCalls.push([f, code, t]);
 			},
+			writeScriptInputs: async () => {},
 		};
 		const runner = new ScriptRunner({
 			logService: mockLogService as unknown as LogService,
@@ -439,5 +446,92 @@ describe("progress events", () => {
 		);
 		expect(failedEvent).toBeDefined();
 		expect(failedEvent?.exitCode).toBe(5);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Input args (FR-3-030, FR-3-031, FR-3-032)
+// ---------------------------------------------------------------------------
+
+describe("input args", () => {
+	test("script with two string inputs — command invoked with both values appended as positional args in declaration order", async () => {
+		const capturedCommands: string[] = [];
+		const spawner = async (
+			cmd: string,
+			_out: (c: string) => void,
+			_err: (c: string) => void,
+		) => {
+			capturedCommands.push(cmd);
+			return 0;
+		};
+
+		const scriptInputs: ScriptInputs = new Map([
+			[
+				"my-script",
+				[
+					{ id: "first", label: "First", value: "hello" },
+					{ id: "second", label: "Second", value: "world" },
+				],
+			],
+		]);
+
+		const scripts = [makeEntry({ id: "my-script", script: "myscript.sh" })];
+		const runner = new ScriptRunner({ logService, spawner });
+
+		await runner.runScripts(scripts, logFile, scriptInputs);
+
+		expect(capturedCommands[0]).toBe("myscript.sh hello world");
+	});
+
+	test("script with ssl-cert input — arg value is the download path", async () => {
+		const capturedCommands: string[] = [];
+		const spawner = async (
+			cmd: string,
+			_out: (c: string) => void,
+			_err: (c: string) => void,
+		) => {
+			capturedCommands.push(cmd);
+			return 0;
+		};
+
+		const scriptInputs: ScriptInputs = new Map([
+			[
+				"cert-script",
+				[
+					{
+						id: "cert",
+						label: "Certificate",
+						value: "/tmp/cert.pem",
+						certCN: "example.com",
+					},
+				],
+			],
+		]);
+
+		const scripts = [makeEntry({ id: "cert-script", script: "deploy.sh" })];
+		const runner = new ScriptRunner({ logService, spawner });
+
+		await runner.runScripts(scripts, logFile, scriptInputs);
+
+		expect(capturedCommands[0]).toBe("deploy.sh /tmp/cert.pem");
+	});
+
+	test("script with no inputs — invoked with no extra args", async () => {
+		const capturedCommands: string[] = [];
+		const spawner = async (
+			cmd: string,
+			_out: (c: string) => void,
+			_err: (c: string) => void,
+		) => {
+			capturedCommands.push(cmd);
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "plain", script: "plain.sh" })];
+		const runner = new ScriptRunner({ logService, spawner });
+
+		await runner.runScripts(scripts, logFile);
+
+		expect(capturedCommands[0]).toBe("plain.sh");
 	});
 });

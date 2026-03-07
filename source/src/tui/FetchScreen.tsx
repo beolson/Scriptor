@@ -24,6 +24,21 @@ export interface FetchScreenProps {
  */
 export function FetchScreen({ currentEvent, done, offline }: FetchScreenProps) {
 	if (done) {
+		if (currentEvent?.type === "local-mode") {
+			return (
+				<Box flexDirection="column" gap={1}>
+					<Box>
+						<Text color="cyan" bold={true}>
+							{"Local mode: "}
+						</Text>
+						<Text color="cyan">
+							{`Using scriptor.yaml from ${currentEvent.cwd}`}
+						</Text>
+					</Box>
+					<Text dimColor={true}>Press Enter to continue.</Text>
+				</Box>
+			);
+		}
 		if (offline) {
 			return (
 				<Box flexDirection="column" gap={1}>
@@ -124,6 +139,13 @@ export function FetchScreen({ currentEvent, done, offline }: FetchScreenProps) {
 						{currentEvent.userCode}
 					</Text>
 					<Text dimColor={true}>Waiting for authorization…</Text>
+				</Box>
+			);
+
+		case "local-mode":
+			return (
+				<Box>
+					<Text>Loading from local directory…</Text>
 				</Box>
 			);
 

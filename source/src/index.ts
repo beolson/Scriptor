@@ -1,4 +1,5 @@
 import { render } from "ink";
+import path from "node:path";
 import React from "react";
 import { CacheService } from "./cache/cacheService.js";
 import { parseCli } from "./cli/parseCli.js";
@@ -9,7 +10,7 @@ import { GitHubClient } from "./github/githubClient.js";
 import { startOAuthFlow } from "./github/oauth.js";
 import { detectHost } from "./host/detectHost.js";
 import { LogService } from "./log/logService.js";
-import type { ScriptEntry } from "./manifest/parseManifest.js";
+import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
 import { App } from "./tui/App.js";
@@ -48,6 +49,38 @@ async function main() {
 		repo: string,
 		onEvent: Parameters<typeof runStartup>[1]["onEvent"],
 	) {
+		// Local mode: if scriptor.yaml exists in cwd or parent dir, use it directly.
+		let localManifestPath = path.join(process.cwd(), "scriptor.yaml");
+		let localDir = process.cwd();
+
+		if (!(await Bun.file(localManifestPath).exists())) {
+			const parentPath = path.join(process.cwd(), "..", "scriptor.yaml");
+			if (await Bun.file(parentPath).exists()) {
+				localManifestPath = parentPath;
+				localDir = path.join(process.cwd(), "..");
+			}
+		}
+
+		if (await Bun.file(localManifestPath).exists()) {
+			onEvent({ type: "local-mode", cwd: localDir });
+			const manifestYaml = await Bun.file(localManifestPath).text();
+			let entries: ReturnType<typeof parseManifest> = [];
+			try {
+				entries = parseManifest(manifestYaml);
+			} catch {
+				// invalid manifest — return empty scripts
+			}
+			const scripts: Record<string, string> = {};
+			for (const entry of entries) {
+				const scriptFile = Bun.file(path.join(localDir, entry.script));
+				if (await scriptFile.exists()) {
+					scripts[entry.script] = await scriptFile.text();
+				}
+			}
+			fetchedScripts = scripts;
+			return { manifestYaml, scripts, offline: false };
+		}
+
 		// We start without a token; the startup logic will trigger OAuth if needed
 		// and call startOAuthFlow to obtain one.
 		let client = new GitHubClient();

@@ -1,4 +1,5 @@
 import { load } from "js-yaml";
+import { type InputDef, InputDefArraySchema } from "../inputs/inputSchema";
 
 export interface ScriptEntry {
 	id: string;
@@ -10,6 +11,7 @@ export interface ScriptEntry {
 	distro?: string;
 	version?: string;
 	dependencies: string[];
+	inputs: InputDef[];
 }
 
 const VALID_PLATFORMS = new Set(["windows", "linux", "mac"]);
@@ -84,6 +86,29 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		dependencies = entry.dependencies as string[];
 	}
 
+	// inputs — optional, defaults to []; validated via Zod
+	let inputs: InputDef[] = [];
+	if ("inputs" in entry && entry.inputs !== undefined) {
+		const parsed = InputDefArraySchema.safeParse(entry.inputs);
+		if (!parsed.success) {
+			throw new Error(
+				`Entry at index ${index} has invalid "inputs": ${parsed.error.message}`,
+			);
+		}
+		inputs = parsed.data;
+
+		// Detect duplicate input ids within this script (FR-3-033)
+		const seenIds = new Set<string>();
+		for (const input of inputs) {
+			if (seenIds.has(input.id)) {
+				throw new Error(
+					`Entry at index ${index} has duplicate input id: "${input.id}"`,
+				);
+			}
+			seenIds.add(input.id);
+		}
+	}
+
 	const result: ScriptEntry = {
 		id: entry.id as string,
 		name: entry.name as string,
@@ -92,6 +117,7 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		arch: entry.arch as "x86" | "arm",
 		script: entry.script as string,
 		dependencies,
+		inputs,
 	};
 
 	if (platform === "linux") {
@@ -100,6 +126,18 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 	}
 
 	return result;
+}
+
+/**
+ * Returns the `InputDef[]` for a given script id from a parsed manifest.
+ * Returns an empty array if the script is not found or has no inputs.
+ */
+export function getInputsForScript(
+	scriptId: string,
+	entries: ScriptEntry[],
+): InputDef[] {
+	const entry = entries.find((e) => e.id === scriptId);
+	return entry?.inputs ?? [];
 }
 
 /**

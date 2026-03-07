@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Input Type Definitions & Zod Schema
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Install new dependencies and define all TypeScript types and Zod schemas for the `inputs` extension to `scriptor.yaml`. This is the foundational type layer that every other Phase 3 module imports. References FR-3-001, FR-3-070, FR-3-071.
@@ -27,7 +27,7 @@ Install new dependencies and define all TypeScript types and Zod schemas for the
 
 ## Task 2 — scriptor.yaml Loader Extension
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Extend the existing `scriptor.yaml` loader to parse and validate the new `inputs` list on each script entry using the Zod schema from Task 1. Detect and error on duplicate input `id` values within a script (FR-3-033). References FR-3-001, FR-3-033.
@@ -46,7 +46,7 @@ Extend the existing `scriptor.yaml` loader to parse and validate the new `inputs
 
 ## Task 3 — SSL Cert Fetcher Service
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the SSL certificate fetching service as an injectable interface so unit tests can use a mock. The real implementation uses `node:tls` to open a TLS socket and `@peculiar/x509` to parse and serialize certificates. References FR-3-011, FR-3-013, FR-3-014, FR-3-015.
@@ -63,11 +63,22 @@ Implement the SSL certificate fetching service as an injectable interface so uni
 - **GREEN:** Implement `TlsCertFetcher`, `MockCertFetcher`, and `downloadCert` to make all 4 tests pass. No live network calls in tests.
 - Cover: all 4 scenarios; `bun run lint` passes.
 
+**Implementation Notes:**
+- Created `source/src/inputs/sslCert/certFetcher.ts` with:
+  - `CertInfo` type (subject, issuer, expiresAt, rawDer)
+  - `CertFetcher` interface with `fetchChain(host, port)`
+  - `CertFetchError` typed error class
+  - `TlsCertFetcher` — opens TLS socket via `node:tls`, walks chain via `getPeerCertificate({ detailed: true })`, extracts CN/issuer/expiry/rawDer
+  - `MockCertFetcher` — returns preset cert array or throws `CertFetchError` depending on options
+  - `downloadCert` — serializes to PEM (base64-wrapped DER) or raw DER and writes with `Bun.write`
+- Created `source/src/inputs/sslCert/certFetcher.test.ts` with 4 tests covering all required scenarios
+- All 4 tests pass; full suite (238 tests) passes; `bun run lint` clean
+
 ---
 
 ## Task 4 — String & Number Input Prompt Components
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement Ink.js components for collecting a single `string` or `number` input from the user. Includes required-field validation and default value pre-fill. References FR-3-020, FR-3-021, FR-3-022.
@@ -86,7 +97,7 @@ Implement Ink.js components for collecting a single `string` or `number` input f
 
 ## Task 5 — SSL Cert Input Flow Component
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the multi-step Ink.js component for the `ssl-cert` input type. Walks the user through: URL entry → TLS fetch → cert selection → certificate download. Handles errors and retry (FR-3-014). References FR-3-010 through FR-3-016.
@@ -107,7 +118,7 @@ Implement the multi-step Ink.js component for the `ssl-cert` input type. Walks t
 
 ## Task 6 — Input Collection Screen
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the Ink.js screen that orchestrates collection of all inputs across all selected scripts, one prompt at a time, before the confirmation screen. Handles the cancel/quit flow. References FR-3-002, FR-3-003, FR-3-050, FR-3-051, FR-3-052.
@@ -128,7 +139,7 @@ Implement the Ink.js screen that orchestrates collection of all inputs across al
 
 ## Task 7 — Confirmation Screen Extension
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Extend the existing confirmation screen to display each selected script's collected input values alongside the script name, so the user can review everything before confirming execution. References FR-3-040, FR-3-041.
@@ -147,7 +158,7 @@ Extend the existing confirmation screen to display each selected script's collec
 
 ## Task 8 — Script Invocation & Logging Update
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Update the script execution engine to append collected input values as positional command-line arguments, and update the run logger to record input values alongside each script's output section. References FR-3-030, FR-3-031, FR-3-032, FR-3-060.
@@ -166,7 +177,7 @@ Update the script execution engine to append collected input values as positiona
 
 ## Task 9 — TUI App Flow Integration
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Wire the input collection phase into the main TUI application flow, inserting it between script selection and the confirmation screen. Connect the updated confirmation screen, execution engine, and logger so the end-to-end flow works. References FR-3-002, FR-3-004, FR-3-050.

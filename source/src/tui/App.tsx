@@ -5,6 +5,10 @@ import type {
 	ScriptRunResult,
 } from "../execution/scriptRunner.js";
 import type { HostInfo } from "../host/detectHost.js";
+import { InputCollectionScreen } from "../inputs/components/InputCollectionScreen.js";
+import type { ScriptInputs } from "../inputs/inputSchema.js";
+import type { CertFetcher } from "../inputs/sslCert/certFetcher.js";
+import { TlsCertFetcher } from "../inputs/sslCert/certFetcher.js";
 import type { ScriptEntry } from "../manifest/parseManifest.js";
 import type { StartupEvent, StartupResult } from "../startup/startup.js";
 import { ConfirmationScreen } from "./ConfirmationScreen.js";
@@ -15,7 +19,12 @@ import { DEFAULT_BINDINGS, Footer } from "./Footer.js";
 import { Header } from "./Header.js";
 import { ScriptListScreen } from "./ScriptListScreen.js";
 
-export type Screen = "fetch" | "script-list" | "confirmation" | "execution";
+export type Screen =
+	| "fetch"
+	| "script-list"
+	| "input-collection"
+	| "confirmation"
+	| "execution";
 
 export interface AppProps {
 	hostInfo: HostInfo;
@@ -42,7 +51,13 @@ export interface AppProps {
 	runExecution: (
 		scripts: ScriptEntry[],
 		onProgress: (event: ProgressEvent) => void,
+		scriptInputs?: ScriptInputs,
 	) => Promise<ScriptRunResult>;
+	/**
+	 * Certificate fetcher used by the SSL cert input prompt.
+	 * Defaults to a real TlsCertFetcher when not provided.
+	 */
+	fetcher?: CertFetcher;
 }
 
 /**
@@ -51,7 +66,13 @@ export interface AppProps {
  * Renders the persistent Header and Footer around a content area that
  * switches between screens based on app state.
  */
-export function App({ hostInfo, repoUrl, runStartup, runExecution }: AppProps) {
+export function App({
+	hostInfo,
+	repoUrl,
+	runStartup,
+	runExecution,
+	fetcher,
+}: AppProps) {
 	const { exit } = useApp();
 	const [screen, setScreen] = useState<Screen>("fetch");
 	const [footerBindings, setFooterBindings] =
@@ -67,6 +88,16 @@ export function App({ hostInfo, repoUrl, runStartup, runExecution }: AppProps) {
 
 	// Script list state
 	const [resolvedScripts, setResolvedScripts] = useState<ScriptEntry[]>([]);
+
+	// Collected inputs (populated by the input-collection phase; empty map until then)
+	const [scriptInputs, setScriptInputs] = useState<ScriptInputs>(
+		() => new Map(),
+	);
+
+	// Cert fetcher — use injected one or fall back to the real TLS fetcher
+	const [certFetcher] = useState<CertFetcher>(
+		() => fetcher ?? new TlsCertFetcher(),
+	);
 
 	// Run the startup sequence once on mount.
 	useEffect(() => {
@@ -84,26 +115,54 @@ export function App({ hostInfo, repoUrl, runStartup, runExecution }: AppProps) {
 			});
 	}, [repoUrl, runStartup]);
 
-	// Handle global quit keys (only when not executing scripts).
-	useInput((input, key) => {
-		if (input === "q" || (key.ctrl && input === "c")) {
-			exit();
-		}
-		// On the fetch screen, Enter advances to the script list once loading is done.
-		if (screen === "fetch" && fetchDone && key.return) {
-			setScreen("script-list");
-			setFooterBindings(DEFAULT_BINDINGS);
-		}
-	});
+	// Handle global quit keys (only when not on input-collection or execution screens).
+	// input-collection manages its own Q/Ctrl+C with a cancel confirmation.
+	// execution blocks quit while running.
+	useInput(
+		(input, key) => {
+			if (input === "q" || (key.ctrl && input === "c")) {
+				exit();
+			}
+			// On the fetch screen, Enter advances to the script list once loading is done.
+			if (screen === "fetch" && fetchDone && key.return) {
+				setScreen("script-list");
+				setFooterBindings(DEFAULT_BINDINGS);
+			}
+		},
+		{ isActive: screen !== "input-collection" && screen !== "execution" },
+	);
 
 	function handleConfirm(scripts: ScriptEntry[]) {
 		setResolvedScripts(scripts);
+
+		// Check if any selected script has inputs to collect (FR-3-050).
+		const hasInputs = scripts.some((s) => s.inputs.length > 0);
+		if (hasInputs) {
+			setScreen("input-collection");
+			setFooterBindings([]);
+		} else {
+			setScreen("confirmation");
+			setFooterBindings([
+				{ key: "Y / Enter", description: "Run scripts" },
+				{ key: "N / Esc", description: "Back" },
+				{ key: "Q", description: "Quit" },
+			]);
+		}
+	}
+
+	function handleInputCollectionComplete(collected: ScriptInputs) {
+		setScriptInputs(collected);
 		setScreen("confirmation");
 		setFooterBindings([
 			{ key: "Y / Enter", description: "Run scripts" },
 			{ key: "N / Esc", description: "Back" },
 			{ key: "Q", description: "Quit" },
 		]);
+	}
+
+	function handleInputCollectionCancel() {
+		// FR-3-052: cancel exits cleanly with no scripts run
+		exit();
 	}
 
 	function handleBack() {
@@ -134,9 +193,22 @@ export function App({ hostInfo, repoUrl, runStartup, runExecution }: AppProps) {
 						onConfirm={handleConfirm}
 					/>
 				)}
+				{screen === "input-collection" && (
+					<InputCollectionScreen
+						scripts={resolvedScripts.map((s) => ({
+							id: s.id,
+							name: s.name,
+							inputs: s.inputs,
+						}))}
+						fetcher={certFetcher}
+						onComplete={handleInputCollectionComplete}
+						onCancel={handleInputCollectionCancel}
+					/>
+				)}
 				{screen === "confirmation" && (
 					<ConfirmationScreen
 						scripts={resolvedScripts}
+						scriptInputs={scriptInputs}
 						onConfirm={handleExecute}
 						onBack={handleBack}
 					/>
@@ -145,7 +217,7 @@ export function App({ hostInfo, repoUrl, runStartup, runExecution }: AppProps) {
 					<ExecutionScreen
 						scripts={resolvedScripts}
 						runExecution={(onProgress) =>
-							runExecution(resolvedScripts, onProgress)
+							runExecution(resolvedScripts, onProgress, scriptInputs)
 						}
 					/>
 				)}
