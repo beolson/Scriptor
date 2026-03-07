@@ -1,5 +1,11 @@
 # scriptor
 
+## 0.2.0
+
+### Minor Changes
+
+- Added support for inputs into the scripts
+
 ## 0.1.5
 
 ### Patch Changes
