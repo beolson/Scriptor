@@ -125,7 +125,7 @@ export class TlsCertFetcher implements CertFetcher {
 				},
 			);
 
-			socket.on("error", (err) => {
+			socket.on("error", (err: Error) => {
 				if (settled) return;
 				settled = true;
 				socket.destroy();

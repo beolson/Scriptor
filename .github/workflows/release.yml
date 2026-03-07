@@ -2,14 +2,29 @@ name: Release
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
 
 jobs:
+  main-branch-check:
+    name: Assert tag is on main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assert tag is reachable from main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main || \
+            (echo "Tag is not on main branch — aborting release." && exit 1)
+
   tui-release:
     name: Build TUI Binaries & Release
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag'
+    needs: main-branch-check
 
     permissions:
       contents: write
@@ -50,7 +65,7 @@ jobs:
   web-release:
     name: Build Web & Deploy to GitHub Pages
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag'
+    needs: main-branch-check
 
     permissions:
       contents: read
