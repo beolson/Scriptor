@@ -1,3 +1,4 @@
+import VersionBadge from "../VersionBadge/VersionBadge";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
@@ -7,6 +8,7 @@ export default function Footer() {
 				&gt; scriptor {"//"} manage your scripts
 			</span>
 			<div className={styles.footerLinks}>
+				<VersionBadge />
 				<a
 					className={styles.githubLink}
 					href="https://github.com/beolson/Scriptor"

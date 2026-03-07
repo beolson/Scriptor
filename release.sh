@@ -2,10 +2,10 @@
 # Usage: ./release.sh
 #
 # Applies pending changesets, commits the version bump, tags, and pushes.
-# Run `cd source && bun run changeset` first to describe your changes.
+# Run `cd tui && bun run changeset` first to describe your changes.
 set -euo pipefail
 
-cd source
+cd tui
 
 # Fail fast if there are no pending changesets
 if ! ls .changeset/*.md 2>/dev/null | grep -qv README; then
@@ -22,7 +22,7 @@ VERSION=$(node -p "require('./package.json').version")
 cd ..
 
 # Commit, tag, and push
-git add source/package.json source/CHANGELOG.md "source/.changeset/"
+git add tui/package.json tui/CHANGELOG.md "tui/.changeset/"
 git commit -m "chore: release v$VERSION"
 git tag "v$VERSION"
 git push

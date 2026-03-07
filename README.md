@@ -16,10 +16,10 @@ Work on your feature or fix as normal.
 
 ### Step 2 — Add a changeset
 
-From the `source/` directory, run:
+From the `tui/` directory, run:
 
 ```sh
-cd source
+cd tui
 bun run changeset
 ```
 
@@ -32,7 +32,7 @@ The interactive prompt will ask you to:
    - `major` — breaking changes (e.g. `0.1.0` → `1.0.0`)
 3. **Write a summary** — one line describing the change (this appears in `CHANGELOG.md`)
 
-This creates a file in `source/.changeset/` such as `source/.changeset/fuzzy-dogs-dance.md`. Commit it alongside your code changes.
+This creates a file in `tui/.changeset/` such as `tui/.changeset/fuzzy-dogs-dance.md`. Commit it alongside your code changes.
 
 ---
 
@@ -52,7 +52,7 @@ When you are ready to ship, run from the repo root:
 
 This will:
 
-1. Apply all pending changesets (`changeset version`) — bumps `source/package.json` and writes `source/CHANGELOG.md`
+1. Apply all pending changesets (`changeset version`) — bumps `tui/package.json` and writes `tui/CHANGELOG.md`
 2. Commit the version bump
 3. Tag the commit as `v{version}` (e.g. `v0.2.0`)
 4. Push the commit and tag to `main`

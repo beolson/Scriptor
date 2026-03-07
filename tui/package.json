@@ -1,0 +1,32 @@
+{
+	"name": "scriptor",
+	"version": "0.1.5",
+	"module": "src/index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run src/index.ts",
+		"build": "bun build src/index.ts --compile --outfile ../dist/scriptor",
+		"test": "bun test",
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@peculiar/x509": "^1.14.3",
+		"commander": "^14.0.3",
+		"ink": "^6.8.0",
+		"js-yaml": "^4.1.1",
+		"react": "^19.2.4",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.4",
+		"@changesets/cli": "^2.27.12",
+		"react-devtools-core": "file:./stubs/react-devtools-core",
+		"@types/bun": "latest",
+		"@types/js-yaml": "^4.0.9",
+		"@types/react": "^19.2.14",
+		"typescript": "^5"
+	}
+}

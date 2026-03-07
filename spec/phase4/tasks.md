@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Rename source/ to tui/
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Rename the `source/` directory to `tui/` and update every internal reference so the TUI project retains full functionality without behavioral change. This is the blocking prerequisite for all other Phase 4 work. References FR-4-002, FR-4-004.
@@ -26,7 +26,7 @@ Rename the `source/` directory to `tui/` and update every internal reference so 
 
 ## Task 2 — Root Monorepo Scaffolding
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Create the Turborepo monorepo root: root `package.json` (workspace manifest), `turbo.json` (pipeline definitions), and Bun workspaces configuration. After this task `bun install` at the repo root installs both `tui/` and `web/` dependencies, and `turbo run build` can orchestrate both packages. References FR-4-001, FR-4-003, FR-4-013, FR-4-014.
@@ -45,7 +45,7 @@ Create the Turborepo monorepo root: root `package.json` (workspace manifest), `t
 
 ## Task 3 — Root Biome Config Consolidation
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Establish a root-level `biome.json` as the shared lint/format baseline, and migrate each project's existing Biome configuration to extend or override it. No lint rules are loosened or tightened. References FR-4-020, FR-4-021, FR-4-022.
@@ -64,7 +64,7 @@ Establish a root-level `biome.json` as the shared lint/format baseline, and migr
 
 ## Task 4 — tui/ Package Script Alignment & typecheck
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Ensure `tui/package.json` exposes the full required script set and add the `typecheck` script. This task does not add new functionality — it only aligns script naming and adds the TypeScript type check command. References FR-4-010, FR-4-011, FR-4-012.
@@ -83,7 +83,7 @@ Ensure `tui/package.json` exposes the full required script set and add the `type
 
 ## Task 5 — web/ Package Script Alignment & typecheck
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Ensure `web/package.json` exposes the full required script set and add the `typecheck` script. References FR-4-010, FR-4-011.
@@ -102,7 +102,7 @@ Ensure `web/package.json` exposes the full required script set and add the `type
 
 ## Task 6 — Changeset Migration to Monorepo Root
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Move the `.changeset/` directory and its configuration from `tui/` to the monorepo root, and add changeset scripts to the root `package.json`. References FR-4-030, FR-4-031.
@@ -122,7 +122,7 @@ Move the `.changeset/` directory and its configuration from `tui/` to the monore
 
 ## Task 7 — CI Pipeline Rework
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Rewrite the CI GitHub Actions workflow to use Turborepo and cover both `tui` and `web`: build, lint, typecheck, and test. This replaces the existing per-project CI setup. References FR-4-040, FR-4-041, FR-4-042, FR-4-043, FR-4-044, FR-4-045.
@@ -143,7 +143,7 @@ Rewrite the CI GitHub Actions workflow to use Turborepo and cover both `tui` and
 
 ## Task 8 — Web Version Display
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Add a minimal version display to the web project so users can verify the deployed web version matches the installed TUI version. The version is injected at build time from the git tag; a `dev` fallback is shown when no tag is set. References FR-4-060, FR-4-061, FR-4-062, FR-4-063.
@@ -162,7 +162,7 @@ Add a minimal version display to the web project so users can verify the deploye
 
 ## Task 9 — Release Pipeline Rework
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Replace the existing TUI release workflow and `deploy-web.yml` with a single unified release workflow. The release fires only when a `v*` tag is pushed from the `main` branch. It builds TUI binaries, uploads them as GitHub Release assets, and deploys the web to GitHub Pages — all in one run. References FR-4-050, FR-4-051, FR-4-052, FR-4-053, FR-4-054, FR-4-055, FR-4-056.
