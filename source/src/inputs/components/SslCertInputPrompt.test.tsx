@@ -125,7 +125,7 @@ describe("SslCertInputPrompt", () => {
 				fetcher={fetcher}
 				onSubmit={onSubmit}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -158,7 +158,7 @@ describe("SslCertInputPrompt", () => {
 				fetcher={fetcher}
 				onSubmit={onSubmit}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -193,7 +193,7 @@ describe("SslCertInputPrompt", () => {
 				fetcher={fetcher}
 				onSubmit={onSubmit}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -226,7 +226,7 @@ describe("SslCertInputPrompt", () => {
 				fetcher={fetcher}
 				onSubmit={onSubmit}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 

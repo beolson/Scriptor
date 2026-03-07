@@ -194,6 +194,7 @@ describe("App — Task 9 integration", () => {
 			stdin,
 			stdout,
 			exitOnCtrlC: false,
+			debug: true,
 		});
 		instances.push(inst);
 
@@ -218,6 +219,7 @@ describe("App — Task 9 integration", () => {
 			stdin,
 			stdout,
 			exitOnCtrlC: false,
+			debug: true,
 		});
 		instances.push(inst);
 
@@ -245,6 +247,7 @@ describe("App — Task 9 integration", () => {
 			stdin,
 			stdout,
 			exitOnCtrlC: false,
+			debug: true,
 		});
 		instances.push(inst);
 
@@ -302,6 +305,7 @@ describe("App — Task 9 integration", () => {
 			stdin,
 			stdout,
 			exitOnCtrlC: false,
+			debug: true,
 		});
 		instances.push(inst);
 
@@ -342,7 +346,7 @@ describe("App — Task 9 integration", () => {
 					runExecution,
 				})}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 

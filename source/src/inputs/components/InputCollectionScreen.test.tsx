@@ -118,7 +118,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -162,7 +162,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -213,7 +213,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -246,7 +246,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -282,7 +282,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
@@ -323,7 +323,7 @@ describe("InputCollectionScreen", () => {
 				onComplete={onComplete}
 				onCancel={onCancel}
 			/>,
-			{ stdin, stdout, exitOnCtrlC: false },
+			{ stdin, stdout, exitOnCtrlC: false, debug: true },
 		);
 		instances.push(inst);
 
