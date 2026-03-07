@@ -174,8 +174,8 @@ export function SslCertInputPrompt({
 			{/* Step 1: URL prompt */}
 			{(step === "url" || step === "fetching") && (
 				<>
-					<Box flexDirection="row" gap={1}>
-						<Text>{inputDef.label}:</Text>
+					<Box flexDirection="row">
+						<Text>{inputDef.label}: </Text>
 						<Text>{urlInput}</Text>
 						{step === "url" && <Text inverse={true}> </Text>}
 					</Box>

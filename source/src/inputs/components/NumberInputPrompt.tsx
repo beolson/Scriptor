@@ -63,8 +63,8 @@ export function NumberInputPrompt({
 			<Text dimColor={true}>{scriptName}</Text>
 
 			{/* Prompt line */}
-			<Box flexDirection="row" gap={1}>
-				<Text>{inputDef.label}:</Text>
+			<Box flexDirection="row">
+				<Text>{inputDef.label}: </Text>
 				<Text>{value}</Text>
 				<Text inverse={true}> </Text>
 			</Box>

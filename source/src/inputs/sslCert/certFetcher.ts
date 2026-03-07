@@ -1,3 +1,4 @@
+import * as crypto from "node:crypto";
 import * as tls from "node:tls";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,53 +26,70 @@ export class CertFetchError extends Error {
 	}
 }
 
-// ─── TlsCertFetcher ───────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const CA_ISSUERS_RE = /CA Issuers - URI:(\S+)/;
+const MAX_CHAIN_DEPTH = 10;
+
+/** Extract CN from an X.509 subject/issuer string like "CN=example.com\nO=Org" */
+function extractCN(field: string): string {
+	const match = field.match(/CN=([^\n]*)/);
+	return match?.[1] ?? "";
+}
+
+function x509ToCertInfo(x509: crypto.X509Certificate): CertInfo {
+	return {
+		subject: `CN=${extractCN(x509.subject)}`,
+		issuer: `CN=${extractCN(x509.issuer)}`,
+		expiresAt: new Date(x509.validTo),
+		rawDer: new Uint8Array(x509.raw),
+	};
+}
 
 /**
- * Walks the peer certificate chain returned by node:tls and extracts
- * subject CN, issuer, expiry, and the raw DER bytes for each certificate.
+ * Walk the chain by following AIA (Authority Information Access) CA Issuers
+ * URLs. Each certificate's infoAccess field may contain a URL pointing to
+ * the issuer's DER-encoded certificate.
  */
-function tlsPeerToCertInfo(peer: tls.DetailedPeerCertificate): CertInfo[] {
-	const seen = new Set<string>();
-	const certs: CertInfo[] = [];
-	let current: tls.DetailedPeerCertificate | null = peer;
+async function walkChainViaAIA(
+	leaf: crypto.X509Certificate,
+): Promise<CertInfo[]> {
+	const certs: CertInfo[] = [x509ToCertInfo(leaf)];
+	let current = leaf;
 
-	while (current != null) {
-		const fp = current.fingerprint256 ?? current.fingerprint;
-		if (fp && seen.has(fp)) break;
-		if (fp) seen.add(fp);
+	for (let i = 0; i < MAX_CHAIN_DEPTH; i++) {
+		// Self-signed root — stop
+		if (current.subject === current.issuer) break;
 
-		const subjectCN =
-			typeof current.subject === "object" && current.subject !== null
-				? ((current.subject as Record<string, string>).CN ?? "")
-				: "";
-		const issuerCN =
-			typeof current.issuer === "object" && current.issuer !== null
-				? ((current.issuer as Record<string, string>).CN ?? "")
-				: "";
+		const aiaMatch = current.infoAccess?.match(CA_ISSUERS_RE);
+		if (!aiaMatch?.[1]) break;
 
-		// raw is a Buffer containing the DER-encoded certificate
-		const rawDer =
-			current.raw instanceof Buffer
-				? new Uint8Array(current.raw)
-				: new Uint8Array(0);
+		const resp = await fetch(aiaMatch[1]);
+		if (!resp.ok) break;
 
-		certs.push({
-			subject: `CN=${subjectCN}`,
-			issuer: `CN=${issuerCN}`,
-			expiresAt: new Date(current.valid_to),
-			rawDer,
-		});
+		const buf = await resp.arrayBuffer();
+		try {
+			current = new crypto.X509Certificate(Buffer.from(buf));
+		} catch {
+			break;
+		}
 
-		// Walk up the chain; stop when issuer == subject (self-signed root)
-		if (current.issuerCertificate == null) break;
-		if (current.issuerCertificate === current) break;
-		current = current.issuerCertificate;
+		certs.push(x509ToCertInfo(current));
 	}
 
 	return certs;
 }
 
+// ─── TlsCertFetcher ───────────────────────────────────────────────────────────
+
+/**
+ * Fetches the full certificate chain for a TLS endpoint.
+ *
+ * Bun's `getPeerCertificate(true)` does not populate `issuerCertificate`
+ * beyond the leaf cert. To get the full chain we connect via node:tls to
+ * obtain the leaf, then walk up via AIA (Authority Information Access)
+ * CA Issuers URLs embedded in each certificate.
+ */
 export class TlsCertFetcher implements CertFetcher {
 	fetchChain(host: string, port: number): Promise<CertInfo[]> {
 		return new Promise((resolve, reject) => {
@@ -93,7 +111,8 @@ export class TlsCertFetcher implements CertFetcher {
 							);
 							return;
 						}
-						resolve(tlsPeerToCertInfo(peer));
+						const leaf = new crypto.X509Certificate(peer.raw);
+						resolve(walkChainViaAIA(leaf));
 					} catch (err) {
 						settled = true;
 						reject(
