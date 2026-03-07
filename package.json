@@ -6,6 +6,13 @@
 		"web"
 	],
 	"scripts": {
+		"dev": "turbo run dev",
+		"dev:tui": "bun run --cwd tui dev",
+		"dev:web": "turbo run dev --filter=web",
+		"build": "turbo run build",
+		"lint": "turbo run lint",
+		"format": "turbo run format",
+		"typecheck": "turbo run typecheck",
 		"test:unit": "turbo run test:unit",
 		"test:e2e": "turbo run test:e2e",
 		"changeset": "changeset",
