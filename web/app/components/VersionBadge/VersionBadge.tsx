@@ -1,5 +1,5 @@
 const version = process.env.NEXT_PUBLIC_VERSION;
-const label = version ? `v${version}` : "dev";
+const label = version ?? "dev";
 
 export default function VersionBadge() {
 	return (
