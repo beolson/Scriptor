@@ -20,7 +20,6 @@ export default function HomePage() {
 
 			{/* Platforms section */}
 			<section className={styles.platforms}>
-				<span className={styles.sectionLabel}>{"// platforms"}</span>
 				<h2 className={styles.sectionHeading}>&gt; browse by platform</h2>
 				<div className={styles.cardGrid}>
 					<PlatformCard

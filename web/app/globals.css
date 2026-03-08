@@ -76,11 +76,11 @@
 /* ── Dark Theme (retro green-screen terminal aesthetic) ────────────────── */
 
 [data-theme="dark"] {
-	--color-bg: #0a0a0a;
+	--color-bg: #121212;
 	--color-surface: #111411;
 	--color-border: #1a2e1a;
 	--color-text-primary: #d4e8d4;
-	--color-text-muted: #6a8a6a;
+	--color-text-muted: #8aaa8a;
 	--color-accent: #33ff33;
 }
 

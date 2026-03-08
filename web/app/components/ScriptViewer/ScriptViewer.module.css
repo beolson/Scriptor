@@ -2,7 +2,6 @@
 
 .section {
 	border: 1px solid var(--color-border);
-	margin-top: 16px;
 }
 
 .toggle {
