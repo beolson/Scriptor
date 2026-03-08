@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
 import { getScriptById, loadScripts } from "../../../lib/loadScripts";
 import ArchBadge from "../../components/ArchBadge/ArchBadge";
 import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 import DependencyTag from "../../components/DependencyTag/DependencyTag";
+import InputsPanel from "../../components/InputsPanel/InputsPanel";
 import MetadataRow from "../../components/MetadataRow/MetadataRow";
+import ScriptViewer from "../../components/ScriptViewer/ScriptViewer";
+import SpecViewer from "../../components/SpecViewer/SpecViewer";
 import styles from "./detail.module.css";
 
 interface Props {
@@ -59,16 +60,11 @@ export default async function ScriptDetailPage({ params }: Props) {
 			<div className={styles.detailBody}>
 				{/* Main Column — spec/markdown */}
 				<div className={styles.mainCol}>
-					<span className={styles.specLabel}>{"// spec"}</span>
-					<div className={styles.markdownContent} data-testid="spec-content">
-						{script.spec ? (
-							<ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-								{script.spec}
-							</ReactMarkdown>
-						) : (
-							<p className={styles.specEmpty}>{"// no spec available"}</p>
-						)}
-					</div>
+					<SpecViewer spec={script.spec} />
+					<ScriptViewer
+						scriptSource={script.scriptSource}
+						scriptPath={script.script}
+					/>
 				</div>
 
 				{/* Sidebar */}
@@ -96,6 +92,9 @@ export default async function ScriptDetailPage({ params }: Props) {
 							</div>
 						</div>
 					)}
+
+					{/* Inputs Panel */}
+					<InputsPanel inputs={script.inputs} />
 				</div>
 			</div>
 		</main>

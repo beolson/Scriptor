@@ -7,16 +7,9 @@ export default function HomePage() {
 		<main>
 			{/* Hero section */}
 			<section className={styles.hero}>
-				<span className={styles.heroBadge}>
-					{"// cross-platform script management"}
-				</span>
 				<h1 className={styles.heroHeadline} data-testid="hero-headline">
 					&gt; scriptor
 				</h1>
-				<p className={styles.heroSubheadline}>
-					install, manage, and run scripts across windows, linux, and macos with
-					a single command.
-				</p>
 				<div className={styles.installWrapper}>
 					<InstallCommand />
 					<span className={styles.heroNote}>
@@ -27,7 +20,6 @@ export default function HomePage() {
 
 			{/* Platforms section */}
 			<section className={styles.platforms}>
-				<span className={styles.sectionLabel}>{"// platforms"}</span>
 				<h2 className={styles.sectionHeading}>&gt; browse by platform</h2>
 				<div className={styles.cardGrid}>
 					<PlatformCard

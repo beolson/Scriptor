@@ -35,6 +35,7 @@
 .detailBody {
 	display: flex;
 	flex-direction: row;
+	align-items: flex-start;
 	gap: 48px;
 	padding: var(--body-py) var(--page-px-desktop);
 	background-color: var(--color-bg);
@@ -48,68 +49,6 @@
 	gap: 16px;
 	flex: 1;
 	min-width: 0;
-}
-
-.specLabel {
-	font-family: var(--font-ibmplex), monospace;
-	font-size: 12px;
-	font-weight: normal;
-	color: var(--color-text-muted);
-}
-
-.markdownContent {
-	border: 1px solid var(--color-border);
-	padding: 24px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	width: 100%;
-}
-
-/* ReactMarkdown prose styles */
-.markdownContent h1,
-.markdownContent h2,
-.markdownContent h3 {
-	font-family: var(--font-jetbrains), monospace;
-	font-size: 16px;
-	font-weight: 700;
-	color: var(--color-text-primary);
-	margin-top: 8px;
-}
-
-.markdownContent p {
-	font-family: var(--font-ibmplex), monospace;
-	font-size: 13px;
-	color: var(--color-text-muted);
-	line-height: 1.6;
-}
-
-.markdownContent ol,
-.markdownContent ul {
-	font-family: var(--font-ibmplex), monospace;
-	font-size: 13px;
-	color: var(--color-text-muted);
-	padding-left: 20px;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-.markdownContent pre {
-	background-color: var(--color-surface);
-	border: 1px solid var(--color-border);
-	padding: 12px 16px;
-	overflow-x: auto;
-}
-
-.markdownContent code {
-	font-family: var(--font-jetbrains), monospace;
-	font-size: 13px;
-	color: var(--color-accent);
-}
-
-.markdownContent pre code {
-	color: var(--color-accent);
 }
 
 /* ── Sidebar ────────────────────────────────────────────────────────────── */
