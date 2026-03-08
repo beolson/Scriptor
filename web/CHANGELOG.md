@@ -1,5 +1,11 @@
 # web
 
+## 0.5.0
+
+### Minor Changes
+
+- e25fcfc: Update
+
 ## 0.4.0
 
 ### Minor Changes
