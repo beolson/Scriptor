@@ -50,8 +50,13 @@ test.describe("detail page — Task 11", () => {
 		await expect(badge).toBeVisible();
 	});
 
-	test("spec-content contains rendered markdown", async ({ page }) => {
+	test("spec-content contains rendered markdown after expanding", async ({
+		page,
+	}) => {
 		await page.goto("/scripts/install-docker");
+		// Spec is collapsed by default — click to expand
+		const specToggle = page.getByRole("button", { name: /spec/ });
+		await specToggle.click();
 		const specContent = page.locator('[data-testid="spec-content"]');
 		await expect(specContent).toBeVisible();
 		// Should contain at least one paragraph or heading from the rendered markdown
