@@ -1,5 +1,11 @@
 # scriptor
 
+## 0.6.0
+
+### Minor Changes
+
+- c1b0493: Update Website
+
 ## 0.5.0
 
 ### Minor Changes
