@@ -43,9 +43,7 @@ export default function ScriptViewer({
 				aria-expanded={expanded}
 			>
 				<span className={styles.label}>{"// script"}</span>
-				<span className={styles.chevron}>
-					{expanded ? "[-]" : "[+]"}
-				</span>
+				<span className={styles.chevron}>{expanded ? "[-]" : "[+]"}</span>
 			</button>
 			{expanded && (
 				<div className={styles.codeWrapper}>

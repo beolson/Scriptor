@@ -37,6 +37,7 @@ export default function RootLayout({
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<script
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: inline script required to prevent theme flash before first paint
 					dangerouslySetInnerHTML={{
 						__html: `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t)}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.setAttribute("data-theme","dark")}else{document.documentElement.setAttribute("data-theme","light")}}catch(e){document.documentElement.setAttribute("data-theme","light")}})()`,
 					}}

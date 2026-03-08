@@ -27,7 +27,7 @@ describe("hljs-themes dual theme scoping", () => {
 		expect(fs.existsSync(filePath)).toBe(true);
 	});
 
-	it("hljs-themes.css contains light theme styles scoped under [data-theme=\"light\"]", () => {
+	it('hljs-themes.css contains light theme styles scoped under [data-theme="light"]', () => {
 		const css = fs.readFileSync(
 			path.join(__dirname, "hljs-themes.css"),
 			"utf-8",
@@ -38,7 +38,7 @@ describe("hljs-themes dual theme scoping", () => {
 		expect(lightBlock).toContain(".hljs");
 	});
 
-	it("hljs-themes.css contains dark theme styles scoped under [data-theme=\"dark\"]", () => {
+	it('hljs-themes.css contains dark theme styles scoped under [data-theme="dark"]', () => {
 		const css = fs.readFileSync(
 			path.join(__dirname, "hljs-themes.css"),
 			"utf-8",

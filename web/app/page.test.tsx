@@ -2,10 +2,7 @@ import { describe, expect, it } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 
-const PAGE_SOURCE = fs.readFileSync(
-	path.join(__dirname, "page.tsx"),
-	"utf-8",
-);
+const PAGE_SOURCE = fs.readFileSync(path.join(__dirname, "page.tsx"), "utf-8");
 
 describe("HomePage copy cleanup", () => {
 	it("does not contain the 'cross-platform script management' badge text", () => {
@@ -13,9 +10,7 @@ describe("HomePage copy cleanup", () => {
 	});
 
 	it("does not contain the 'install, manage, and run scripts' subheadline text", () => {
-		expect(PAGE_SOURCE).not.toContain(
-			"install, manage, and run scripts",
-		);
+		expect(PAGE_SOURCE).not.toContain("install, manage, and run scripts");
 	});
 
 	it("still renders the hero section with the headline", () => {

@@ -8,7 +8,7 @@ const CSS_SOURCE = fs.readFileSync(
 );
 
 describe("globals.css dark theme custom properties", () => {
-	it("contains a [data-theme=\"dark\"] rule block", () => {
+	it('contains a [data-theme="dark"] rule block', () => {
 		expect(CSS_SOURCE).toContain('[data-theme="dark"]');
 	});
 
@@ -44,7 +44,7 @@ describe("globals.css dark theme custom properties", () => {
 });
 
 describe("globals.css light theme explicit scoping", () => {
-	it("contains a [data-theme=\"light\"] rule block", () => {
+	it('contains a [data-theme="light"] rule block', () => {
 		expect(CSS_SOURCE).toContain('[data-theme="light"]');
 	});
 

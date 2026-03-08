@@ -25,9 +25,7 @@ export default function SpecViewer({ spec }: SpecViewerProps) {
 				aria-expanded={expanded}
 			>
 				<span className={styles.label}>{"// spec"}</span>
-				<span className={styles.chevron}>
-					{expanded ? "[-]" : "[+]"}
-				</span>
+				<span className={styles.chevron}>{expanded ? "[-]" : "[+]"}</span>
 			</button>
 			{expanded && (
 				<div className={styles.content} data-testid="spec-content">

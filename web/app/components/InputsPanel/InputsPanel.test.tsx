@@ -56,9 +56,7 @@ describe("InputsPanel component", () => {
 
 	it("shows an empty-state message when no inputs are provided", () => {
 		// When inputs array is empty or undefined, show a message
-		expect(PANEL_SOURCE.toLowerCase()).toMatch(
-			/no inputs|no inputs required/,
-		);
+		expect(PANEL_SOURCE.toLowerCase()).toMatch(/no inputs|no inputs required/);
 	});
 
 	it("has a heading indicating the panel shows inputs", () => {

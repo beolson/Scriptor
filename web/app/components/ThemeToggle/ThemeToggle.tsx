@@ -6,7 +6,9 @@ import styles from "./ThemeToggle.module.css";
 type Theme = "light" | "dark";
 
 function getTheme(): Theme {
-	return (document.documentElement.getAttribute("data-theme") as Theme) || "light";
+	return (
+		(document.documentElement.getAttribute("data-theme") as Theme) || "light"
+	);
 }
 
 export default function ThemeToggle() {
@@ -29,7 +31,9 @@ export default function ThemeToggle() {
 			type="button"
 			className={styles.toggle}
 			onClick={toggle}
-			aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+			aria-label={
+				theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+			}
 			title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
 		>
 			{theme === "light" ? (

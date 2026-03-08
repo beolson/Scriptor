@@ -21,16 +21,12 @@ export default function InputsPanel({ inputs }: InputsPanelProps) {
 						data-testid="input-item"
 					>
 						<div className={styles.inputHeader}>
-							<span className={styles.inputLabel}>
-								{input.label}
-							</span>
+							<span className={styles.inputLabel}>{input.label}</span>
 							<span className={styles.badge}>
 								{input.required ? "required" : "optional"}
 							</span>
 						</div>
-						<span className={styles.inputType}>
-							type: {input.type}
-						</span>
+						<span className={styles.inputType}>type: {input.type}</span>
 						{input.default !== undefined && (
 							<span className={styles.inputDetail}>
 								default: {input.default}
@@ -42,9 +38,7 @@ export default function InputsPanel({ inputs }: InputsPanelProps) {
 							</span>
 						)}
 						{input.format !== undefined && (
-							<span className={styles.inputDetail}>
-								format: {input.format}
-							</span>
+							<span className={styles.inputDetail}>format: {input.format}</span>
 						)}
 					</div>
 				))}

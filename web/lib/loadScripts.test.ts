@@ -1,6 +1,6 @@
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import {
 	getScriptById,
 	getScriptsByPlatform,
@@ -179,7 +179,7 @@ describe("loadScripts() — spec file migration", () => {
 		const scripts = loadScripts(yaml, tmpDir);
 		const docker = scripts.find((s) => s.id === "install-docker");
 		expect(docker).toBeDefined();
-		expect(docker!.spec).toBe(specContent);
+		expect(docker?.spec).toBe(specContent);
 	});
 
 	it("populates scriptSource with the contents of the script file", () => {
@@ -197,7 +197,7 @@ describe("loadScripts() — spec file migration", () => {
 		const scripts = loadScripts(yaml, tmpDir);
 		const docker = scripts.find((s) => s.id === "install-docker");
 		expect(docker).toBeDefined();
-		expect(docker!.scriptSource).toBe(scriptContent);
+		expect(docker?.scriptSource).toBe(scriptContent);
 	});
 
 	it("when no .spec.md file exists, spec is undefined", () => {
@@ -217,7 +217,7 @@ describe("loadScripts() — spec file migration", () => {
 		const scripts = loadScripts(yaml, tmpDir);
 		const update = scripts.find((s) => s.id === "update-system");
 		expect(update).toBeDefined();
-		expect(update!.spec).toBeUndefined();
+		expect(update?.spec).toBeUndefined();
 	});
 
 	it("ignores the YAML spec field even if present", () => {
@@ -245,8 +245,8 @@ describe("loadScripts() — spec file migration", () => {
 		const scripts = loadScripts(yaml, tmpDir);
 		const docker = scripts.find((s) => s.id === "install-docker");
 		expect(docker).toBeDefined();
-		expect(docker!.spec).toBe(specFileContent);
-		expect(docker!.spec).not.toContain("From YAML");
+		expect(docker?.spec).toBe(specFileContent);
+		expect(docker?.spec).not.toContain("From YAML");
 	});
 });
 
@@ -278,9 +278,9 @@ describe("loadScripts() — input data model and loading", () => {
 		const scripts = loadScripts(yaml);
 		const tls = scripts.find((s) => s.id === "configure-tls");
 		expect(tls).toBeDefined();
-		expect(tls!.inputs).toBeDefined();
-		expect(Array.isArray(tls!.inputs)).toBe(true);
-		expect(tls!.inputs!.length).toBe(3);
+		expect(tls?.inputs).toBeDefined();
+		expect(Array.isArray(tls?.inputs)).toBe(true);
+		expect(tls?.inputs?.length).toBe(3);
 	});
 
 	it("each input has id, type, and label populated", () => {
@@ -300,11 +300,11 @@ describe("loadScripts() — input data model and loading", () => {
 		const scripts = loadScripts(yaml);
 		const tls = scripts.find((s) => s.id === "configure-tls");
 		expect(tls).toBeDefined();
-		const input = tls!.inputs![0];
+		const input = tls?.inputs?.[0];
 		expect(input).toBeDefined();
-		expect(input!.id).toBe("service-name");
-		expect(input!.type).toBe("string");
-		expect(input!.label).toBe("Service name");
+		expect(input?.id).toBe("service-name");
+		expect(input?.type).toBe("string");
+		expect(input?.label).toBe("Service name");
 	});
 
 	it("preserves optional fields (required, default, download_path, format) when present", () => {
@@ -331,15 +331,15 @@ describe("loadScripts() — input data model and loading", () => {
 		const tls = scripts.find((s) => s.id === "configure-tls");
 		expect(tls).toBeDefined();
 
-		const port = tls!.inputs!.find((i) => i.id === "port");
+		const port = tls?.inputs?.find((i) => i.id === "port");
 		expect(port).toBeDefined();
-		expect(port!.required).toBe(true);
-		expect(port!.default).toBe("443");
+		expect(port?.required).toBe(true);
+		expect(port?.default).toBe("443");
 
-		const cert = tls!.inputs!.find((i) => i.id === "cert");
+		const cert = tls?.inputs?.find((i) => i.id === "cert");
 		expect(cert).toBeDefined();
-		expect(cert!.download_path).toBe("/tmp/scriptor-demo.pem");
-		expect(cert!.format).toBe("PEM");
+		expect(cert?.download_path).toBe("/tmp/scriptor-demo.pem");
+		expect(cert?.format).toBe("PEM");
 	});
 
 	it("a script with no inputs key has inputs as undefined", () => {
@@ -354,7 +354,7 @@ describe("loadScripts() — input data model and loading", () => {
 		const scripts = loadScripts(yaml);
 		const update = scripts.find((s) => s.id === "update-system");
 		expect(update).toBeDefined();
-		expect(update!.inputs).toBeUndefined();
+		expect(update?.inputs).toBeUndefined();
 	});
 
 	it("skips malformed input entries missing id, type, or label", () => {
@@ -382,10 +382,10 @@ describe("loadScripts() — input data model and loading", () => {
 		const scripts = loadScripts(yaml);
 		const tls = scripts.find((s) => s.id === "configure-tls");
 		expect(tls).toBeDefined();
-		expect(tls!.inputs).toBeDefined();
+		expect(tls?.inputs).toBeDefined();
 		// Only the two valid entries should remain
-		expect(tls!.inputs!.length).toBe(2);
-		expect(tls!.inputs![0]!.id).toBe("service-name");
-		expect(tls!.inputs![1]!.id).toBe("port");
+		expect(tls?.inputs?.length).toBe(2);
+		expect(tls?.inputs?.[0]?.id).toBe("service-name");
+		expect(tls?.inputs?.[1]?.id).toBe("port");
 	});
 });
