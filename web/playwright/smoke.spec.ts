@@ -104,13 +104,11 @@ test.describe("layout chrome — Task 8", () => {
 		await expect(navbar).toContainText("github");
 	});
 
-	test("footer is visible with text 'manage your scripts'", async ({
-		page,
-	}) => {
+	test("footer is visible with text 'scriptor'", async ({ page }) => {
 		await page.goto("/");
 		const footer = page.locator('[data-testid="footer"]');
 		await expect(footer).toBeVisible();
-		await expect(footer).toContainText("manage your scripts");
+		await expect(footer).toContainText("scriptor");
 	});
 
 	test("footer contains github link", async ({ page }) => {
