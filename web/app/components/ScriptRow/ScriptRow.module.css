@@ -10,10 +10,6 @@
 	color: inherit;
 }
 
-.row:hover .name {
-	color: var(--color-accent);
-}
-
 .left {
 	display: flex;
 	flex-direction: column;
@@ -27,6 +23,10 @@
 	font-size: 14px;
 	font-weight: 500;
 	color: var(--color-text-primary);
+}
+
+.row:hover .name {
+	color: var(--color-accent);
 }
 
 .desc {

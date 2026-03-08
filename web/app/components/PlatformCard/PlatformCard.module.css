@@ -10,10 +10,6 @@
 	color: inherit;
 }
 
-.card:hover .viewLink {
-	color: var(--color-text-primary);
-}
-
 .prompt {
 	font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
 	font-size: 12px;
@@ -47,6 +43,10 @@
 	font-size: 12px;
 	font-weight: normal;
 	color: var(--color-accent);
+}
+
+.card:hover .viewLink {
+	color: var(--color-text-primary);
 }
 
 @media (max-width: 768px) {

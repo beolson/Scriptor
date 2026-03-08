@@ -2,69 +2,42 @@
 
 CLI tool that runs host-specific setup scripts from a GitHub repo.
 
-## Releasing a New Version
+## Releasing
 
-Releases use [Changesets](https://github.com/changesets/changesets) to track what changed, and a local `release.sh` script to apply the version bump, tag, and push. Pushing a `v*` tag triggers `release.yml`, which builds and publishes the binaries.
+Releases are fully automated via [Changesets](https://github.com/changesets/changesets)
+and GitHub Actions.
 
----
+### 1. Add a changeset
 
-### Step 1 — Make your code changes
-
-Work on your feature or fix as normal.
-
----
-
-### Step 2 — Add a changeset
-
-From the `source/` directory, run:
+After making your changes, run from the repo root:
 
 ```sh
-cd source
 bun run changeset
 ```
 
-The interactive prompt will ask you to:
+Select the packages to include, choose a bump type (patch / minor / major),
+and write a one-line summary. This creates a markdown file in `.changeset/`.
+Commit it with your code.
 
-1. **Select packages to include** — press `Space` to select `scriptor`, then `Enter`
-2. **Choose the bump type**:
-   - `patch` — bug fixes, internal changes (e.g. `0.1.0` → `0.1.1`)
-   - `minor` — new backwards-compatible features (e.g. `0.1.0` → `0.2.0`)
-   - `major` — breaking changes (e.g. `0.1.0` → `1.0.0`)
-3. **Write a summary** — one line describing the change (this appears in `CHANGELOG.md`)
+### 2. Open a PR and merge
 
-This creates a file in `source/.changeset/` such as `source/.changeset/fuzzy-dogs-dance.md`. Commit it alongside your code changes.
+Include the changeset file in your pull request. After CI passes and review
+is approved, merge into `main`.
 
----
+### 3. Merge the version PR
 
-### Step 3 — Open a PR and merge
+When changesets are merged to `main`, GitHub Actions automatically opens a
+**"chore: version packages"** PR that bumps `package.json` versions and
+updates `CHANGELOG.md` files. Review and merge this PR when you're ready
+to release.
 
-Open a pull request as normal. CI runs tests and lint checks. The changeset file must be included in the PR. After approval, merge into `main`.
+### 4. Release happens automatically
 
----
+Merging the version PR triggers the release workflow, which:
 
-### Step 4 — Run the release script
-
-When you are ready to ship, run from the repo root:
-
-```sh
-./release.sh
-```
-
-This will:
-
-1. Apply all pending changesets (`changeset version`) — bumps `source/package.json` and writes `source/CHANGELOG.md`
-2. Commit the version bump
-3. Tag the commit as `v{version}` (e.g. `v0.2.0`)
-4. Push the commit and tag to `main`
-
----
-
-### Step 5 — Wait for the release build
-
-The `v*` tag triggers `release.yml`, which:
-
-1. Runs tests and lint
-2. Compiles binaries for Linux, macOS, and Windows (x64 + arm64)
-3. Creates a GitHub Release and attaches all six binaries
+1. Tags the commit as `v{version}`
+2. Builds TUI binaries for Linux, macOS, and Windows (x64 + arm64)
+3. Creates a GitHub Release with all six binaries attached
+4. Builds the web site and deploys to GitHub Pages
 
 Monitor progress at: `github.com/beolson/Scriptor/actions`
