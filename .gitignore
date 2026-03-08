@@ -21,6 +21,7 @@ coverage
 *.lcov
 /test-results
 /playwright-report
+test-results
 
 # logs
 logs
