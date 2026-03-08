@@ -55,35 +55,6 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/install-docker.sh
-  spec: |
-    ## Overview
-
-    Installs Docker Engine and the Docker Compose plugin on Debian 13 using
-    the official Docker apt repository.
-
-    ## Steps
-
-    1. Remove any conflicting packages
-    2. Add Docker's official GPG key
-    3. Add the Docker apt repository
-    4. Install `docker-ce`, `docker-ce-cli`, `containerd.io`, and `docker-compose-plugin`
-    5. Enable and start the Docker daemon
-
-    ## Post-install
-
-    Add your user to the `docker` group to run Docker without `sudo`:
-
-    ```bash
-    sudo usermod -aG docker $USER
-    newgrp docker
-    ```
-
-    ## Verification
-
-    ```bash
-    docker --version
-    docker compose version
-    ```
   dependencies:
     - setup-prereqs
 
@@ -95,22 +66,6 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/install-bun.sh
-  spec: |
-    ## Overview
-
-    Installs the Bun JavaScript runtime using the official curl-based installer
-    from bun.sh.
-
-    ## Steps
-
-    1. Run the official Bun install script
-    2. Add `~/.bun/bin` to `PATH` in `~/.bashrc`
-
-    ## Verification
-
-    ```bash
-    bun --version
-    ```
   dependencies:
     - update-system
 

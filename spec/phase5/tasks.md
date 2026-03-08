@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Homepage & Footer Copy Cleanup
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Remove three hardcoded text strings from the homepage and footer. References FR-5-030, FR-5-031, FR-5-032.
@@ -24,7 +24,7 @@ Remove three hardcoded text strings from the homepage and footer. References FR-
 
 ## Task 2 — Spec File Migration
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Move spec content out of `scriptor.yaml` inline fields and into standalone `.spec.md` files adjacent to each script. Update `loadScripts` to read spec content from the filesystem instead of YAML, and also read script source code for display on the detail page. References FR-5-001, FR-5-002, FR-5-003, FR-5-004, FR-5-005.
@@ -44,7 +44,7 @@ Move spec content out of `scriptor.yaml` inline fields and into standalone `.spe
 
 ## Task 3 — Input Data Model and Loading
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Add an `Input` interface and wire up parsing of the `inputs` array from `scriptor.yaml` so the web UI has access to input metadata. References FR-5-021, FR-5-022 (data layer).
@@ -63,7 +63,7 @@ Add an `Input` interface and wire up parsing of the `inputs` array from `scripto
 
 ## Task 4 — Dark Mode CSS Custom Properties
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Define the dark color scheme as CSS custom property overrides under `[data-theme="dark"]` in `globals.css`. The dark theme uses a retro green-screen terminal aesthetic. The existing light-mode `:root` tokens are unchanged. References FR-5-010, FR-5-015.
@@ -82,7 +82,7 @@ Define the dark color scheme as CSS custom property overrides under `[data-theme
 
 ## Task 5 — Dark Mode Toggle and Flash Prevention
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Add a theme toggle to the site header and an inline script to prevent flash of incorrect theme on page load. The toggle uses sun/moon icons and persists preference to `localStorage`. References FR-5-011, FR-5-012, FR-5-013, FR-5-014, FR-5-016.
@@ -100,7 +100,7 @@ Add a theme toggle to the site header and an inline script to prevent flash of i
 
 ## Task 6 — Syntax Highlighting Dual Theme
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Scope the highlight.js CSS themes so syntax highlighting matches the active light/dark theme. Both themes are statically bundled — no dynamic loading. References tech-standards (Syntax Highlighting section).
@@ -118,7 +118,7 @@ Scope the highlight.js CSS themes so syntax highlighting matches the active ligh
 
 ## Task 7 — Script Viewer Component
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Add a collapsible "Script" section below the spec section on the script detail page that displays the full script source code with syntax highlighting. References FR-5-020, FR-5-005.
@@ -138,7 +138,7 @@ Add a collapsible "Script" section below the spec section on the script detail p
 
 ## Task 8 — Inputs Panel and Detail Page Layout
 
-**Status:** not started
+**Status:** done
 
 **Description:**
 Add an "Inputs" panel to the script detail page showing declared inputs, and restructure the detail page into a two-column layout (content left, inputs right) that collapses to single-column on mobile. References FR-5-021, FR-5-022, FR-5-023, FR-5-024.

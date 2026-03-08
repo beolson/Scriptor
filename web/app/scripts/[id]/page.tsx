@@ -5,7 +5,9 @@ import { getScriptById, loadScripts } from "../../../lib/loadScripts";
 import ArchBadge from "../../components/ArchBadge/ArchBadge";
 import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 import DependencyTag from "../../components/DependencyTag/DependencyTag";
+import InputsPanel from "../../components/InputsPanel/InputsPanel";
 import MetadataRow from "../../components/MetadataRow/MetadataRow";
+import ScriptViewer from "../../components/ScriptViewer/ScriptViewer";
 import styles from "./detail.module.css";
 
 interface Props {
@@ -69,6 +71,10 @@ export default async function ScriptDetailPage({ params }: Props) {
 							<p className={styles.specEmpty}>{"// no spec available"}</p>
 						)}
 					</div>
+					<ScriptViewer
+						scriptSource={script.scriptSource}
+						scriptPath={script.script}
+					/>
 				</div>
 
 				{/* Sidebar */}
@@ -96,6 +102,9 @@ export default async function ScriptDetailPage({ params }: Props) {
 							</div>
 						</div>
 					)}
+
+					{/* Inputs Panel */}
+					<InputsPanel inputs={script.inputs} />
 				</div>
 			</div>
 		</main>

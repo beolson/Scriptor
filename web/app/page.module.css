@@ -7,24 +7,12 @@
 	gap: var(--gap-2xl);
 }
 
-.heroBadge {
-	font-family: var(--font-ibmplex), monospace;
-	font-size: var(--text-caption);
-	color: var(--color-text-muted);
-}
-
 .heroHeadline {
 	font-family: var(--font-jetbrains), monospace;
 	font-size: var(--text-hero);
 	font-weight: 700;
 	color: var(--color-text-primary);
 	margin: 0;
-}
-
-.heroSubheadline {
-	font-family: var(--font-ibmplex), monospace;
-	font-size: var(--text-body-lg);
-	color: var(--color-text-muted);
 }
 
 .installWrapper {
@@ -84,11 +72,6 @@
 		font-size: 32px;
 	}
 
-	.heroSubheadline {
-		font-size: var(--text-body);
-	}
-
-	.heroBadge,
 	.heroNote {
 		font-size: var(--text-micro);
 	}

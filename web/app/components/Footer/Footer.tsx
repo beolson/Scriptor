@@ -4,9 +4,7 @@ import styles from "./Footer.module.css";
 export default function Footer() {
 	return (
 		<footer className={styles.footer} data-testid="footer">
-			<span className={styles.brand}>
-				&gt; scriptor {"//"} manage your scripts
-			</span>
+			<span className={styles.brand}>&gt; scriptor</span>
 			<div className={styles.footerLinks}>
 				<VersionBadge />
 				<a

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 import styles from "./NavBar.module.css";
 
 export default function NavBar() {
@@ -16,6 +17,7 @@ export default function NavBar() {
 				>
 					github
 				</a>
+				<ThemeToggle />
 			</div>
 		</nav>
 	);
