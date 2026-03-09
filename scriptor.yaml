@@ -149,3 +149,16 @@
       label: TLS certificate
       download_path: /tmp/scriptor-demo.pem
       format: PEM
+
+- id: setup-debian-devbox
+  name: Setup WSL Debian Instance
+  description: Creates a named Debian WSL instance with automatic user setup and SSH key transfer
+  platform: windows
+  arch: x86
+  script: scripts/Windows/setup-debian-devbox.ps1
+  inputs:
+    - id: instance-name
+      type: string
+      label: WSL instance name
+      required: false
+      default: Debian13Dev

@@ -12,8 +12,8 @@ Scriptor defines host-specific setup scripts through three coordinated artifacts
 | Artifact | Path Pattern | Required |
 |---|---|---|
 | Manifest entry | `scriptor.yaml` (top-level YAML array) | Yes |
-| Script file | `<platform-path>/<script-id>.<sh\|ps1>` | Yes |
-| Spec file | `<platform-path>/<script-filename>.spec.md` | Yes |
+| Script file | `scripts/<platform-path>/<script-id>.<sh\|ps1>` | Yes |
+| Spec file | `scripts/<platform-path>/<script-filename>.spec.md` | Yes |
 
 ### Platform Path Rules
 
@@ -21,9 +21,9 @@ The `<platform-path>` prefix depends on the platform:
 
 | Platform | Path Pattern | Example |
 |---|---|---|
-| `windows` | `Windows/` | `Windows/install-wsl.ps1` |
-| `mac` | `macos/` | `macos/install-homebrew.sh` |
-| `linux` | `<distro>/<version>/` | `Debian/13/install-docker.sh` |
+| `windows` | `scripts/Windows/` | `scripts/Windows/install-wsl.ps1` |
+| `mac` | `scripts/macos/` | `scripts/macos/install-homebrew.sh` |
+| `linux` | `scripts/<distro>/<version>/` | `scripts/Debian/13/install-docker.sh` |
 
 For linux, use the **short distro name** (e.g., `Debian` not `Debian GNU/Linux`) as the directory name. The `version` directory matches the manifest `version` value.
 
@@ -54,19 +54,19 @@ Read `scriptor.yaml` to:
 
 Create the script in the platform-appropriate directory (see Platform Path Rules):
 
-- **Windows**: `Windows/<name>.ps1`
-- **Mac**: `macos/<name>.sh`
-- **Linux**: `<distro>/<version>/<name>.sh` (e.g., `Debian/13/install-nginx.sh`)
+- **Windows**: `scripts/Windows/<name>.ps1`
+- **Mac**: `scripts/macos/<name>.sh`
+- **Linux**: `scripts/<distro>/<version>/<name>.sh` (e.g., `scripts/Debian/13/install-nginx.sh`)
 - Use the bash or powershell template below
 - If the script has inputs, accept them as positional args `$1`, `$2`, ... in the same order as the `inputs` array in the manifest
 
 ### Step 4 — Append Manifest Entry
 
-Add a new entry to `scriptor.yaml`. The `script` field must use the full platform path (e.g., `Debian/13/install-nginx.sh`). Follow the field order shown in the Manifest Schema section. Always append to the end of the file.
+Add a new entry to `scriptor.yaml`. The `script` field must use the full platform path (e.g., `scripts/Debian/13/install-nginx.sh`). Follow the field order shown in the Manifest Schema section. Always append to the end of the file.
 
 ### Step 5 — Write the Spec File
 
-Create `<platform-path>/<script-filename>.spec.md` alongside the script file (e.g., for `Debian/13/install-nginx.sh` the spec is `Debian/13/install-nginx.sh.spec.md`). Use the Spec File Format below.
+Create `scripts/<platform-path>/<script-filename>.spec.md` alongside the script file (e.g., for `scripts/Debian/13/install-nginx.sh` the spec is `scripts/Debian/13/install-nginx.sh.spec.md`). Use the Spec File Format below.
 
 ## Workflow: Modifying an Existing Script
 
@@ -87,7 +87,7 @@ Create `<platform-path>/<script-filename>.spec.md` alongside the script file (e.
 | `description` | string | One-line summary |
 | `platform` | enum | `windows` \| `linux` \| `mac` |
 | `arch` | enum | `x86` \| `arm` |
-| `script` | string | Platform path to script file (e.g., `Debian/13/install-foo.sh`) |
+| `script` | string | Platform path to script file (e.g., `scripts/Debian/13/install-foo.sh`) |
 
 ### Linux-Only Fields (required when platform is linux)
 
@@ -113,7 +113,7 @@ Create `<platform-path>/<script-filename>.spec.md` alongside the script file (e.
   arch: <x86|arm>
   distro: <Distro Name>        # linux only
   version: "<version>"          # linux only, always quoted
-  script: <platform-path>/<filename>   # e.g., Debian/13/install-foo.sh
+  script: scripts/<platform-path>/<filename>   # e.g., scripts/Debian/13/install-foo.sh
   dependencies:                 # optional
     - <dependency-id>
   inputs:                       # optional
@@ -196,12 +196,12 @@ Write-Host "[<script-id>] Done."
 
 ## Spec File Format
 
-Path: `<platform-path>/<script-filename>.spec.md` — the spec file lives alongside the script in the same directory.
+Path: `scripts/<platform-path>/<script-filename>.spec.md` — the spec file lives alongside the script in the same directory.
 
 Examples:
-- `Debian/13/install-bun.sh` -> `Debian/13/install-bun.sh.spec.md`
-- `Windows/install-wsl.ps1` -> `Windows/install-wsl.ps1.spec.md`
-- `macos/install-homebrew.sh` -> `macos/install-homebrew.sh.spec.md`
+- `scripts/Debian/13/install-bun.sh` -> `scripts/Debian/13/install-bun.sh.spec.md`
+- `scripts/Windows/install-wsl.ps1` -> `scripts/Windows/install-wsl.ps1.spec.md`
+- `scripts/macos/install-homebrew.sh` -> `scripts/macos/install-homebrew.sh.spec.md`
 
 ### Spec Template
 
@@ -232,7 +232,7 @@ Optional additional sections (use when relevant): `## Prerequisites`, `## Post-i
 | Missing `distro`/`version` on linux entries | Always include both when `platform: linux` |
 | Unquoted `version` value | Always quote: `version: "13"` not `version: 13` |
 | Spec file named without script extension | Include full filename: `install-foo.sh.spec.md` not `install-foo.spec.md` |
-| Script placed in flat `scripts/` directory | Use platform path: `Debian/13/`, `Windows/`, or `macos/` |
+| Script placed in flat `scripts/` directory | Use platform path: `scripts/Debian/13/`, `scripts/Windows/`, or `scripts/macos/` |
 | Using full distro name as directory (e.g., `Debian GNU/Linux`) | Use short name for directory: `Debian`, `Ubuntu`, `RedHat` |
 | Input positional arg order doesn't match manifest | `$1` = first input in `inputs` array, `$2` = second, etc. |
 | Duplicate script `id` in manifest | Read `scriptor.yaml` first and verify uniqueness |
