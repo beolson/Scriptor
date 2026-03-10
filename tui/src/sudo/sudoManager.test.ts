@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { ScriptEntry } from "../manifest/parseManifest";
 import {
-	type SudoDeps,
 	needsSudo,
+	type SudoDeps,
 	startKeepalive,
 	validateSudo,
 } from "./sudoManager";
@@ -32,10 +32,7 @@ describe("needsSudo", () => {
 	});
 
 	test("returns false when no scripts require sudo", () => {
-		const scripts = [
-			makeEntry({ id: "a" }),
-			makeEntry({ id: "b" }),
-		];
+		const scripts = [makeEntry({ id: "a" }), makeEntry({ id: "b" })];
 		expect(needsSudo(scripts)).toBe(false);
 	});
 
@@ -148,7 +145,7 @@ describe("startKeepalive", () => {
 		expect(capturedCallback).not.toBeNull();
 
 		// Simulate a tick
-		capturedCallback!();
+		(capturedCallback as (() => void) | null)?.();
 		expect(calls).toEqual([["sudo", "-v"]]);
 
 		cleanup();

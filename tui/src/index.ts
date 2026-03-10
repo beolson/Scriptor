@@ -14,11 +14,7 @@ import { filterManifest } from "./manifest/filterManifest.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
-import {
-	needsSudo,
-	startKeepalive,
-	validateSudo,
-} from "./sudo/sudoManager.js";
+import { needsSudo, startKeepalive, validateSudo } from "./sudo/sudoManager.js";
 import { App } from "./tui/App.js";
 
 const DEFAULT_REPO = "beolson/Scriptor";
@@ -53,34 +49,32 @@ async function main() {
 
 	// Pre-TUI sudo validation: if a local manifest exists and any matching
 	// scripts require sudo, prompt for credentials before Ink takes over stdio.
-	let localManifestPath = path.join(process.cwd(), "scriptor.yaml");
-	let localDir = process.cwd();
-	if (!(await Bun.file(localManifestPath).exists())) {
-		const parentPath = path.join(process.cwd(), "..", "scriptor.yaml");
-		if (await Bun.file(parentPath).exists()) {
-			localManifestPath = parentPath;
-			localDir = path.join(process.cwd(), "..");
-		}
-	}
-
-	if (await Bun.file(localManifestPath).exists()) {
-		try {
-			const manifestYaml = await Bun.file(localManifestPath).text();
-			const entries = parseManifest(manifestYaml);
-			const hostEntries = filterManifest(entries, hostInfo);
-			if (needsSudo(hostEntries)) {
-				console.log(
-					"Some scripts require sudo. Validating credentials...",
-				);
-				const result = await validateSudo();
-				if (!result.ok) {
-					console.error(`Sudo validation failed: ${result.reason}`);
-					process.exit(1);
-				}
-				stopKeepalive = startKeepalive();
+	{
+		let sudoManifestPath = path.join(process.cwd(), "scriptor.yaml");
+		if (!(await Bun.file(sudoManifestPath).exists())) {
+			const parentPath = path.join(process.cwd(), "..", "scriptor.yaml");
+			if (await Bun.file(parentPath).exists()) {
+				sudoManifestPath = parentPath;
 			}
-		} catch {
-			// If manifest parsing fails here, let the normal startup flow handle it.
+		}
+
+		if (await Bun.file(sudoManifestPath).exists()) {
+			try {
+				const manifestYaml = await Bun.file(sudoManifestPath).text();
+				const entries = parseManifest(manifestYaml);
+				const hostEntries = filterManifest(entries, hostInfo);
+				if (needsSudo(hostEntries)) {
+					console.log("Some scripts require sudo. Validating credentials...");
+					const result = await validateSudo();
+					if (!result.ok) {
+						console.error(`Sudo validation failed: ${result.reason}`);
+						process.exit(1);
+					}
+					stopKeepalive = startKeepalive();
+				}
+			} catch {
+				// If manifest parsing fails here, let the normal startup flow handle it.
+			}
 		}
 	}
 

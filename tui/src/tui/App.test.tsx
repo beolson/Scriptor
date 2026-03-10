@@ -84,6 +84,7 @@ function makeScript(
 		inputs,
 		distro: "ubuntu",
 		version: "24.04",
+		requires_sudo: false,
 	};
 }
 

@@ -24,6 +24,7 @@ function entry(
 		script: `scripts/${id}.sh`,
 		dependencies,
 		inputs: [],
+		requires_sudo: false,
 		...overrides,
 	};
 }
