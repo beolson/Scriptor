@@ -21,4 +21,38 @@
   distro: Debian GNU/Linux
   version: "13"
   script: scripts/Debian/13/install-system-basics.sh
+  requires_sudo: true
 
+- id: install-ohmybash
+  name: Install Oh My Bash
+  description: Installs Oh My Bash framework and sets the theme to agnoster
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-ohmybash.sh
+  dependencies:
+    - install-system-basics
+
+- id: install-uv
+  name: Install uv (Python)
+  description: Installs the uv Python package manager with optional private certificate support
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-uv.sh
+  dependencies:
+    - install-system-basics
+
+- id: install-git-gh
+  name: Install Git & GitHub CLI
+  description: Installs git and the GitHub CLI (gh) on Debian 13
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-git-gh.sh
+  requires_sudo: true
+  dependencies:
+    - install-system-basics

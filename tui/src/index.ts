@@ -10,9 +10,15 @@ import { GitHubClient } from "./github/githubClient.js";
 import { startOAuthFlow } from "./github/oauth.js";
 import { detectHost } from "./host/detectHost.js";
 import { LogService } from "./log/logService.js";
+import { filterManifest } from "./manifest/filterManifest.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
+import {
+	needsSudo,
+	startKeepalive,
+	validateSudo,
+} from "./sudo/sudoManager.js";
 import { App } from "./tui/App.js";
 
 const DEFAULT_REPO = "beolson/Scriptor";
@@ -41,6 +47,42 @@ async function main() {
 	// Script content fetched during startup, keyed by the repo-relative path.
 	// Populated by runStartupForApp and consumed by runExecutionForApp.
 	let fetchedScripts: Record<string, string> = {};
+
+	// Sudo keepalive cleanup function, set when sudo is validated.
+	let stopKeepalive: (() => void) | null = null;
+
+	// Pre-TUI sudo validation: if a local manifest exists and any matching
+	// scripts require sudo, prompt for credentials before Ink takes over stdio.
+	let localManifestPath = path.join(process.cwd(), "scriptor.yaml");
+	let localDir = process.cwd();
+	if (!(await Bun.file(localManifestPath).exists())) {
+		const parentPath = path.join(process.cwd(), "..", "scriptor.yaml");
+		if (await Bun.file(parentPath).exists()) {
+			localManifestPath = parentPath;
+			localDir = path.join(process.cwd(), "..");
+		}
+	}
+
+	if (await Bun.file(localManifestPath).exists()) {
+		try {
+			const manifestYaml = await Bun.file(localManifestPath).text();
+			const entries = parseManifest(manifestYaml);
+			const hostEntries = filterManifest(entries, hostInfo);
+			if (needsSudo(hostEntries)) {
+				console.log(
+					"Some scripts require sudo. Validating credentials...",
+				);
+				const result = await validateSudo();
+				if (!result.ok) {
+					console.error(`Sudo validation failed: ${result.reason}`);
+					process.exit(1);
+				}
+				stopKeepalive = startKeepalive();
+			}
+		} catch {
+			// If manifest parsing fails here, let the normal startup flow handle it.
+		}
+	}
 
 	// Build the runStartup adapter that wires the real GitHubClient and
 	// CacheService into the startup orchestration logic.
@@ -132,7 +174,14 @@ async function main() {
 		const logFile = await logService.createLogFile();
 		const runner = new ScriptRunner({ logService });
 		runner.on("progress", onProgress);
-		return runner.runScripts(withContent, logFile);
+		try {
+			return await runner.runScripts(withContent, logFile);
+		} finally {
+			if (stopKeepalive) {
+				stopKeepalive();
+				stopKeepalive = null;
+			}
+		}
 	}
 
 	render(
