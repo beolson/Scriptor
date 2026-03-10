@@ -1,155 +1,5 @@
 # Scriptor — host-specific setup script manifest
 
-- id: Cat-in-hat
-  name: Update System Packages
-  description: Updates apt package lists and upgrades installed packages
-  platform: linux
-  arch: x86
-  distro: RedHat
-  version: "13"
-  script: scripts/update-system.sh
-
-- id: update-system-debian-13
-  name: Update System Packages
-  description: Updates apt package lists and upgrades installed packages
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/update-system.sh
-
-- id: update-system-debian-12
-  name: Update System Packages
-  description: Updates apt package lists and upgrades installed packages
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "12"
-  script: scripts/update-system.sh
-
-- id: broken-script
-  name: Broken Script (Test Failure)
-  description: A script that intentionally fails — used to test error handling in the TUI
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/broken-script.sh
-
-- id: setup-prereqs
-  name: Setup Prerequisites
-  description: Installs common build tools and prerequisites (curl, git, build-essential)
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/setup-prereqs.sh
-  dependencies:
-    - update-system
-
-- id: install-docker
-  name: Install Docker
-  description: Installs Docker Engine and Docker Compose plugin
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/install-docker.sh
-  dependencies:
-    - setup-prereqs
-
-- id: install-bun
-  name: Install Bun.js
-  description: Installs the Bun JavaScript runtime via the official installer
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/install-bun.sh
-  dependencies:
-    - update-system
-
-- id: install-nvm
-  name: Install NVM
-  description: Installs Node Version Manager for managing Node.js versions
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/install-nvm.sh
-
-- id: install-git-ubuntu
-  name: Install Git
-  description: Installs the latest Git version on Ubuntu via the official PPA
-  platform: linux
-  arch: x86
-  distro: Ubuntu
-  version: "24.04"
-  script: scripts/install-git-ubuntu.sh
-  dependencies:
-    - update-system-ubuntu
-
-- id: update-system-ubuntu
-  name: Update System Packages (Ubuntu)
-  description: Updates apt package lists and upgrades installed packages on Ubuntu
-  platform: linux
-  arch: x86
-  distro: Ubuntu
-  version: "24.04"
-  script: scripts/update-system.sh
-
-- id: install-homebrew
-  name: Install Homebrew
-  description: Installs the Homebrew package manager on macOS
-  platform: mac
-  arch: x86
-  script: scripts/install-homebrew.sh
-
-- id: install-homebrew-arm
-  name: Install Homebrew (Apple Silicon)
-  description: Installs the Homebrew package manager on Apple Silicon macOS
-  platform: mac
-  arch: arm
-  script: scripts/install-homebrew-arm.sh
-
-- id: install-wsl
-  name: Install WSL2
-  description: Enables Windows Subsystem for Linux 2 and installs Ubuntu
-  platform: windows
-  arch: x86
-  script: scripts/install-wsl.ps1
-
-- id: install-scoop
-  name: Install Scoop
-  description: Installs the Scoop command-line installer for Windows
-  platform: windows
-  arch: x86
-  script: scripts/install-scoop.ps1
-
-- id: configure-tls-endpoint
-  name: Configure TLS Endpoint
-  description: Configures a service endpoint with a custom TLS certificate
-  platform: linux
-  arch: x86
-  distro: Debian GNU/Linux
-  version: "13"
-  script: scripts/configure-tls-endpoint.sh
-  inputs:
-    - id: service-name
-      type: string
-      label: Service name
-      required: true
-    - id: port
-      type: number
-      label: Port number
-      required: true
-      default: 443
-    - id: cert
-      type: ssl-cert
-      label: TLS certificate
-      download_path: /tmp/scriptor-demo.pem
-      format: PEM
-
 - id: setup-debian-devbox
   name: Setup WSL Debian Instance
   description: Creates a named Debian WSL instance with automatic user setup and SSH key transfer
@@ -162,3 +12,13 @@
       label: WSL instance name
       required: false
       default: Debian13Dev
+
+- id: install-system-basics
+  name: Install System Basics
+  description: Updates system packages and installs curl, wget, and libicu-dev on Debian 13
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-system-basics.sh
+
