@@ -18,12 +18,14 @@ import type { FooterBinding } from "./Footer.js";
 import { DEFAULT_BINDINGS, Footer } from "./Footer.js";
 import { Header } from "./Header.js";
 import { ScriptListScreen } from "./ScriptListScreen.js";
+import { SudoScreen } from "./SudoScreen.js";
 
 export type Screen =
 	| "fetch"
 	| "script-list"
 	| "input-collection"
 	| "confirmation"
+	| "sudo"
 	| "execution";
 
 export interface AppProps {
@@ -58,6 +60,14 @@ export interface AppProps {
 	 * Defaults to a real TlsCertFetcher when not provided.
 	 */
 	fetcher?: CertFetcher;
+	/**
+	 * Validates sudo credentials with the given password.
+	 * When provided, scripts requiring sudo will trigger a password prompt
+	 * after the confirmation screen.
+	 */
+	validateSudo?: (
+		password: string,
+	) => Promise<{ ok: true } | { ok: false; reason: string }>;
 }
 
 /**
@@ -72,6 +82,7 @@ export function App({
 	runStartup,
 	runExecution,
 	fetcher,
+	validateSudo,
 }: AppProps) {
 	const { exit } = useApp();
 	const [screen, setScreen] = useState<Screen>("fetch");
@@ -93,6 +104,9 @@ export function App({
 	const [scriptInputs, setScriptInputs] = useState<ScriptInputs>(
 		() => new Map(),
 	);
+
+	// Sudo validation state — once validated, skip re-prompting on back-navigation
+	const [sudoValidated, setSudoValidated] = useState(false);
 
 	// Cert fetcher — use injected one or fall back to the real TLS fetcher
 	const [certFetcher] = useState<CertFetcher>(
@@ -129,7 +143,12 @@ export function App({
 				setFooterBindings(DEFAULT_BINDINGS);
 			}
 		},
-		{ isActive: screen !== "input-collection" && screen !== "execution" },
+		{
+			isActive:
+				screen !== "input-collection" &&
+				screen !== "execution" &&
+				screen !== "sudo",
+		},
 	);
 
 	function handleConfirm(scripts: ScriptEntry[]) {
@@ -171,8 +190,34 @@ export function App({
 	}
 
 	function handleExecute() {
+		const needsSudoPrompt =
+			validateSudo &&
+			!sudoValidated &&
+			resolvedScripts.some((s) => s.requires_sudo);
+
+		if (needsSudoPrompt) {
+			setScreen("sudo");
+			setFooterBindings([{ key: "Esc", description: "Back" }]);
+			return;
+		}
+
 		setScreen("execution");
 		setFooterBindings([]);
+	}
+
+	function handleSudoValidated() {
+		setSudoValidated(true);
+		setScreen("execution");
+		setFooterBindings([]);
+	}
+
+	function handleSudoBack() {
+		setScreen("confirmation");
+		setFooterBindings([
+			{ key: "Y / Enter", description: "Run scripts" },
+			{ key: "N / Esc", description: "Back" },
+			{ key: "Q", description: "Quit" },
+		]);
 	}
 
 	return (
@@ -211,6 +256,13 @@ export function App({
 						scriptInputs={scriptInputs}
 						onConfirm={handleExecute}
 						onBack={handleBack}
+					/>
+				)}
+				{screen === "sudo" && validateSudo && (
+					<SudoScreen
+						validateSudo={validateSudo}
+						onValidated={handleSudoValidated}
+						onBack={handleSudoBack}
 					/>
 				)}
 				{screen === "execution" && (

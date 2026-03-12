@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { ScriptEntry } from "../manifest/parseManifest";
 import {
+	checkSudoCached,
+	invalidateSudo,
 	needsSudo,
 	type SudoDeps,
 	startKeepalive,
 	validateSudo,
+	validateSudoWithPassword,
 } from "./sudoManager";
 
 function makeEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
@@ -98,6 +101,150 @@ describe("validateSudo", () => {
 		};
 		await validateSudo(deps);
 		expect(capturedCmd).toEqual(["sudo", "-v"]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// checkSudoCached
+// ---------------------------------------------------------------------------
+
+describe("checkSudoCached", () => {
+	test("returns true when sudo -n -v exits 0", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async () => ({ exitCode: 0 }),
+		};
+		expect(await checkSudoCached(deps)).toBe(true);
+	});
+
+	test("returns false when sudo -n -v exits non-zero", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async () => ({ exitCode: 1 }),
+		};
+		expect(await checkSudoCached(deps)).toBe(false);
+	});
+
+	test("returns false when spawnAsync throws", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async () => {
+				throw new Error("spawn failed");
+			},
+		};
+		expect(await checkSudoCached(deps)).toBe(false);
+	});
+
+	test("passes correct command to spawnAsync", async () => {
+		let capturedCmd: string[] = [];
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async (cmd) => {
+				capturedCmd = cmd;
+				return { exitCode: 0 };
+			},
+		};
+		await checkSudoCached(deps);
+		expect(capturedCmd).toEqual(["sudo", "-n", "-v"]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// validateSudoWithPassword
+// ---------------------------------------------------------------------------
+
+describe("validateSudoWithPassword", () => {
+	test("returns ok: true when sudo -S -v exits 0", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnWithStdin: async () => ({ exitCode: 0 }),
+		};
+		const result = await validateSudoWithPassword("secret", deps);
+		expect(result).toEqual({ ok: true });
+	});
+
+	test("returns ok: false when sudo -S -v exits non-zero", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnWithStdin: async () => ({ exitCode: 1 }),
+		};
+		const result = await validateSudoWithPassword("wrong", deps);
+		expect(result).toEqual({ ok: false, reason: "sudo authentication failed" });
+	});
+
+	test("returns ok: false when spawnWithStdin throws", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnWithStdin: async () => {
+				throw new Error("pipe broken");
+			},
+		};
+		const result = await validateSudoWithPassword("secret", deps);
+		expect(result).toEqual({ ok: false, reason: "pipe broken" });
+	});
+
+	test("passes correct command to spawnWithStdin", async () => {
+		let capturedCmd: string[] = [];
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnWithStdin: async (cmd) => {
+				capturedCmd = cmd;
+				return { exitCode: 0 };
+			},
+		};
+		await validateSudoWithPassword("secret", deps);
+		expect(capturedCmd).toEqual(["sudo", "-S", "-v"]);
+	});
+
+	test("pipes password to spawnWithStdin", async () => {
+		let capturedStdin = "";
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnWithStdin: async (_cmd, stdinData) => {
+				capturedStdin = stdinData;
+				return { exitCode: 0 };
+			},
+		};
+		await validateSudoWithPassword("myPassword123", deps);
+		expect(capturedStdin).toBe("myPassword123");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// invalidateSudo
+// ---------------------------------------------------------------------------
+
+describe("invalidateSudo", () => {
+	test("spawns sudo -k", async () => {
+		let capturedCmd: string[] = [];
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async (cmd) => {
+				capturedCmd = cmd;
+				return { exitCode: 0 };
+			},
+		};
+		await invalidateSudo(deps);
+		expect(capturedCmd).toEqual(["sudo", "-k"]);
+	});
+
+	test("resolves without error", async () => {
+		const deps: SudoDeps = {
+			spawnSync: () => ({ exitCode: 0 }),
+			spawnBackground: () => {},
+			spawnAsync: async () => ({ exitCode: 0 }),
+		};
+		await expect(invalidateSudo(deps)).resolves.toBeUndefined();
 	});
 });
 

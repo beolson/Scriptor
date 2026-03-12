@@ -56,3 +56,29 @@
   requires_sudo: true
   dependencies:
     - install-system-basics
+
+- id: test-configure-tls-endpoint
+  name: "[TEST] Configure TLS Endpoint"
+  description: Test/demo script that simulates configuring a TLS endpoint with a certificate
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/test-configure-tls-endpoint.sh
+  inputs:
+    - id: cert
+      type: ssl-cert
+      label: TLS certificate
+      required: true
+      download_path: /tmp/test-tls-cert.pem
+      format: PEM
+
+- id: test-configure-ssh
+  name: "[TEST] Configure SSH"
+  description: Test/demo script that simulates configuring SSH access to a remote host
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/test-configure-ssh.sh
+  requires_sudo: true

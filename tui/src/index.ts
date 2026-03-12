@@ -10,11 +10,15 @@ import { GitHubClient } from "./github/githubClient.js";
 import { startOAuthFlow } from "./github/oauth.js";
 import { detectHost } from "./host/detectHost.js";
 import { LogService } from "./log/logService.js";
-import { filterManifest } from "./manifest/filterManifest.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
-import { needsSudo, startKeepalive, validateSudo } from "./sudo/sudoManager.js";
+import {
+	checkSudoCached,
+	invalidateSudo,
+	startKeepalive,
+	validateSudoWithPassword,
+} from "./sudo/sudoManager.js";
 import { App } from "./tui/App.js";
 
 const DEFAULT_REPO = "beolson/Scriptor";
@@ -47,35 +51,30 @@ async function main() {
 	// Sudo keepalive cleanup function, set when sudo is validated.
 	let stopKeepalive: (() => void) | null = null;
 
-	// Pre-TUI sudo validation: if a local manifest exists and any matching
-	// scripts require sudo, prompt for credentials before Ink takes over stdio.
-	{
-		let sudoManifestPath = path.join(process.cwd(), "scriptor.yaml");
-		if (!(await Bun.file(sudoManifestPath).exists())) {
-			const parentPath = path.join(process.cwd(), "..", "scriptor.yaml");
-			if (await Bun.file(parentPath).exists()) {
-				sudoManifestPath = parentPath;
+	// On-demand sudo validation: called from the TUI when the user
+	// selects a script that requires sudo.
+	async function validateSudoForApp(
+		password: string,
+	): Promise<{ ok: true } | { ok: false; reason: string }> {
+		// Check if sudo credentials are already cached
+		const cached = await checkSudoCached();
+		if (cached) {
+			if (!stopKeepalive) {
+				stopKeepalive = startKeepalive();
 			}
+			return { ok: true };
 		}
 
-		if (await Bun.file(sudoManifestPath).exists()) {
-			try {
-				const manifestYaml = await Bun.file(sudoManifestPath).text();
-				const entries = parseManifest(manifestYaml);
-				const hostEntries = filterManifest(entries, hostInfo);
-				if (needsSudo(hostEntries)) {
-					console.log("Some scripts require sudo. Validating credentials...");
-					const result = await validateSudo();
-					if (!result.ok) {
-						console.error(`Sudo validation failed: ${result.reason}`);
-						process.exit(1);
-					}
-					stopKeepalive = startKeepalive();
-				}
-			} catch {
-				// If manifest parsing fails here, let the normal startup flow handle it.
-			}
+		// Empty password means we were just checking the cache
+		if (password === "") {
+			return { ok: false, reason: "Password required" };
 		}
+
+		const result = await validateSudoWithPassword(password);
+		if (result.ok && !stopKeepalive) {
+			stopKeepalive = startKeepalive();
+		}
+		return result;
 	}
 
 	// Build the runStartup adapter that wires the real GitHubClient and
@@ -175,6 +174,7 @@ async function main() {
 				stopKeepalive();
 				stopKeepalive = null;
 			}
+			await invalidateSudo();
 		}
 	}
 
@@ -184,6 +184,7 @@ async function main() {
 			repoUrl,
 			runStartup: runStartupForApp,
 			runExecution: runExecutionForApp,
+			validateSudo: validateSudoForApp,
 		}),
 	);
 }
