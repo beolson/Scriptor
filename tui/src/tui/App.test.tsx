@@ -466,8 +466,7 @@ describe("App — sudo flow", () => {
 		const props = makeSudoProps(
 			SUDO_MANIFEST,
 			async (password) => {
-				if (password === "")
-					return { ok: false, reason: "Password required" };
+				if (password === "") return { ok: false, reason: "Password required" };
 				return { ok: true };
 			},
 			{ runExecution },

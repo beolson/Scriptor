@@ -236,13 +236,19 @@ describe("SudoScreen", () => {
 		const stdin = makeStdin();
 		const stdout = makeStdout();
 
-		let resolveValidation: ((value: { ok: true }) => void) | null = null;
+		// Use an object property to avoid TS 5.4+ closure narrowing (let vars assigned
+		// in closures are narrowed to never after await points due to PromiseLike mismatch)
+		const deferred: {
+			resolve:
+				| ((value: { ok: true } | { ok: false; reason: string }) => void)
+				| null;
+		} = { resolve: null };
 
 		const props: SudoScreenProps = {
 			validateSudo: async (password) => {
 				if (password === "") return { ok: false, reason: "Password required" };
 				return new Promise((resolve) => {
-					resolveValidation = resolve;
+					deferred.resolve = resolve;
 				});
 			},
 			onValidated: () => {},
@@ -267,7 +273,7 @@ describe("SudoScreen", () => {
 		expect(frame).toContain("Validating");
 
 		// Resolve to avoid hanging
-		resolveValidation?.({ ok: true });
+		deferred.resolve?.({ ok: true });
 	});
 
 	test("calls onValidated immediately when sudo is already cached", async () => {
