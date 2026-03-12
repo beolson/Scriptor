@@ -146,14 +146,11 @@ function makeAppProps(overrides: Partial<AppProps> = {}): AppProps {
 
 /**
  * Advances the app from the initial fetch screen to the script-list screen
- * by waiting for startup to finish and pressing Enter.
+ * by waiting for the auto-transition to fire after startup completes.
  */
-async function advanceToScriptList(stdin: NodeJS.ReadStream) {
-	// Wait for startup to complete
+async function advanceToScriptList(_stdin: NodeJS.ReadStream) {
+	// Auto-transition fires when startup mock resolves; just wait.
 	await wait(100);
-	// Press Enter to move from fetch screen → script list
-	stdin.push("\r");
-	await wait(50);
 }
 
 /**

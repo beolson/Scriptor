@@ -129,6 +129,14 @@ export function App({
 			});
 	}, [repoUrl, runStartup]);
 
+	// Auto-advance to script list as soon as the fetch/startup completes.
+	useEffect(() => {
+		if (fetchDone) {
+			setScreen("script-list");
+			setFooterBindings(DEFAULT_BINDINGS);
+		}
+	}, [fetchDone]);
+
 	// Handle global quit keys (only when not on input-collection or execution screens).
 	// input-collection manages its own Q/Ctrl+C with a cancel confirmation.
 	// execution blocks quit while running.
@@ -136,11 +144,6 @@ export function App({
 		(input, key) => {
 			if (input === "q" || (key.ctrl && input === "c")) {
 				exit();
-			}
-			// On the fetch screen, Enter advances to the script list once loading is done.
-			if (screen === "fetch" && fetchDone && key.return) {
-				setScreen("script-list");
-				setFooterBindings(DEFAULT_BINDINGS);
 			}
 		},
 		{
@@ -220,9 +223,12 @@ export function App({
 		]);
 	}
 
+	const sourceLabel =
+		currentEvent?.type === "local-mode" ? "local" : repoUrl;
+
 	return (
 		<Box flexDirection="column" height="100%">
-			<Header hostInfo={hostInfo} repoUrl={repoUrl} />
+			<Header hostInfo={hostInfo} sourceLabel={sourceLabel} />
 			<Box flexDirection="column" flexGrow={1} paddingX={1} paddingY={1}>
 				{screen === "fetch" && (
 					<FetchScreen

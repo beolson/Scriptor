@@ -3,14 +3,14 @@ import type { HostInfo } from "../host/detectHost.js";
 
 export interface HeaderProps {
 	hostInfo: HostInfo;
-	repoUrl: string;
+	sourceLabel: string;
 }
 
 /**
  * Persistent header bar showing detected host information and the active
- * repository URL.
+ * repository URL or "local" when running from a local scriptor.yaml.
  */
-export function Header({ hostInfo, repoUrl }: HeaderProps) {
+export function Header({ hostInfo, sourceLabel }: HeaderProps) {
 	const hostLabel = buildHostLabel(hostInfo);
 
 	return (
@@ -27,7 +27,7 @@ export function Header({ hostInfo, repoUrl }: HeaderProps) {
 				{"Scriptor "}
 				<Text dimColor={true}>{hostLabel}</Text>
 			</Text>
-			<Text dimColor={true}>{repoUrl}</Text>
+			<Text dimColor={true}>{sourceLabel}</Text>
 		</Box>
 	);
 }
