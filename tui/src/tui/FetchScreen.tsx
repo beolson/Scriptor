@@ -26,38 +26,31 @@ export function FetchScreen({ currentEvent, done, offline }: FetchScreenProps) {
 	if (done) {
 		if (currentEvent?.type === "local-mode") {
 			return (
-				<Box flexDirection="column" gap={1}>
-					<Box>
-						<Text color="cyan" bold={true}>
-							{"Local mode: "}
-						</Text>
-						<Text color="cyan">
-							{`Using scriptor.yaml from ${currentEvent.cwd}`}
-						</Text>
-					</Box>
-					<Text dimColor={true}>Press Enter to continue.</Text>
+				<Box>
+					<Text color="cyan" bold={true}>
+						{"Local mode: "}
+					</Text>
+					<Text color="cyan">
+						{`Using scriptor.yaml from ${currentEvent.cwd}`}
+					</Text>
 				</Box>
 			);
 		}
 		if (offline) {
 			return (
-				<Box flexDirection="column" gap={1}>
-					<Box>
-						<Text color="yellow" bold={true}>
-							{"Warning: "}
-						</Text>
-						<Text color="yellow">
-							GitHub is unreachable. Running from cached scripts.
-						</Text>
-					</Box>
-					<Text dimColor={true}>Press Enter to continue.</Text>
+				<Box>
+					<Text color="yellow" bold={true}>
+						{"Warning: "}
+					</Text>
+					<Text color="yellow">
+						GitHub is unreachable. Running from cached scripts.
+					</Text>
 				</Box>
 			);
 		}
 		return (
-			<Box flexDirection="column" gap={1}>
+			<Box>
 				<Text color="green">Scripts loaded successfully.</Text>
-				<Text dimColor={true}>Press Enter to continue.</Text>
 			</Box>
 		);
 	}

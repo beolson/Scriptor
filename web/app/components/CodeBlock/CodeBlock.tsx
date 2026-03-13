@@ -18,8 +18,14 @@ export default function CodeBlock({
 }: CodeBlockProps) {
 	const [copied, setCopied] = useState(false);
 
+	const PROMPT_PREFIX = "$ ";
+	const hasPrompt = command.startsWith(PROMPT_PREFIX);
+	const displayCommand = hasPrompt
+		? command.slice(PROMPT_PREFIX.length)
+		: command;
+
 	function handleCopy() {
-		navigator.clipboard.writeText(command);
+		navigator.clipboard.writeText(displayCommand);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	}
@@ -47,7 +53,8 @@ export default function CodeBlock({
 				</button>
 			</div>
 			<div className={styles.command} data-testid="command-text">
-				{command}
+				{hasPrompt && <span className={styles.prompt}>$ </span>}
+				{displayCommand}
 			</div>
 		</div>
 	);

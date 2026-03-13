@@ -12,6 +12,7 @@ export interface ScriptEntry {
 	version?: string;
 	dependencies: string[];
 	inputs: InputDef[];
+	requires_sudo: boolean;
 }
 
 const VALID_PLATFORMS = new Set(["windows", "linux", "mac"]);
@@ -86,6 +87,22 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		dependencies = entry.dependencies as string[];
 	}
 
+	// requires_sudo — optional, defaults to false
+	let requires_sudo = false;
+	if ("requires_sudo" in entry && entry.requires_sudo !== undefined) {
+		if (typeof entry.requires_sudo !== "boolean") {
+			throw new Error(
+				`Entry at index ${index} field "requires_sudo" must be a boolean`,
+			);
+		}
+		if (entry.requires_sudo === true && platform === "windows") {
+			throw new Error(
+				`Entry at index ${index} must not use "requires_sudo" on platform: windows (use #Requires -RunAsAdministrator instead)`,
+			);
+		}
+		requires_sudo = entry.requires_sudo;
+	}
+
 	// inputs — optional, defaults to []; validated via Zod
 	let inputs: InputDef[] = [];
 	if ("inputs" in entry && entry.inputs !== undefined) {
@@ -118,6 +135,7 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		script: entry.script as string,
 		dependencies,
 		inputs,
+		requires_sudo,
 	};
 
 	if (platform === "linux") {

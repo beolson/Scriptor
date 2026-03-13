@@ -31,6 +31,7 @@ describe("parseManifest — happy path", () => {
 			script: "scripts/windows/install-git.ps1",
 			dependencies: [],
 			inputs: [],
+			requires_sudo: false,
 		});
 	});
 
@@ -73,6 +74,7 @@ describe("parseManifest — happy path", () => {
 			version: "24.04",
 			dependencies: [],
 			inputs: [],
+			requires_sudo: false,
 		});
 	});
 
@@ -427,6 +429,69 @@ describe("parseManifest — inputs field", () => {
       download_path: /tmp/cert.pem
 `;
 		expect(() => parseManifest(yaml)).toThrow();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// requires_sudo field
+// ---------------------------------------------------------------------------
+
+describe("parseManifest — requires_sudo", () => {
+	test("requires_sudo: true on linux entry is parsed correctly", () => {
+		const yaml = `
+- id: install-docker
+  name: Install Docker
+  description: Installs Docker on Ubuntu
+  platform: linux
+  arch: x86
+  script: scripts/linux/install-docker.sh
+  distro: ubuntu
+  version: "24.04"
+  requires_sudo: true
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.requires_sudo).toBe(true);
+	});
+
+	test("omitted requires_sudo defaults to false", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.requires_sudo).toBe(false);
+	});
+
+	test("requires_sudo: true on windows entry is rejected", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+  requires_sudo: true
+`;
+		expect(() => parseManifest(yaml)).toThrow(/requires_sudo/);
+	});
+
+	test("non-boolean requires_sudo is rejected", () => {
+		const yaml = `
+- id: install-docker
+  name: Install Docker
+  description: Installs Docker on Ubuntu
+  platform: linux
+  arch: x86
+  script: scripts/linux/install-docker.sh
+  distro: ubuntu
+  version: "24.04"
+  requires_sudo: "yes"
+`;
+		expect(() => parseManifest(yaml)).toThrow(/requires_sudo/);
 	});
 });
 

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { render } from "ink";
 import React from "react";
+import pkg from "../package.json";
 import { CacheService } from "./cache/cacheService.js";
 import { parseCli } from "./cli/parseCli.js";
 import { readConfig, writeConfig } from "./config/config.js";
@@ -13,7 +14,15 @@ import { LogService } from "./log/logService.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
 import { runStartup } from "./startup/startup.js";
+import {
+	checkSudoCached,
+	invalidateSudo,
+	startKeepalive,
+	validateSudoWithPassword,
+} from "./sudo/sudoManager.js";
 import { App } from "./tui/App.js";
+import { applyUpdate } from "./updater/applyUpdate.js";
+import { checkForUpdate } from "./updater/checkForUpdate.js";
 
 const DEFAULT_REPO = "beolson/Scriptor";
 const OAUTH_CLIENT_ID = "Ov23liczBZbFw43X0aFI"; // TODO: replace with real OAuth App client ID
@@ -35,12 +44,63 @@ async function main() {
 
 	const hostInfo = await detectHost();
 
+	// Shared client for both startup and update check.
+	const client = new GitHubClient();
+
 	const cache = new CacheService();
 	const logService = new LogService();
+
+	// Update check adapter: silent on any error.
+	async function checkForUpdateForApp() {
+		try {
+			return await checkForUpdate(pkg.version, hostInfo, {
+				getLatestRelease: (repo: string) => client.getLatestRelease(repo),
+			});
+		} catch {
+			return null;
+		}
+	}
+
+	// Apply update adapter: only available for compiled binaries.
+	async function applyUpdateForApp(downloadUrl: string) {
+		if (!path.basename(process.execPath).startsWith("scriptor")) {
+			throw new Error("Self-update only available for installed binaries.");
+		}
+		await applyUpdate(downloadUrl, process.execPath, hostInfo.platform);
+	}
 
 	// Script content fetched during startup, keyed by the repo-relative path.
 	// Populated by runStartupForApp and consumed by runExecutionForApp.
 	let fetchedScripts: Record<string, string> = {};
+
+	// Sudo keepalive cleanup function, set when sudo is validated.
+	let stopKeepalive: (() => void) | null = null;
+
+	// On-demand sudo validation: called from the TUI when the user
+	// selects a script that requires sudo.
+	async function validateSudoForApp(
+		password: string,
+	): Promise<{ ok: true } | { ok: false; reason: string }> {
+		// Check if sudo credentials are already cached
+		const cached = await checkSudoCached();
+		if (cached) {
+			if (!stopKeepalive) {
+				stopKeepalive = startKeepalive();
+			}
+			return { ok: true };
+		}
+
+		// Empty password means we were just checking the cache
+		if (password === "") {
+			return { ok: false, reason: "Password required" };
+		}
+
+		const result = await validateSudoWithPassword(password);
+		if (result.ok && !stopKeepalive) {
+			stopKeepalive = startKeepalive();
+		}
+		return result;
+	}
 
 	// Build the runStartup adapter that wires the real GitHubClient and
 	// CacheService into the startup orchestration logic.
@@ -83,11 +143,11 @@ async function main() {
 
 		// We start without a token; the startup logic will trigger OAuth if needed
 		// and call startOAuthFlow to obtain one.
-		let client = new GitHubClient();
+		let startupClient = new GitHubClient();
 
 		const deps: FetchDeps = {
-			getLatestCommitHash: (r: string) => client.getLatestCommitHash(r),
-			fetchFile: (r: string, path: string) => client.fetchFile(r, path),
+			getLatestCommitHash: (r: string) => startupClient.getLatestCommitHash(r),
+			fetchFile: (r: string, p: string) => startupClient.fetchFile(r, p),
 			getStoredCommitHash: () => cache.getStoredCommitHash(),
 			saveCommitHash: (hash: string) => cache.saveCommitHash(hash),
 			getCachedManifest: () => cache.getCachedManifest(),
@@ -104,7 +164,7 @@ async function main() {
 				});
 				// Recreate the client with the obtained token so subsequent requests
 				// in the same startup pass are authenticated.
-				client = new GitHubClient({ token });
+				startupClient = new GitHubClient({ token });
 				return token;
 			},
 			oauthClientId: OAUTH_CLIENT_ID,
@@ -132,15 +192,28 @@ async function main() {
 		const logFile = await logService.createLogFile();
 		const runner = new ScriptRunner({ logService });
 		runner.on("progress", onProgress);
-		return runner.runScripts(withContent, logFile);
+		try {
+			return await runner.runScripts(withContent, logFile);
+		} finally {
+			if (stopKeepalive) {
+				stopKeepalive();
+				stopKeepalive = null;
+			}
+			await invalidateSudo();
+		}
 	}
 
+	process.stdout.write("\x1b[2J\x1b[H");
 	render(
 		React.createElement(App, {
 			hostInfo,
 			repoUrl,
 			runStartup: runStartupForApp,
 			runExecution: runExecutionForApp,
+			validateSudo: validateSudoForApp,
+			version: pkg.version,
+			checkForUpdate: checkForUpdateForApp,
+			applyUpdate: applyUpdateForApp,
 		}),
 	);
 }

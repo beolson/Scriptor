@@ -84,6 +84,7 @@ function makeScript(
 		inputs,
 		distro: "ubuntu",
 		version: "24.04",
+		requires_sudo: false,
 	};
 }
 
@@ -145,14 +146,12 @@ function makeAppProps(overrides: Partial<AppProps> = {}): AppProps {
 
 /**
  * Advances the app from the initial fetch screen to the script-list screen
- * by waiting for startup to finish and pressing Enter.
+ * by waiting for the auto-transition to fire after startup completes.
  */
-async function advanceToScriptList(stdin: NodeJS.ReadStream) {
-	// Wait for startup to complete
-	await wait(100);
-	// Press Enter to move from fetch screen → script list
-	stdin.push("\r");
-	await wait(50);
+async function advanceToScriptList(_stdin: NodeJS.ReadStream) {
+	// Auto-transition fires when startup mock resolves; just wait.
+	// 300ms to account for JIT warmup on the first test run in CI.
+	await wait(300);
 }
 
 /**
@@ -358,6 +357,281 @@ describe("App — Task 9 integration", () => {
 		await typeAndSubmit(stdin, "octocat");
 
 		// Confirm execution on the confirmation screen (press Y)
+		stdin.push("y");
+		await wait(200);
+
+		expect(runExecution).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ─── Sudo Flow Tests ──────────────────────────────────────────────────────────
+
+describe("App — sudo flow", () => {
+	const instances: ReturnType<typeof render>[] = [];
+
+	afterEach(() => {
+		for (const inst of instances) {
+			try {
+				inst.unmount();
+				inst.cleanup();
+			} catch {
+				// ignore
+			}
+		}
+		instances.length = 0;
+	});
+
+	const SUDO_MANIFEST = `
+- id: sudo-script
+  name: Sudo Script
+  description: Needs sudo
+  platform: linux
+  arch: x86
+  distro: ubuntu
+  version: "24.04"
+  script: echo sudo
+  requires_sudo: true
+`.trim();
+
+	const NO_SUDO_MANIFEST = `
+- id: plain-script
+  name: Plain Script
+  description: No sudo
+  platform: linux
+  arch: x86
+  distro: ubuntu
+  version: "24.04"
+  script: echo plain
+`.trim();
+
+	function makeSudoProps(
+		manifest: string,
+		validateSudo: AppProps["validateSudo"],
+		overrides: Partial<AppProps> = {},
+	): AppProps {
+		return makeAppProps({
+			runStartup: async () => ({
+				manifestYaml: manifest,
+				scripts: {},
+				offline: false,
+			}),
+			validateSudo,
+			...overrides,
+		});
+	}
+
+	test("scripts with requires_sudo trigger sudo screen after confirmation", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+
+		const props = makeSudoProps(SUDO_MANIFEST, async () => ({
+			ok: false,
+			reason: "Password required",
+		}));
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm execution
+		stdin.push("y");
+		await wait(150);
+
+		const frame = drainStdout(stdout);
+		expect(frame).toContain("Sudo authentication required");
+	});
+
+	test("successful sudo validation transitions to execution", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		const runExecution = mock(
+			async (
+				_scripts: ScriptEntry[],
+				_onProgress: (event: ProgressEvent) => void,
+			) => ({
+				success: true as const,
+				logFile: "/tmp/scriptor.log",
+			}),
+		);
+
+		const props = makeSudoProps(
+			SUDO_MANIFEST,
+			async (password) => {
+				if (password === "") return { ok: false, reason: "Password required" };
+				return { ok: true };
+			},
+			{ runExecution },
+		);
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm execution → triggers sudo screen
+		stdin.push("y");
+		await wait(150);
+
+		// Type password and submit
+		stdin.push("correctpass");
+		await wait(50);
+		stdin.push("\r");
+		await wait(200);
+
+		expect(runExecution).toHaveBeenCalledTimes(1);
+	});
+
+	test("failed sudo validation shows error and allows retry", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		let callCount = 0;
+
+		const props = makeSudoProps(SUDO_MANIFEST, async (password) => {
+			if (password === "") return { ok: false, reason: "Password required" };
+			callCount++;
+			if (callCount === 1) {
+				return { ok: false, reason: "sudo authentication failed" };
+			}
+			return { ok: true };
+		});
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm → sudo screen
+		stdin.push("y");
+		await wait(150);
+
+		// Wrong password
+		stdin.push("wrong");
+		await wait(50);
+		stdin.push("\r");
+		await wait(150);
+
+		const frame = drainStdout(stdout);
+		expect(frame).toContain("sudo authentication failed");
+	});
+
+	test("Escape on sudo screen goes back to confirmation", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+
+		const props = makeSudoProps(SUDO_MANIFEST, async () => ({
+			ok: false,
+			reason: "Password required",
+		}));
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm → sudo screen
+		stdin.push("y");
+		await wait(150);
+
+		// Escape → back to confirmation
+		stdin.push("\x1b");
+		await wait(100);
+
+		const frame = drainStdout(stdout);
+		expect(frame).toContain("Sudo Script");
+		expect(frame).toContain("Run");
+	});
+
+	test("scripts without requires_sudo skip sudo screen entirely", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		const runExecution = mock(
+			async (
+				_scripts: ScriptEntry[],
+				_onProgress: (event: ProgressEvent) => void,
+			) => ({
+				success: true as const,
+				logFile: "/tmp/scriptor.log",
+			}),
+		);
+
+		const props = makeSudoProps(NO_SUDO_MANIFEST, async () => ({ ok: true }), {
+			runExecution,
+		});
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm execution → should go straight to execution (no sudo prompt)
+		stdin.push("y");
+		await wait(200);
+
+		expect(runExecution).toHaveBeenCalledTimes(1);
+	});
+
+	test("validateSudo returning ok for empty string (cached) skips password prompt", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		const runExecution = mock(
+			async (
+				_scripts: ScriptEntry[],
+				_onProgress: (event: ProgressEvent) => void,
+			) => ({
+				success: true as const,
+				logFile: "/tmp/scriptor.log",
+			}),
+		);
+
+		const props = makeSudoProps(
+			SUDO_MANIFEST,
+			async () => ({ ok: true }), // always returns ok (cached)
+			{ runExecution },
+		);
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm execution → triggers sudo screen → cached → straight to execution
 		stdin.push("y");
 		await wait(200);
 

@@ -25,6 +25,7 @@ function makeEntry(
 		distro: overrides.distro ?? "Ubuntu",
 		version: overrides.version ?? "24.04",
 		inputs: overrides.inputs ?? [],
+		requires_sudo: overrides.requires_sudo ?? false,
 	};
 }
 

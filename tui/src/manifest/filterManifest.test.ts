@@ -17,6 +17,7 @@ function windowsEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		script: "scripts/windows/git.ps1",
 		dependencies: [],
 		inputs: [],
+		requires_sudo: false,
 		...overrides,
 	};
 }
@@ -31,6 +32,7 @@ function macEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		script: "scripts/mac/bun.sh",
 		dependencies: [],
 		inputs: [],
+		requires_sudo: false,
 		...overrides,
 	};
 }
@@ -47,6 +49,7 @@ function linuxEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		version: "24.04",
 		dependencies: [],
 		inputs: [],
+		requires_sudo: false,
 		...overrides,
 	};
 }

@@ -42,6 +42,7 @@ function _makeScript(id: string): ScriptEntry {
 		script: `scripts/${id}.sh`,
 		dependencies: [],
 		inputs: [],
+		requires_sudo: false,
 	};
 }
 
