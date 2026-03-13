@@ -43,6 +43,10 @@
 	color: var(--color-text-primary);
 }
 
+.prompt {
+	user-select: none;
+}
+
 .command {
 	font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
 	font-size: 13px;
