@@ -1,5 +1,11 @@
 # scriptor
 
+## 0.7.0
+
+### Minor Changes
+
+- 65b4691: Updates to web and tui
+
 ## 0.6.0
 
 ### Minor Changes
