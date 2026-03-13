@@ -150,7 +150,8 @@ function makeAppProps(overrides: Partial<AppProps> = {}): AppProps {
  */
 async function advanceToScriptList(_stdin: NodeJS.ReadStream) {
 	// Auto-transition fires when startup mock resolves; just wait.
-	await wait(100);
+	// 300ms to account for JIT warmup on the first test run in CI.
+	await wait(300);
 }
 
 /**
