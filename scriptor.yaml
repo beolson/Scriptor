@@ -10,7 +10,7 @@
     - id: instance-name
       type: string
       label: WSL instance name
-      required: false
+      required: true
       default: Debian13Dev
 
 - id: install-system-basics
