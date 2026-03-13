@@ -168,6 +168,44 @@ export class GitHubClient {
 	}
 
 	/**
+	 * Returns the latest release for `repo`, or `null` if no releases exist (404).
+	 *
+	 * @param repo - Repository in `owner/repo` format.
+	 */
+	async getLatestRelease(repo: string): Promise<{
+		tagName: string;
+		assets: Array<{ name: string; browserDownloadUrl: string }>;
+	} | null> {
+		const url = `${GITHUB_API_BASE}/repos/${repo}/releases/latest`;
+		const response = await this.doFetch(url);
+
+		if (response.status === 404) return null;
+
+		if (response.status === 401 || response.status === 403) {
+			this.handleAuthError(url, response.status);
+		}
+
+		if (!response.ok) {
+			throw new Error(
+				`GitHub Releases API returned HTTP ${response.status} for repository "${repo}"`,
+			);
+		}
+
+		const data = (await response.json()) as {
+			tag_name: string;
+			assets: Array<{ name: string; browser_download_url: string }>;
+		};
+
+		return {
+			tagName: data.tag_name,
+			assets: data.assets.map((a) => ({
+				name: a.name,
+				browserDownloadUrl: a.browser_download_url,
+			})),
+		};
+	}
+
+	/**
 	 * Fetches the raw text content of a file from the GitHub Contents API.
 	 *
 	 * @param repo - Repository in `owner/repo` format.

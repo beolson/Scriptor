@@ -11,6 +11,7 @@ import type { CertFetcher } from "../inputs/sslCert/certFetcher.js";
 import { TlsCertFetcher } from "../inputs/sslCert/certFetcher.js";
 import type { ScriptEntry } from "../manifest/parseManifest.js";
 import type { StartupEvent, StartupResult } from "../startup/startup.js";
+import type { UpdateInfo } from "../updater/checkForUpdate.js";
 import { ConfirmationScreen } from "./ConfirmationScreen.js";
 import { ExecutionScreen } from "./ExecutionScreen.js";
 import { FetchScreen } from "./FetchScreen.js";
@@ -19,8 +20,10 @@ import { DEFAULT_BINDINGS, Footer } from "./Footer.js";
 import { Header } from "./Header.js";
 import { ScriptListScreen } from "./ScriptListScreen.js";
 import { SudoScreen } from "./SudoScreen.js";
+import { UpdateScreen } from "./UpdateScreen.js";
 
 export type Screen =
+	| "update"
 	| "fetch"
 	| "script-list"
 	| "input-collection"
@@ -68,6 +71,19 @@ export interface AppProps {
 	validateSudo?: (
 		password: string,
 	) => Promise<{ ok: true } | { ok: false; reason: string }>;
+	/** Version string from package.json, shown in the header. */
+	version?: string;
+	/**
+	 * Called once on startup to check for a newer binary release.
+	 * Returns `UpdateInfo` if an update is available, `null` otherwise.
+	 * When absent, the update phase is skipped entirely.
+	 */
+	checkForUpdate?: () => Promise<UpdateInfo | null>;
+	/**
+	 * Downloads and applies the update binary at `downloadUrl`.
+	 * When absent, the update screen's apply action is a no-op.
+	 */
+	applyUpdate?: (downloadUrl: string) => Promise<void>;
 }
 
 /**
@@ -83,13 +99,23 @@ export function App({
 	runExecution,
 	fetcher,
 	validateSudo,
+	version,
+	checkForUpdate,
+	applyUpdate,
 }: AppProps) {
 	const { exit } = useApp();
-	const [screen, setScreen] = useState<Screen>("fetch");
+	// Start on "fetch" if no update check is provided; otherwise wait for Phase 1.
+	const [screen, setScreen] = useState<Screen>(
+		checkForUpdate ? "fetch" : "fetch",
+	);
 	const [footerBindings, setFooterBindings] =
 		useState<FooterBinding[]>(DEFAULT_BINDINGS);
 
-	// Startup fetch state
+	// Update check state (Phase 1)
+	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+	const [startupEnabled, setStartupEnabled] = useState(!checkForUpdate);
+
+	// Startup fetch state (Phase 2)
 	const [currentEvent, setCurrentEvent] = useState<StartupEvent | null>(null);
 	const [fetchDone, setFetchDone] = useState(false);
 	const [offline, setOffline] = useState(false);
@@ -113,8 +139,28 @@ export function App({
 		() => fetcher ?? new TlsCertFetcher(),
 	);
 
-	// Run the startup sequence once on mount.
+	// Phase 1: update check. Runs once if checkForUpdate is provided.
+	// On update found → show UpdateScreen; on no update or error → enable Phase 2.
 	useEffect(() => {
+		if (!checkForUpdate) return;
+		checkForUpdate()
+			.then((info) => {
+				if (info !== null) {
+					setUpdateInfo(info);
+					setScreen("update");
+				} else {
+					setStartupEnabled(true);
+				}
+			})
+			.catch(() => {
+				// Update check failures are silent — proceed normally.
+				setStartupEnabled(true);
+			});
+	}, [checkForUpdate]);
+
+	// Phase 2: run the startup fetch sequence once startupEnabled becomes true.
+	useEffect(() => {
+		if (!startupEnabled) return;
 		runStartup(repoUrl, (event) => {
 			setCurrentEvent(event);
 		})
@@ -127,7 +173,7 @@ export function App({
 				setFetchDone(true);
 				setOffline(true);
 			});
-	}, [repoUrl, runStartup]);
+	}, [startupEnabled, repoUrl, runStartup]);
 
 	// Auto-advance to script list as soon as the fetch/startup completes.
 	useEffect(() => {
@@ -136,6 +182,11 @@ export function App({
 			setFooterBindings(DEFAULT_BINDINGS);
 		}
 	}, [fetchDone]);
+
+	function handleSkipUpdate() {
+		setScreen("fetch");
+		setStartupEnabled(true);
+	}
 
 	// Handle global quit keys (only when not on input-collection or execution screens).
 	// input-collection manages its own Q/Ctrl+C with a cancel confirmation.
@@ -148,6 +199,7 @@ export function App({
 		},
 		{
 			isActive:
+				screen !== "update" &&
 				screen !== "input-collection" &&
 				screen !== "execution" &&
 				screen !== "sudo",
@@ -227,8 +279,15 @@ export function App({
 
 	return (
 		<Box flexDirection="column" height="100%">
-			<Header hostInfo={hostInfo} sourceLabel={sourceLabel} />
+			<Header hostInfo={hostInfo} sourceLabel={sourceLabel} version={version} />
 			<Box flexDirection="column" flexGrow={1} paddingX={1} paddingY={1}>
+				{screen === "update" && updateInfo !== null && (
+					<UpdateScreen
+						updateInfo={updateInfo}
+						applyUpdate={applyUpdate ?? (() => Promise.resolve())}
+						onSkip={handleSkipUpdate}
+					/>
+				)}
 				{screen === "fetch" && (
 					<FetchScreen
 						currentEvent={currentEvent}
