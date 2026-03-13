@@ -223,8 +223,7 @@ export function App({
 		]);
 	}
 
-	const sourceLabel =
-		currentEvent?.type === "local-mode" ? "local" : repoUrl;
+	const sourceLabel = currentEvent?.type === "local-mode" ? "local" : repoUrl;
 
 	return (
 		<Box flexDirection="column" height="100%">

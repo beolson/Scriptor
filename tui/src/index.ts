@@ -178,6 +178,7 @@ async function main() {
 		}
 	}
 
+	process.stdout.write("\x1b[2J\x1b[H");
 	render(
 		React.createElement(App, {
 			hostInfo,

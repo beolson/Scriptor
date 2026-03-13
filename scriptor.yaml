@@ -68,7 +68,7 @@
   inputs:
     - id: cert
       type: ssl-cert
-      label: TLS certificate
+      label: Cert URL
       required: true
       download_path: /tmp/test-tls-cert.pem
       format: PEM
