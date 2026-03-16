@@ -73,6 +73,54 @@
       download_path: /tmp/test-tls-cert.pem
       format: PEM
 
+- id: install-az-azd
+  name: Install Azure CLI & Azure Developer CLI
+  description: Installs az and azd with optional private CA bundle configuration
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-az-azd.sh
+  requires_sudo: true
+  dependencies:
+    - install-system-basics
+  inputs:
+    - id: private-certs-file
+      type: string
+      label: Private CA bundle path (leave blank if none)
+      required: false
+
+- id: install-bun
+  name: Install Bun
+  description: Installs the Bun JS runtime with optional private CA bundle configuration
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/install-bun.sh
+  requires_sudo: true
+  dependencies:
+    - install-system-basics
+  inputs:
+    - id: private-certs-file
+      type: string
+      label: Private CA bundle path (leave blank if none)
+      required: false
+
+- id: setup-ssh-keys
+  name: Setup SSH Keys
+  description: Generates an Ed25519 SSH key pair and optionally uploads the public key to GitHub
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/setup-ssh-keys.sh
+  inputs:
+    - id: email
+      type: string
+      label: Email address (used as SSH key comment)
+      required: true
+
 - id: test-configure-ssh
   name: "[TEST] Configure SSH"
   description: Test/demo script that simulates configuring SSH access to a remote host
@@ -82,3 +130,68 @@
   version: "13"
   script: scripts/Debian/13/test-configure-ssh.sh
   requires_sudo: true
+
+- id: configure-git
+  name: Configure Git
+  description: Sets global git user.name and user.email from provided inputs
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/configure-git.sh
+  dependencies:
+    - install-git-gh
+  inputs:
+    - id: name
+      type: string
+      label: Full name (e.g. Jane Smith)
+      required: true
+    - id: email
+      type: string
+      label: Email address (e.g. jane@example.com)
+      required: true
+
+- id: configure-npm-remote
+  name: Configure Custom npm Registry
+  description: Configures bun/npm to use a custom npm registry via ~/.npmrc; supports auth tokens, scoped registries, and private CA bundles
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/configure-npm-remote.sh
+  dependencies:
+    - install-bun
+  inputs:
+    - id: registry-url
+      type: string
+      label: "Registry URL (e.g. https://npm.pkg.github.com)"
+      required: true
+    - id: auth-token
+      type: string
+      label: Auth token (e.g. GitHub PAT with read:packages; leave blank to skip)
+      required: false
+    - id: private-certs-file
+      type: string
+      label: Private CA bundle path (leave blank if none)
+      required: false
+    - id: scope
+      type: string
+      label: "npm scope to pin to this registry (e.g. @myorg; leave blank for global)"
+      required: false
+
+- id: configure-sshd
+  name: Configure SSH Server
+  description: Installs and hardens openssh-server per Mozilla guidelines; optionally imports and schedules daily sync of GitHub SSH keys
+  platform: linux
+  arch: x86
+  distro: Debian GNU/Linux
+  version: "13"
+  script: scripts/Debian/13/configure-sshd.sh
+  requires_sudo: true
+  dependencies:
+    - install-system-basics
+  inputs:
+    - id: github-user
+      type: string
+      label: GitHub username for authorized keys (leave blank to skip)
+      required: false
