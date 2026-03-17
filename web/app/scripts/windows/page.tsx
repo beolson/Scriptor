@@ -10,7 +10,7 @@ export default function WindowsScriptsPage() {
 				platform="windows"
 				heading="> windows scripts"
 				installLanguage="// install all windows scripts"
-				installCommand="$ irm https://scriptor.dev/install.ps1 | iex"
+				installCommand="$ irm https://scriptor.dev/install-win | iex"
 				breadcrumbs={[
 					{ label: "home", href: "/" },
 					{ label: "scripts" },

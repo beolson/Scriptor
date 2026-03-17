@@ -10,7 +10,7 @@ export default function MacScriptsPage() {
 				platform="mac"
 				heading="> macos scripts"
 				installLanguage="// install all macos scripts"
-				installCommand="$ curl -fsSL https://scriptor.dev/install.sh | sh"
+				installCommand="$ curl -fsSL https://scriptor.dev/install | sh"
 				breadcrumbs={[
 					{ label: "home", href: "/" },
 					{ label: "scripts" },

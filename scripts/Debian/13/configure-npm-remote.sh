@@ -3,9 +3,7 @@ set -euo pipefail
 
 REGISTRY_URL="${1:-}"
 AUTH_TOKEN="${2:-}"
-# Fall back to $PRIVATE_CERTS_FILE env var if not passed as input
-PRIVATE_CERTS_FILE="${3:-${PRIVATE_CERTS_FILE:-}}"
-SCOPE="${4:-}"
+SCOPE="${3:-}"
 
 echo "[configure-npm-remote] Starting..."
 
@@ -51,14 +49,4 @@ if [[ -n "${AUTH_TOKEN}" ]]; then
 	echo "//${REGISTRY_HOST}/:_authToken=${AUTH_TOKEN}" >> "${NPMRC}"
 fi
 
-# Configure CA bundle if provided or set via env var
-if [[ -n "${PRIVATE_CERTS_FILE}" ]]; then
-	echo "[configure-npm-remote] Configuring private CA bundle: ${PRIVATE_CERTS_FILE}..."
-	sed -i "/^cafile=/d" "${NPMRC}"
-	echo "cafile=${PRIVATE_CERTS_FILE}" >> "${NPMRC}"
-	sed -i '/NODE_EXTRA_CA_CERTS/d' "${HOME}/.bashrc"
-	echo "export NODE_EXTRA_CA_CERTS=\"${PRIVATE_CERTS_FILE}\"" >> "${HOME}/.bashrc"
-	echo "[configure-npm-remote] NODE_EXTRA_CA_CERTS added to ~/.bashrc."
-fi
-
-echo "[configure-npm-remote] Done. Run 'source ~/.bashrc' or start a new shell for changes to take effect."
+echo "[configure-npm-remote] Done."
