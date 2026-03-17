@@ -27,8 +27,8 @@ export default function InstallCommand() {
 	const isWindows = os === "windows";
 	const language = isWindows ? "// detected: windows" : "// detected: linux";
 	const command = isWindows
-		? `iwr ${origin}/install.ps1 | iex`
-		: `curl -fsSL ${origin}/install.sh | bash`;
+		? `iwr ${origin}/install-win | iex`
+		: `curl -fsSL ${origin}/install | bash`;
 
 	return <CodeBlock language={language} command={command} wide />;
 }
