@@ -1,5 +1,11 @@
 # scriptor
 
+## 0.8.0
+
+### Minor Changes
+
+- 447bfd0: Update our scripts and install process
+
 ## 0.7.0
 
 ### Minor Changes
