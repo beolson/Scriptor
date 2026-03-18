@@ -1,5 +1,11 @@
 # web
 
+## 0.9.0
+
+### Minor Changes
+
+- 1d70dd4: Bug fixes
+
 ## 0.8.0
 
 ### Minor Changes
