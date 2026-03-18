@@ -76,6 +76,13 @@ export interface AppProps {
 	 * When absent, the update screen's apply action is a no-op.
 	 */
 	applyUpdate?: (downloadUrl: string) => Promise<void>;
+	/**
+	 * Promise that resolves to whether the process is running as Administrator.
+	 * Started in the background before the TUI renders so that the result is
+	 * already available by the time the user reaches the confirmation screen.
+	 * Only relevant on Windows; omit on other platforms.
+	 */
+	isAdminPromise?: Promise<boolean | undefined>;
 }
 
 /**
@@ -94,6 +101,7 @@ export function App({
 	version,
 	checkForUpdate,
 	applyUpdate,
+	isAdminPromise,
 }: AppProps) {
 	const { exit } = useApp();
 
@@ -242,10 +250,11 @@ export function App({
 		setFooterBindings(DEFAULT_BINDINGS);
 	}
 
-	function handleExecute() {
+	async function handleExecute() {
+		const isAdmin = await (isAdminPromise ?? Promise.resolve(undefined));
 		const needsAdminScreen =
 			hostInfo.platform === "windows" &&
-			hostInfo.isAdmin === false &&
+			isAdmin === false &&
 			resolvedScripts.some((s) => s.requires_admin);
 
 		if (needsAdminScreen) {

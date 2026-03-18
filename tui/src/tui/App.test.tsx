@@ -612,3 +612,135 @@ describe("App — sudo flow", () => {
 		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
 	});
 });
+
+// ─── Windows Admin Check Tests ────────────────────────────────────────────────
+
+describe("App — Windows admin check", () => {
+	const instances: ReturnType<typeof render>[] = [];
+
+	afterEach(() => {
+		for (const inst of instances) {
+			try {
+				inst.unmount();
+				inst.cleanup();
+			} catch {
+				// ignore
+			}
+		}
+		instances.length = 0;
+	});
+
+	const WINDOWS_HOST_INFO = {
+		platform: "windows" as const,
+		arch: "x86" as const,
+	};
+
+	const ADMIN_MANIFEST = `
+- id: admin-script
+  name: Admin Script
+  description: Needs admin
+  platform: windows
+  arch: x86
+  script: echo admin
+  requires_admin: true
+`.trim();
+
+	test("isAdminPromise resolves false + requires_admin → shows admin screen", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+
+		const props = makeAppProps({
+			hostInfo: WINDOWS_HOST_INFO,
+			runStartup: async () => ({
+				manifestYaml: ADMIN_MANIFEST,
+				scripts: {},
+				offline: false,
+			}),
+			isAdminPromise: Promise.resolve(false),
+		});
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm on confirmation screen
+		stdin.push("y");
+		await wait(200);
+
+		const frame = drainStdout(stdout);
+		expect(frame).toContain("Administrator");
+	});
+
+	test("isAdminPromise resolves true + requires_admin → calls onReadyToExecute", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], _inputs: ScriptInputs) => {},
+		);
+
+		const props = makeAppProps({
+			hostInfo: WINDOWS_HOST_INFO,
+			runStartup: async () => ({
+				manifestYaml: ADMIN_MANIFEST,
+				scripts: {},
+				offline: false,
+			}),
+			onReadyToExecute,
+			isAdminPromise: Promise.resolve(true),
+		});
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Confirm on confirmation screen
+		stdin.push("y");
+		await wait(200);
+
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
+	});
+
+	test("isAdminPromise absent (non-Windows) → admin screen never shown", async () => {
+		const stdin = makeStdin();
+		const stdout = makeStdout();
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], _inputs: ScriptInputs) => {},
+		);
+
+		// Linux host with no isAdminPromise
+		const props = makeAppProps({ onReadyToExecute });
+
+		const inst = render(<App {...props} />, {
+			stdin,
+			stdout,
+			exitOnCtrlC: false,
+			debug: true,
+		});
+		instances.push(inst);
+
+		await advanceToScriptList(stdin);
+		await selectFirstScriptAndConfirm(stdin);
+
+		// Submit input for script-a then confirm
+		await typeAndSubmit(stdin, "octocat");
+		stdin.push("y");
+		await wait(200);
+
+		// Should have called onReadyToExecute without hitting admin screen
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
+	});
+});
