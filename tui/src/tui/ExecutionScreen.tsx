@@ -13,6 +13,9 @@ import type { ScriptEntry } from "../manifest/parseManifest.js";
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const SPINNER_INTERVAL_MS = 80;
 
+/** Maximum output lines to show per script in the TUI. */
+const MAX_OUTPUT_LINES = 8;
+
 // ---------------------------------------------------------------------------
 // Per-script status
 // ---------------------------------------------------------------------------
@@ -74,6 +77,11 @@ export function ExecutionScreen({
 	// Spinner frame index
 	const [spinnerFrame, setSpinnerFrame] = useState(0);
 
+	// Recent output lines per script id (capped at MAX_OUTPUT_LINES)
+	const [outputLines, setOutputLines] = useState<Map<string, string[]>>(
+		() => new Map(),
+	);
+
 	// We track the spinner interval via a ref so we can clear it on unmount
 	const spinnerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -94,6 +102,28 @@ export function ExecutionScreen({
 		setIsRunning(true);
 
 		function handleProgress(event: ProgressEvent) {
+			if (event.status === "output") {
+				setOutputLines((prev) => {
+					const next = new Map(prev);
+					const current = next.get(event.scriptId) ?? [];
+					next.set(
+						event.scriptId,
+						[...current, event.line].slice(-MAX_OUTPUT_LINES),
+					);
+					return next;
+				});
+				return;
+			}
+
+			// Clear output lines for scripts that finish successfully.
+			if (event.status === "done") {
+				setOutputLines((prev) => {
+					const next = new Map(prev);
+					next.delete(event.scriptId);
+					return next;
+				});
+			}
+
 			setStatuses((prev) => {
 				const next = new Map(prev);
 				switch (event.status) {
@@ -153,27 +183,47 @@ export function ExecutionScreen({
 		<Box flexDirection="column" gap={0}>
 			{scripts.map((entry) => {
 				const status = statuses.get(entry.id) ?? { kind: "pending" };
+				const lines = outputLines.get(entry.id) ?? [];
+				const showOutput =
+					(status.kind === "running" || status.kind === "failed") &&
+					lines.length > 0;
 				return (
-					<Box key={entry.id} flexDirection="row" gap={1}>
-						<StatusIcon status={status} spinnerFrame={spinnerFrame} />
-						<Text
-							color={
-								status.kind === "done"
-									? "green"
-									: status.kind === "failed"
-										? "red"
-										: status.kind === "running"
-											? "cyan"
-											: undefined
-							}
-							dimColor={status.kind === "pending"}
-						>
-							{entry.name}
-						</Text>
-						{status.kind === "failed" && (
-							<Text color="red" dimColor={true}>
-								{`(exit code ${status.exitCode})`}
+					<Box key={entry.id} flexDirection="column">
+						<Box flexDirection="row" gap={1}>
+							<StatusIcon status={status} spinnerFrame={spinnerFrame} />
+							<Text
+								color={
+									status.kind === "done"
+										? "green"
+										: status.kind === "failed"
+											? "red"
+											: status.kind === "running"
+												? "cyan"
+												: undefined
+								}
+								dimColor={status.kind === "pending"}
+							>
+								{entry.name}
 							</Text>
+							{status.kind === "failed" && (
+								<Text color="red" dimColor={true}>
+									{`(exit code ${status.exitCode})`}
+								</Text>
+							)}
+						</Box>
+						{showOutput && (
+							<Box flexDirection="column" marginLeft={2}>
+								{lines.map((line, i) => (
+									<Text
+										// biome-ignore lint/suspicious/noArrayIndexKey: stable output buffer
+										key={i}
+										color={status.kind === "failed" ? "red" : undefined}
+										dimColor
+									>
+										{line}
+									</Text>
+								))}
+							</Box>
 						)}
 					</Box>
 				);

@@ -1,3 +1,4 @@
+import process from "node:process";
 import { Box, useApp, useInput } from "ink";
 import { useEffect, useState } from "react";
 import type {
@@ -12,6 +13,7 @@ import { TlsCertFetcher } from "../inputs/sslCert/certFetcher.js";
 import type { ScriptEntry } from "../manifest/parseManifest.js";
 import type { StartupEvent, StartupResult } from "../startup/startup.js";
 import type { UpdateInfo } from "../updater/checkForUpdate.js";
+import { AdminRequiredScreen } from "./AdminRequiredScreen.js";
 import { ConfirmationScreen } from "./ConfirmationScreen.js";
 import { ExecutionScreen } from "./ExecutionScreen.js";
 import { FetchScreen } from "./FetchScreen.js";
@@ -29,6 +31,7 @@ export type Screen =
 	| "input-collection"
 	| "confirmation"
 	| "sudo"
+	| "admin"
 	| "execution";
 
 export interface AppProps {
@@ -104,6 +107,12 @@ export function App({
 	applyUpdate,
 }: AppProps) {
 	const { exit } = useApp();
+
+	// Clear the screen once on mount so any pre-render error output remains visible.
+	useEffect(() => {
+		process.stdout.write("\x1b[2J\x1b[H");
+	}, []);
+
 	// Start on "fetch" if no update check is provided; otherwise wait for Phase 1.
 	const [screen, setScreen] = useState<Screen>(
 		checkForUpdate ? "fetch" : "fetch",
@@ -202,7 +211,8 @@ export function App({
 				screen !== "update" &&
 				screen !== "input-collection" &&
 				screen !== "execution" &&
-				screen !== "sudo",
+				screen !== "sudo" &&
+				screen !== "admin",
 		},
 	);
 
@@ -245,6 +255,17 @@ export function App({
 	}
 
 	function handleExecute() {
+		const needsAdminScreen =
+			hostInfo.platform === "windows" &&
+			hostInfo.isAdmin === false &&
+			resolvedScripts.some((s) => s.requires_admin);
+
+		if (needsAdminScreen) {
+			setScreen("admin");
+			setFooterBindings([{ key: "Esc", description: "Back" }]);
+			return;
+		}
+
 		const needsSudoPrompt =
 			validateSudo &&
 			!sudoValidated &&
@@ -267,6 +288,15 @@ export function App({
 	}
 
 	function handleSudoBack() {
+		setScreen("confirmation");
+		setFooterBindings([
+			{ key: "Y / Enter", description: "Run scripts" },
+			{ key: "N / Esc", description: "Back" },
+			{ key: "Q", description: "Quit" },
+		]);
+	}
+
+	function handleAdminBack() {
 		setScreen("confirmation");
 		setFooterBindings([
 			{ key: "Y / Enter", description: "Run scripts" },
@@ -329,6 +359,7 @@ export function App({
 						onBack={handleSudoBack}
 					/>
 				)}
+				{screen === "admin" && <AdminRequiredScreen onBack={handleAdminBack} />}
 				{screen === "execution" && (
 					<ExecutionScreen
 						scripts={resolvedScripts}

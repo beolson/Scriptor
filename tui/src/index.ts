@@ -10,6 +10,7 @@ import { ScriptRunner } from "./execution/scriptRunner.js";
 import { GitHubClient } from "./github/githubClient.js";
 import { startOAuthFlow } from "./github/oauth.js";
 import { detectHost } from "./host/detectHost.js";
+import type { ScriptInputs } from "./inputs/inputSchema.js";
 import { LogService } from "./log/logService.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
 import type { FetchDeps } from "./startup/startup.js";
@@ -181,6 +182,7 @@ async function main() {
 	async function runExecutionForApp(
 		scripts: ScriptEntry[],
 		onProgress: (event: ProgressEvent) => void,
+		scriptInputs?: ScriptInputs,
 	) {
 		// Replace each entry's repo-relative script path with the fetched content
 		// so the runner executes the actual script, not a missing local file.
@@ -193,7 +195,7 @@ async function main() {
 		const runner = new ScriptRunner({ logService });
 		runner.on("progress", onProgress);
 		try {
-			return await runner.runScripts(withContent, logFile);
+			return await runner.runScripts(withContent, logFile, scriptInputs);
 		} finally {
 			if (stopKeepalive) {
 				stopKeepalive();
@@ -203,7 +205,6 @@ async function main() {
 		}
 	}
 
-	process.stdout.write("\x1b[2J\x1b[H");
 	render(
 		React.createElement(App, {
 			hostInfo,
@@ -219,6 +220,10 @@ async function main() {
 }
 
 main().catch((err: unknown) => {
-	console.error(err);
-	process.exit(1);
+	process.stderr.write(
+		`Error: ${err instanceof Error ? err.message : String(err)}\n`,
+		() => {
+			process.exit(1);
+		},
+	);
 });

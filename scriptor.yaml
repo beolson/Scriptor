@@ -1,8 +1,8 @@
 # Scriptor — host-specific setup script manifest
 
 - id: setup-debian-devbox
-  name: Setup WSL Debian Instance
-  description: Creates a named Debian WSL instance with automatic user setup and SSH key transfer
+  name: Setup Debian Devbox
+  description: Installs a named Debian WSL instance and creates a passwordless local user
   platform: windows
   arch: x86
   script: scripts/Windows/setup-debian-devbox.ps1
@@ -201,3 +201,11 @@
   version: "13"
   script: scripts/Debian/13/install-nvidia-drivers.sh
   requires_sudo: true
+
+- id: install-wsl
+  name: Install WSL
+  description: Enables the Windows Subsystem for Linux feature; required once before installing any WSL distribution
+  platform: windows
+  arch: x86
+  requires_admin: true
+  script: scripts/Windows/install-wsl.ps1

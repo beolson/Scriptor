@@ -25,6 +25,7 @@ function entry(
 		dependencies,
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 		...overrides,
 	};
 }

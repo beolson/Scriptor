@@ -14,6 +14,7 @@ function makeDeps(
 	platform: string,
 	arch: string,
 	osRelease?: string | null,
+	isAdmin?: boolean,
 ): HostDeps {
 	return {
 		getPlatform: () => platform,
@@ -22,6 +23,7 @@ function makeDeps(
 			osRelease !== undefined
 				? Promise.resolve(osRelease)
 				: Promise.resolve(null),
+		checkIsAdmin: () => Promise.resolve(isAdmin ?? false),
 	};
 }
 
@@ -130,6 +132,30 @@ describe("detectHost — non-Linux platforms", () => {
 		const info = await detectHost(makeDeps("win32", "x64"));
 		expect(info.distro).toBeUndefined();
 		expect(info.version).toBeUndefined();
+	});
+});
+
+describe("detectHost — isAdmin (Windows only)", () => {
+	test("windows with admin returns isAdmin: true", async () => {
+		const info = await detectHost(makeDeps("win32", "x64", undefined, true));
+		expect(info.isAdmin).toBe(true);
+	});
+
+	test("windows without admin returns isAdmin: false", async () => {
+		const info = await detectHost(makeDeps("win32", "x64", undefined, false));
+		expect(info.isAdmin).toBe(false);
+	});
+
+	test("linux does not set isAdmin", async () => {
+		const info = await detectHost(
+			makeDeps("linux", "x64", readFixture("ubuntu-24-04.os-release")),
+		);
+		expect(info.isAdmin).toBeUndefined();
+	});
+
+	test("mac does not set isAdmin", async () => {
+		const info = await detectHost(makeDeps("darwin", "arm64"));
+		expect(info.isAdmin).toBeUndefined();
 	});
 });
 
