@@ -26,6 +26,7 @@ function makeEntry(
 		version: overrides.version ?? "24.04",
 		inputs: overrides.inputs ?? [],
 		requires_sudo: overrides.requires_sudo ?? false,
+		requires_admin: overrides.requires_admin ?? false,
 	};
 }
 
@@ -37,13 +38,14 @@ function makeSpawner(
 	>,
 ) {
 	return async (
-		script: string,
+		scriptContent: string,
+		_args: string[],
 		onStdout: (chunk: string) => void,
 		onStderr: (chunk: string) => void,
 	): Promise<number> => {
-		const result = results[script];
+		const result = results[scriptContent];
 		if (!result) {
-			throw new Error(`No mock result registered for script: ${script}`);
+			throw new Error(`No mock result registered for script: ${scriptContent}`);
 		}
 		if (result.stdout) onStdout(result.stdout);
 		if (result.stderr) onStderr(result.stderr);
@@ -164,11 +166,12 @@ describe("sequential execution", () => {
 			makeEntry({ id: "third", script: "echo third" }),
 		];
 		const spawner = async (
-			script: string,
+			scriptContent: string,
+			_args: string[],
 			_onStdout: (chunk: string) => void,
 			_onStderr: (chunk: string) => void,
 		) => {
-			executionOrder.push(script);
+			executionOrder.push(scriptContent);
 			return 0;
 		};
 		const runner = new ScriptRunner({ logService, spawner });
@@ -186,12 +189,13 @@ describe("sequential execution", () => {
 			makeEntry({ id: "c", script: "echo c" }),
 		];
 		const spawner = async (
-			script: string,
+			scriptContent: string,
+			_args: string[],
 			_onStdout: (chunk: string) => void,
 			_onStderr: (chunk: string) => void,
 		) => {
-			executed.push(script);
-			if (script === "bad") return 1;
+			executed.push(scriptContent);
+			if (scriptContent === "bad") return 1;
 			return 0;
 		};
 		const runner = new ScriptRunner({ logService, spawner });
@@ -455,14 +459,15 @@ describe("progress events", () => {
 // ---------------------------------------------------------------------------
 
 describe("input args", () => {
-	test("script with two string inputs — command invoked with both values appended as positional args in declaration order", async () => {
-		const capturedCommands: string[] = [];
+	test("script with two string inputs — spawner receives content and both values as positional args in declaration order", async () => {
+		const captured: Array<{ content: string; args: string[] }> = [];
 		const spawner = async (
-			cmd: string,
+			content: string,
+			args: string[],
 			_out: (c: string) => void,
 			_err: (c: string) => void,
 		) => {
-			capturedCommands.push(cmd);
+			captured.push({ content, args });
 			return 0;
 		};
 
@@ -481,17 +486,19 @@ describe("input args", () => {
 
 		await runner.runScripts(scripts, logFile, scriptInputs);
 
-		expect(capturedCommands[0]).toBe("myscript.sh hello world");
+		expect(captured[0]?.content).toBe("myscript.sh");
+		expect(captured[0]?.args).toEqual(["hello", "world"]);
 	});
 
 	test("script with ssl-cert input — arg value is the download path", async () => {
-		const capturedCommands: string[] = [];
+		const captured: Array<{ content: string; args: string[] }> = [];
 		const spawner = async (
-			cmd: string,
+			content: string,
+			args: string[],
 			_out: (c: string) => void,
 			_err: (c: string) => void,
 		) => {
-			capturedCommands.push(cmd);
+			captured.push({ content, args });
 			return 0;
 		};
 
@@ -514,17 +521,19 @@ describe("input args", () => {
 
 		await runner.runScripts(scripts, logFile, scriptInputs);
 
-		expect(capturedCommands[0]).toBe("deploy.sh /tmp/cert.pem");
+		expect(captured[0]?.content).toBe("deploy.sh");
+		expect(captured[0]?.args).toEqual(["/tmp/cert.pem"]);
 	});
 
-	test("script with no inputs — invoked with no extra args", async () => {
-		const capturedCommands: string[] = [];
+	test("script with no inputs — spawner receives empty args array", async () => {
+		const captured: Array<{ content: string; args: string[] }> = [];
 		const spawner = async (
-			cmd: string,
+			content: string,
+			args: string[],
 			_out: (c: string) => void,
 			_err: (c: string) => void,
 		) => {
-			capturedCommands.push(cmd);
+			captured.push({ content, args });
 			return 0;
 		};
 
@@ -533,6 +542,174 @@ describe("input args", () => {
 
 		await runner.runScripts(scripts, logFile);
 
-		expect(capturedCommands[0]).toBe("plain.sh");
+		expect(captured[0]?.content).toBe("plain.sh");
+		expect(captured[0]?.args).toEqual([]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Output events (FR-output)
+// ---------------------------------------------------------------------------
+
+describe("output events", () => {
+	test("emits one output event per non-blank stdout line", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			onStdout: (c: string) => void,
+			_onStderr: (c: string) => void,
+		) => {
+			onStdout("line one\nline two\n");
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputEvents = events.filter((e) => e.status === "output");
+		expect(outputEvents.length).toBe(2);
+		expect(outputEvents[0]).toMatchObject({
+			status: "output",
+			scriptId: "a",
+			line: "line one",
+		});
+		expect(outputEvents[1]).toMatchObject({
+			status: "output",
+			scriptId: "a",
+			line: "line two",
+		});
+	});
+
+	test("emits output events for stderr lines", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			_onStdout: (c: string) => void,
+			onStderr: (c: string) => void,
+		) => {
+			onStderr("error line\n");
+			return 1;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputEvents = events.filter((e) => e.status === "output");
+		expect(outputEvents.length).toBe(1);
+		expect(outputEvents[0]).toMatchObject({
+			scriptId: "a",
+			line: "error line",
+		});
+	});
+
+	test("does not emit output events for blank lines", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			onStdout: (c: string) => void,
+			_onStderr: (c: string) => void,
+		) => {
+			onStdout("\n\n\n");
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputEvents = events.filter((e) => e.status === "output");
+		expect(outputEvents.length).toBe(0);
+	});
+
+	test("flushes partial line without trailing newline after process exits", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			onStdout: (c: string) => void,
+			_onStderr: (c: string) => void,
+		) => {
+			onStdout("no newline at end");
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputEvents = events.filter((e) => e.status === "output");
+		expect(outputEvents.length).toBe(1);
+		expect(outputEvents[0]).toMatchObject({ line: "no newline at end" });
+	});
+
+	test("keeps stdout and stderr line buffers separate to prevent cross-stream merging", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			onStdout: (c: string) => void,
+			onStderr: (c: string) => void,
+		) => {
+			onStdout("partial");
+			onStderr("err line\n");
+			onStdout(" stdout line\n");
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputLines = events
+			.filter(
+				(e): e is Extract<ProgressEvent, { status: "output" }> =>
+					e.status === "output",
+			)
+			.map((e) => e.line);
+
+		expect(outputLines).toContain("err line");
+		expect(outputLines).toContain("partial stdout line");
+		// Streams must not be merged (e.g. "partialerr line")
+		expect(outputLines.some((l) => l.includes("partialerr"))).toBe(false);
+	});
+
+	test("strips trailing carriage return from Windows-style CRLF lines", async () => {
+		const spawner = async (
+			_content: string,
+			_args: string[],
+			onStdout: (c: string) => void,
+			_onStderr: (c: string) => void,
+		) => {
+			onStdout("windows line\r\n");
+			return 0;
+		};
+
+		const scripts = [makeEntry({ id: "a", script: "echo" })];
+		const events: ProgressEvent[] = [];
+		const runner = new ScriptRunner({ logService, spawner });
+		runner.on("progress", (e) => events.push(e));
+
+		await runner.runScripts(scripts, logFile);
+
+		const outputEvents = events.filter(
+			(e): e is Extract<ProgressEvent, { status: "output" }> =>
+				e.status === "output",
+		);
+		expect(outputEvents[0]?.line).toBe("windows line");
 	});
 });

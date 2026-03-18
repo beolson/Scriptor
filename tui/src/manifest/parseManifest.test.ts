@@ -32,6 +32,7 @@ describe("parseManifest — happy path", () => {
 			dependencies: [],
 			inputs: [],
 			requires_sudo: false,
+			requires_admin: false,
 		});
 	});
 
@@ -75,6 +76,7 @@ describe("parseManifest — happy path", () => {
 			dependencies: [],
 			inputs: [],
 			requires_sudo: false,
+			requires_admin: false,
 		});
 	});
 
@@ -492,6 +494,80 @@ describe("parseManifest — requires_sudo", () => {
   requires_sudo: "yes"
 `;
 		expect(() => parseManifest(yaml)).toThrow(/requires_sudo/);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// requires_admin field
+// ---------------------------------------------------------------------------
+
+describe("parseManifest — requires_admin", () => {
+	test("requires_admin: true on windows entry is parsed correctly", () => {
+		const yaml = `
+- id: setup-devbox
+  name: Setup Devbox
+  description: Sets up a devbox on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/setup-devbox.ps1
+  requires_admin: true
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.requires_admin).toBe(true);
+	});
+
+	test("omitted requires_admin defaults to false", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.requires_admin).toBe(false);
+	});
+
+	test("requires_admin: true on linux entry is rejected", () => {
+		const yaml = `
+- id: install-docker
+  name: Install Docker
+  description: Installs Docker on Ubuntu
+  platform: linux
+  arch: x86
+  script: scripts/linux/install-docker.sh
+  distro: ubuntu
+  version: "24.04"
+  requires_admin: true
+`;
+		expect(() => parseManifest(yaml)).toThrow(/requires_admin/);
+	});
+
+	test("requires_admin: true on mac entry is rejected", () => {
+		const yaml = `
+- id: install-bun
+  name: Install Bun
+  description: Installs Bun on macOS
+  platform: mac
+  arch: arm
+  script: scripts/mac/install-bun.sh
+  requires_admin: true
+`;
+		expect(() => parseManifest(yaml)).toThrow(/requires_admin/);
+	});
+
+	test("non-boolean requires_admin is rejected", () => {
+		const yaml = `
+- id: setup-devbox
+  name: Setup Devbox
+  description: Sets up a devbox on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/setup-devbox.ps1
+  requires_admin: "yes"
+`;
+		expect(() => parseManifest(yaml)).toThrow(/requires_admin/);
 	});
 });
 

@@ -23,6 +23,7 @@ function makeScript(
 		distro: "ubuntu",
 		version: "24.04",
 		requires_sudo: false,
+		requires_admin: false,
 	};
 }
 

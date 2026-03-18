@@ -43,6 +43,7 @@ function _makeScript(id: string): ScriptEntry {
 		dependencies: [],
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 	};
 }
 

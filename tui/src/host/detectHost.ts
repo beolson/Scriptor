@@ -3,6 +3,7 @@ export interface HostInfo {
 	arch: "x86" | "arm";
 	distro?: string;
 	version?: string;
+	isAdmin?: boolean; // Windows only — true if running as Administrator
 }
 
 /** Injectable dependencies — override in tests to avoid real OS calls. */
@@ -11,6 +12,8 @@ export interface HostDeps {
 	getArch(): string;
 	/** Returns the raw text content of /etc/os-release, or null if absent. */
 	readOsRelease(): Promise<string | null>;
+	/** Returns true if the current process is running as Administrator (Windows only). */
+	checkIsAdmin(): Promise<boolean>;
 }
 
 const defaultDeps: HostDeps = {
@@ -20,6 +23,17 @@ const defaultDeps: HostDeps = {
 		const file = Bun.file("/etc/os-release");
 		if (!(await file.exists())) return null;
 		return file.text();
+	},
+	checkIsAdmin: async () => {
+		try {
+			const proc = Bun.spawn(["net", "session"], {
+				stdout: "pipe",
+				stderr: "pipe",
+			});
+			return (await proc.exited) === 0;
+		} catch {
+			return false;
+		}
 	},
 };
 
@@ -89,6 +103,10 @@ export async function detectHost(
 			if (name !== undefined) info.distro = name;
 			if (versionId !== undefined) info.version = versionId;
 		}
+	}
+
+	if (platform === "windows") {
+		info.isAdmin = await deps.checkIsAdmin();
 	}
 
 	return info;

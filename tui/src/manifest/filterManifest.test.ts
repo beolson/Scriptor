@@ -18,6 +18,7 @@ function windowsEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		dependencies: [],
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 		...overrides,
 	};
 }
@@ -33,6 +34,7 @@ function macEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		dependencies: [],
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 		...overrides,
 	};
 }
@@ -50,6 +52,7 @@ function linuxEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		dependencies: [],
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 		...overrides,
 	};
 }

@@ -21,6 +21,7 @@ function makeEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		dependencies: [],
 		inputs: [],
 		requires_sudo: false,
+		requires_admin: false,
 		...overrides,
 	};
 }
