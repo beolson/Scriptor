@@ -1,10 +1,6 @@
 import process from "node:process";
 import { Box, useApp, useInput } from "ink";
 import { useEffect, useState } from "react";
-import type {
-	ProgressEvent,
-	ScriptRunResult,
-} from "../execution/scriptRunner.js";
 import type { HostInfo } from "../host/detectHost.js";
 import { InputCollectionScreen } from "../inputs/components/InputCollectionScreen.js";
 import type { ScriptInputs } from "../inputs/inputSchema.js";
@@ -15,7 +11,6 @@ import type { StartupEvent, StartupResult } from "../startup/startup.js";
 import type { UpdateInfo } from "../updater/checkForUpdate.js";
 import { AdminRequiredScreen } from "./AdminRequiredScreen.js";
 import { ConfirmationScreen } from "./ConfirmationScreen.js";
-import { ExecutionScreen } from "./ExecutionScreen.js";
 import { FetchScreen } from "./FetchScreen.js";
 import type { FooterBinding } from "./Footer.js";
 import { DEFAULT_BINDINGS, Footer } from "./Footer.js";
@@ -31,8 +26,7 @@ export type Screen =
 	| "input-collection"
 	| "confirmation"
 	| "sudo"
-	| "admin"
-	| "execution";
+	| "admin";
 
 export interface AppProps {
 	hostInfo: HostInfo;
@@ -50,17 +44,12 @@ export interface AppProps {
 		onEvent: (event: StartupEvent) => void,
 	) => Promise<StartupResult>;
 	/**
-	 * A function that creates a log file, runs the given scripts via
-	 * ScriptRunner, and calls `onProgress` for each ProgressEvent.
-	 * Resolves with the final ScriptRunResult (containing the log file path).
-	 *
-	 * Injectable so the component can be exercised in isolation.
+	 * Called once the user has confirmed execution (after optional sudo
+	 * validation). The caller should exit Ink and run the scripts outside
+	 * the TUI so that raw console output from spawned processes doesn't
+	 * corrupt Ink's cursor tracking.
 	 */
-	runExecution: (
-		scripts: ScriptEntry[],
-		onProgress: (event: ProgressEvent) => void,
-		scriptInputs?: ScriptInputs,
-	) => Promise<ScriptRunResult>;
+	onReadyToExecute: (scripts: ScriptEntry[], inputs: ScriptInputs) => void;
 	/**
 	 * Certificate fetcher used by the SSL cert input prompt.
 	 * Defaults to a real TlsCertFetcher when not provided.
@@ -87,6 +76,13 @@ export interface AppProps {
 	 * When absent, the update screen's apply action is a no-op.
 	 */
 	applyUpdate?: (downloadUrl: string) => Promise<void>;
+	/**
+	 * Promise that resolves to whether the process is running as Administrator.
+	 * Started in the background before the TUI renders so that the result is
+	 * already available by the time the user reaches the confirmation screen.
+	 * Only relevant on Windows; omit on other platforms.
+	 */
+	isAdminPromise?: Promise<boolean | undefined>;
 }
 
 /**
@@ -99,12 +95,13 @@ export function App({
 	hostInfo,
 	repoUrl,
 	runStartup,
-	runExecution,
+	onReadyToExecute,
 	fetcher,
 	validateSudo,
 	version,
 	checkForUpdate,
 	applyUpdate,
+	isAdminPromise,
 }: AppProps) {
 	const { exit } = useApp();
 
@@ -210,7 +207,6 @@ export function App({
 			isActive:
 				screen !== "update" &&
 				screen !== "input-collection" &&
-				screen !== "execution" &&
 				screen !== "sudo" &&
 				screen !== "admin",
 		},
@@ -254,10 +250,11 @@ export function App({
 		setFooterBindings(DEFAULT_BINDINGS);
 	}
 
-	function handleExecute() {
+	async function handleExecute() {
+		const isAdmin = await (isAdminPromise ?? Promise.resolve(undefined));
 		const needsAdminScreen =
 			hostInfo.platform === "windows" &&
-			hostInfo.isAdmin === false &&
+			isAdmin === false &&
 			resolvedScripts.some((s) => s.requires_admin);
 
 		if (needsAdminScreen) {
@@ -277,14 +274,14 @@ export function App({
 			return;
 		}
 
-		setScreen("execution");
-		setFooterBindings([]);
+		onReadyToExecute(resolvedScripts, scriptInputs);
+		exit();
 	}
 
 	function handleSudoValidated() {
 		setSudoValidated(true);
-		setScreen("execution");
-		setFooterBindings([]);
+		onReadyToExecute(resolvedScripts, scriptInputs);
+		exit();
 	}
 
 	function handleSudoBack() {
@@ -308,9 +305,9 @@ export function App({
 	const sourceLabel = currentEvent?.type === "local-mode" ? "local" : repoUrl;
 
 	return (
-		<Box flexDirection="column" height="100%">
+		<Box flexDirection="column">
 			<Header hostInfo={hostInfo} sourceLabel={sourceLabel} version={version} />
-			<Box flexDirection="column" flexGrow={1} paddingX={1} paddingY={1}>
+			<Box flexDirection="column" paddingX={1} paddingY={1}>
 				{screen === "update" && updateInfo !== null && (
 					<UpdateScreen
 						updateInfo={updateInfo}
@@ -360,14 +357,6 @@ export function App({
 					/>
 				)}
 				{screen === "admin" && <AdminRequiredScreen onBack={handleAdminBack} />}
-				{screen === "execution" && (
-					<ExecutionScreen
-						scripts={resolvedScripts}
-						runExecution={(onProgress) =>
-							runExecution(resolvedScripts, onProgress, scriptInputs)
-						}
-					/>
-				)}
 			</Box>
 			<Footer bindings={footerBindings} />
 		</Box>

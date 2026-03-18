@@ -1,17 +1,10 @@
 import { Box, Text, useApp, useInput, useStdout } from "ink";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
 	ProgressEvent,
 	ScriptRunResult,
 } from "../execution/scriptRunner.js";
 import type { ScriptEntry } from "../manifest/parseManifest.js";
-
-// ---------------------------------------------------------------------------
-// Spinner frames
-// ---------------------------------------------------------------------------
-
-const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-const SPINNER_INTERVAL_MS = 80;
 
 /** Maximum output lines to show per script in the TUI. */
 const MAX_OUTPUT_LINES = 8;
@@ -74,28 +67,10 @@ export function ExecutionScreen({
 	// Whether execution has finished (success or halted on failure)
 	const [finished, setFinished] = useState(false);
 
-	// Spinner frame index
-	const [spinnerFrame, setSpinnerFrame] = useState(0);
-
 	// Recent output lines per script id (capped at MAX_OUTPUT_LINES)
 	const [outputLines, setOutputLines] = useState<Map<string, string[]>>(
 		() => new Map(),
 	);
-
-	// We track the spinner interval via a ref so we can clear it on unmount
-	const spinnerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-	// Start spinner
-	useEffect(() => {
-		spinnerRef.current = setInterval(() => {
-			setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length);
-		}, SPINNER_INTERVAL_MS);
-		return () => {
-			if (spinnerRef.current !== null) {
-				clearInterval(spinnerRef.current);
-			}
-		};
-	}, []);
 
 	// Run scripts once on mount
 	useEffect(() => {
@@ -190,7 +165,7 @@ export function ExecutionScreen({
 				return (
 					<Box key={entry.id} flexDirection="column">
 						<Box flexDirection="row" gap={1}>
-							<StatusIcon status={status} spinnerFrame={spinnerFrame} />
+							<StatusIcon status={status} />
 							<Text
 								color={
 									status.kind === "done"
@@ -254,15 +229,14 @@ export function ExecutionScreen({
 
 interface StatusIconProps {
 	status: ScriptStatus;
-	spinnerFrame: number;
 }
 
-function StatusIcon({ status, spinnerFrame }: StatusIconProps) {
+function StatusIcon({ status }: StatusIconProps) {
 	switch (status.kind) {
 		case "pending":
 			return <Text dimColor={true}>·</Text>;
 		case "running":
-			return <Text color="cyan">{SPINNER_FRAMES[spinnerFrame] ?? "⠋"}</Text>;
+			return <Text color="cyan">›</Text>;
 		case "done":
 			return <Text color="green">✓</Text>;
 		case "failed":

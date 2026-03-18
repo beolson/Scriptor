@@ -9,7 +9,7 @@ import type { ProgressEvent } from "./execution/scriptRunner.js";
 import { ScriptRunner } from "./execution/scriptRunner.js";
 import { GitHubClient } from "./github/githubClient.js";
 import { startOAuthFlow } from "./github/oauth.js";
-import { detectHost } from "./host/detectHost.js";
+import { checkIsAdmin, detectHost } from "./host/detectHost.js";
 import type { ScriptInputs } from "./inputs/inputSchema.js";
 import { LogService } from "./log/logService.js";
 import { parseManifest, type ScriptEntry } from "./manifest/parseManifest.js";
@@ -31,7 +31,7 @@ const OAUTH_CLIENT_ID = "Ov23liczBZbFw43X0aFI"; // TODO: replace with real OAuth
 async function main() {
 	const cliArgs = parseCli(process.argv.slice(2));
 
-	const config = await readConfig();
+	const [config, hostInfo] = await Promise.all([readConfig(), detectHost()]);
 
 	// Determine active repo: CLI arg > saved config > default.
 	let repoUrl: string;
@@ -43,7 +43,13 @@ async function main() {
 		repoUrl = config.repo ?? DEFAULT_REPO;
 	}
 
-	const hostInfo = await detectHost();
+	// Start admin check immediately in the background on Windows. By the time
+	// the user reaches the confirmation screen (after a 1-3s GitHub fetch), the
+	// promise will already be resolved and the await in handleExecute is free.
+	const isAdminPromise: Promise<boolean | undefined> =
+		hostInfo.platform === "windows"
+			? checkIsAdmin()
+			: Promise.resolve(undefined);
 
 	// Shared client for both startup and update check.
 	const client = new GitHubClient();
@@ -205,18 +211,60 @@ async function main() {
 		}
 	}
 
-	render(
+	let executionTarget: {
+		scripts: ScriptEntry[];
+		inputs: ScriptInputs;
+	} | null = null;
+
+	const { waitUntilExit } = render(
 		React.createElement(App, {
 			hostInfo,
 			repoUrl,
 			runStartup: runStartupForApp,
-			runExecution: runExecutionForApp,
+			onReadyToExecute(scripts, inputs) {
+				executionTarget = { scripts, inputs };
+			},
 			validateSudo: validateSudoForApp,
 			version: pkg.version,
 			checkForUpdate: checkForUpdateForApp,
 			applyUpdate: applyUpdateForApp,
+			isAdminPromise,
 		}),
 	);
+
+	await waitUntilExit();
+
+	if (executionTarget !== null) {
+		const target = executionTarget as {
+			scripts: ScriptEntry[];
+			inputs: ScriptInputs;
+		};
+		const nameById = new Map(target.scripts.map((s) => [s.id, s.name]));
+
+		const result = await runExecutionForApp(
+			target.scripts,
+			(event) => {
+				if (event.status === "running") {
+					process.stdout.write(
+						`\n› ${nameById.get(event.scriptId) ?? event.scriptId}\n`,
+					);
+				} else if (event.status === "output") {
+					process.stdout.write(`  ${event.line}\n`);
+				} else if (event.status === "done") {
+					process.stdout.write(
+						`✓ ${nameById.get(event.scriptId) ?? event.scriptId}\n`,
+					);
+				} else if (event.status === "failed") {
+					process.stdout.write(
+						`✗ ${nameById.get(event.scriptId) ?? event.scriptId} (exit code ${event.exitCode})\n`,
+					);
+				}
+			},
+			target.inputs,
+		);
+
+		process.stdout.write(`\nLog file: ${result.logFile}\n`);
+	}
 }
 
 main().catch((err: unknown) => {

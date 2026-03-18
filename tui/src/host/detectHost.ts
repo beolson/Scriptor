@@ -12,8 +12,6 @@ export interface HostDeps {
 	getArch(): string;
 	/** Returns the raw text content of /etc/os-release, or null if absent. */
 	readOsRelease(): Promise<string | null>;
-	/** Returns true if the current process is running as Administrator (Windows only). */
-	checkIsAdmin(): Promise<boolean>;
 }
 
 const defaultDeps: HostDeps = {
@@ -24,18 +22,24 @@ const defaultDeps: HostDeps = {
 		if (!(await file.exists())) return null;
 		return file.text();
 	},
-	checkIsAdmin: async () => {
-		try {
-			const proc = Bun.spawn(["net", "session"], {
-				stdout: "pipe",
-				stderr: "pipe",
-			});
-			return (await proc.exited) === 0;
-		} catch {
-			return false;
-		}
-	},
 };
+
+/**
+ * Checks whether the current process is running as Administrator (Windows only).
+ * Exported separately so callers can start this in the background while the TUI
+ * renders, then await the result only when needed.
+ */
+export async function checkIsAdmin(): Promise<boolean> {
+	try {
+		const proc = Bun.spawn(["net", "session"], {
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		return (await proc.exited) === 0;
+	} catch {
+		return false;
+	}
+}
 
 function normalizePlatform(raw: string): "windows" | "linux" | "mac" {
 	switch (raw) {
@@ -103,10 +107,6 @@ export async function detectHost(
 			if (name !== undefined) info.distro = name;
 			if (versionId !== undefined) info.version = versionId;
 		}
-	}
-
-	if (platform === "windows") {
-		info.isAdmin = await deps.checkIsAdmin();
 	}
 
 	return info;
