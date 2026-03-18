@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { PassThrough } from "node:stream";
 import { render } from "ink";
-import type { ProgressEvent } from "../execution/scriptRunner.js";
 import type { InputDef, ScriptInputs } from "../inputs/inputSchema.js";
 import { MockCertFetcher } from "../inputs/sslCert/certFetcher.js";
 import type { ScriptEntry } from "../manifest/parseManifest.js";
@@ -136,10 +135,7 @@ function makeAppProps(overrides: Partial<AppProps> = {}): AppProps {
 		hostInfo: HOST_INFO,
 		repoUrl: "owner/repo",
 		runStartup: async (_repo, _onEvent) => STARTUP_RESULT,
-		runExecution: async (_scripts, _onProgress) => ({
-			success: true,
-			logFile: "/tmp/scriptor.log",
-		}),
+		onReadyToExecute: () => {},
 		fetcher: new MockCertFetcher([]),
 		...overrides,
 	};
@@ -322,19 +318,14 @@ describe("App — Task 9 integration", () => {
 		expect(frame).not.toContain("GitHub Username");
 	});
 
-	// Test 5: confirming execution calls the runner with correct positional args
+	// Test 5: confirming execution calls onReadyToExecute with the collected inputs
 	test("confirming execution calls the runner with correct positional args appended", async () => {
-		const runExecution = mock(
-			async (
-				_scripts: ScriptEntry[],
-				_onProgress: (event: ProgressEvent) => void,
-				scriptInputs?: ScriptInputs,
-			) => {
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], scriptInputs: ScriptInputs) => {
 				// Verify inputs are passed
-				const inputs = scriptInputs?.get("script-a");
+				const inputs = scriptInputs.get("script-a");
 				expect(inputs).toBeDefined();
 				expect(inputs?.[0]?.value).toBe("octocat");
-				return { success: true as const, logFile: "/tmp/scriptor.log" };
 			},
 		);
 
@@ -344,7 +335,7 @@ describe("App — Task 9 integration", () => {
 		const inst = render(
 			<App
 				{...makeAppProps({
-					runExecution,
+					onReadyToExecute,
 				})}
 			/>,
 			{ stdin, stdout, exitOnCtrlC: false, debug: true },
@@ -361,7 +352,7 @@ describe("App — Task 9 integration", () => {
 		stdin.push("y");
 		await wait(200);
 
-		expect(runExecution).toHaveBeenCalledTimes(1);
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -452,14 +443,8 @@ describe("App — sudo flow", () => {
 	test("successful sudo validation transitions to execution", async () => {
 		const stdin = makeStdin();
 		const stdout = makeStdout();
-		const runExecution = mock(
-			async (
-				_scripts: ScriptEntry[],
-				_onProgress: (event: ProgressEvent) => void,
-			) => ({
-				success: true as const,
-				logFile: "/tmp/scriptor.log",
-			}),
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], _inputs: ScriptInputs) => {},
 		);
 
 		const props = makeSudoProps(
@@ -468,7 +453,7 @@ describe("App — sudo flow", () => {
 				if (password === "") return { ok: false, reason: "Password required" };
 				return { ok: true };
 			},
-			{ runExecution },
+			{ onReadyToExecute },
 		);
 
 		const inst = render(<App {...props} />, {
@@ -492,7 +477,7 @@ describe("App — sudo flow", () => {
 		stdin.push("\r");
 		await wait(200);
 
-		expect(runExecution).toHaveBeenCalledTimes(1);
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
 	});
 
 	test("failed sudo validation shows error and allows retry", async () => {
@@ -570,18 +555,12 @@ describe("App — sudo flow", () => {
 	test("scripts without requires_sudo skip sudo screen entirely", async () => {
 		const stdin = makeStdin();
 		const stdout = makeStdout();
-		const runExecution = mock(
-			async (
-				_scripts: ScriptEntry[],
-				_onProgress: (event: ProgressEvent) => void,
-			) => ({
-				success: true as const,
-				logFile: "/tmp/scriptor.log",
-			}),
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], _inputs: ScriptInputs) => {},
 		);
 
 		const props = makeSudoProps(NO_SUDO_MANIFEST, async () => ({ ok: true }), {
-			runExecution,
+			onReadyToExecute,
 		});
 
 		const inst = render(<App {...props} />, {
@@ -599,26 +578,20 @@ describe("App — sudo flow", () => {
 		stdin.push("y");
 		await wait(200);
 
-		expect(runExecution).toHaveBeenCalledTimes(1);
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
 	});
 
 	test("validateSudo returning ok for empty string (cached) skips password prompt", async () => {
 		const stdin = makeStdin();
 		const stdout = makeStdout();
-		const runExecution = mock(
-			async (
-				_scripts: ScriptEntry[],
-				_onProgress: (event: ProgressEvent) => void,
-			) => ({
-				success: true as const,
-				logFile: "/tmp/scriptor.log",
-			}),
+		const onReadyToExecute = mock(
+			(_scripts: ScriptEntry[], _inputs: ScriptInputs) => {},
 		);
 
 		const props = makeSudoProps(
 			SUDO_MANIFEST,
 			async () => ({ ok: true }), // always returns ok (cached)
-			{ runExecution },
+			{ onReadyToExecute },
 		);
 
 		const inst = render(<App {...props} />, {
@@ -636,6 +609,6 @@ describe("App — sudo flow", () => {
 		stdin.push("y");
 		await wait(200);
 
-		expect(runExecution).toHaveBeenCalledTimes(1);
+		expect(onReadyToExecute).toHaveBeenCalledTimes(1);
 	});
 });

@@ -205,18 +205,59 @@ async function main() {
 		}
 	}
 
-	render(
+	let executionTarget: {
+		scripts: ScriptEntry[];
+		inputs: ScriptInputs;
+	} | null = null;
+
+	const { waitUntilExit } = render(
 		React.createElement(App, {
 			hostInfo,
 			repoUrl,
 			runStartup: runStartupForApp,
-			runExecution: runExecutionForApp,
+			onReadyToExecute(scripts, inputs) {
+				executionTarget = { scripts, inputs };
+			},
 			validateSudo: validateSudoForApp,
 			version: pkg.version,
 			checkForUpdate: checkForUpdateForApp,
 			applyUpdate: applyUpdateForApp,
 		}),
 	);
+
+	await waitUntilExit();
+
+	if (executionTarget !== null) {
+		const target = executionTarget as {
+			scripts: ScriptEntry[];
+			inputs: ScriptInputs;
+		};
+		const nameById = new Map(target.scripts.map((s) => [s.id, s.name]));
+
+		const result = await runExecutionForApp(
+			target.scripts,
+			(event) => {
+				if (event.status === "running") {
+					process.stdout.write(
+						`\n› ${nameById.get(event.scriptId) ?? event.scriptId}\n`,
+					);
+				} else if (event.status === "output") {
+					process.stdout.write(`  ${event.line}\n`);
+				} else if (event.status === "done") {
+					process.stdout.write(
+						`✓ ${nameById.get(event.scriptId) ?? event.scriptId}\n`,
+					);
+				} else if (event.status === "failed") {
+					process.stdout.write(
+						`✗ ${nameById.get(event.scriptId) ?? event.scriptId} (exit code ${event.exitCode})\n`,
+					);
+				}
+			},
+			target.inputs,
+		);
+
+		process.stdout.write(`\nLog file: ${result.logFile}\n`);
+	}
 }
 
 main().catch((err: unknown) => {
