@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Accept cert path from Scriptor input ($1) or fall back to env var
-PRIVATE_CERTS_FILE="${1:-${PRIVATE_CERTS_FILE:-}}"
+PRIVATE_CERTS_FILE="${PRIVATE_CERTS_FILE:-}"
 
 echo "[install-bun] Starting..."
 

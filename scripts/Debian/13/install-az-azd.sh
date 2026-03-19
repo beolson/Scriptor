@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PRIVATE_CERTS_FILE="${1:-}"
+PRIVATE_CERTS_FILE="${PRIVATE_CERTS_FILE:-}"
 
 echo "[install-az-azd] Starting..."
 

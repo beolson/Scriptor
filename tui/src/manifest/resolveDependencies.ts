@@ -26,15 +26,33 @@ export class CircularDependencyError extends Error {
 }
 
 /**
- * Resolves the ordered execution list for a selection of scripts, respecting
- * declared dependencies via a depth-first topological sort.
+ * Resolves the ordered execution list for a selection of scripts, using a
+ * two-phase algorithm to support both hard `dependencies` and soft `run_after`
+ * ordering constraints.
  *
+ * **Phase 1 — Collect the run set:**
+ * DFS over `selected`, recursing into `dependencies` only. Builds the complete
+ * set of scripts that must run (selected + transitive dependencies).
+ * Throws `MissingDependencyError` / `CircularDependencyError` for dependency
+ * issues.
+ *
+ * **Phase 2 — Topological sort:**
+ * DFS post-order over the run set. Predecessors for each entry are:
+ * - `dependencies` — always enforced
+ * - `run_after` IDs that are present in the run set — soft ordering, only
+ *   applied when both scripts were already going to run
+ * Circular detection covers both `dependencies` and `run_after` edges.
+ *
+ * Key semantics:
  * - Returns scripts in dependency-first order (leaves before roots).
  * - Deduplicates: each script appears at most once.
  * - Preserves the relative order of independently selected scripts.
- * - Throws `MissingDependencyError` if a declared dependency is absent from
- *   `available`.
- * - Throws `CircularDependencyError` if a dependency cycle is detected.
+ * - `run_after` IDs not in the run set are silently ignored (they may be
+ *   legitimately absent on the current platform).
+ * - Throws `MissingDependencyError` if a declared `dependencies` entry is
+ *   absent from `available`.
+ * - Throws `CircularDependencyError` if a cycle is detected (via `dependencies`
+ *   or `run_after`).
  *
  * @param selected  IDs of scripts the user explicitly chose to run.
  * @param available Scripts filtered to the current host (output of `filterManifest`).
@@ -43,24 +61,16 @@ export function resolveDependencies(
 	selected: string[],
 	available: ScriptEntry[],
 ): ScriptEntry[] {
-	// Build a quick id→entry lookup map.
 	const byId = new Map<string, ScriptEntry>(available.map((e) => [e.id, e]));
 
-	// Track which ids have already been added to the output list.
-	const visited = new Set<string>();
+	// -------------------------------------------------------------------------
+	// Phase 1 — Collect the run set via DFS over dependencies only.
+	// -------------------------------------------------------------------------
+	const runSet = new Set<string>();
 
-	// The result list (dependency-first order).
-	const result: ScriptEntry[] = [];
+	function collectDeps(id: string, stack: string[]): void {
+		if (runSet.has(id)) return;
 
-	// Depth-first post-order traversal with cycle detection.
-	// `stack` tracks the ancestors in the current DFS path for cycle detection.
-	function visit(id: string, stack: string[]): void {
-		if (visited.has(id)) {
-			// Already fully processed — nothing to do.
-			return;
-		}
-
-		// Cycle check: if this id is already in the current DFS path, we have a cycle.
 		const cycleIndex = stack.indexOf(id);
 		if (cycleIndex !== -1) {
 			throw new CircularDependencyError([...stack.slice(cycleIndex), id]);
@@ -68,18 +78,51 @@ export function resolveDependencies(
 
 		const entry = byId.get(id);
 		if (entry === undefined) {
-			// Determine the direct dependent (last entry in the stack) for a better message.
 			const dependentId = stack.at(-1);
 			throw new MissingDependencyError(id, dependentId);
 		}
 
-		// Recurse into each dependency before adding this entry.
 		const nextStack = [...stack, id];
 		for (const depId of entry.dependencies) {
-			visit(depId, nextStack);
+			collectDeps(depId, nextStack);
 		}
 
-		// Post-order: add this entry after all its dependencies have been added.
+		runSet.add(id);
+	}
+
+	for (const id of selected) {
+		collectDeps(id, []);
+	}
+
+	// -------------------------------------------------------------------------
+	// Phase 2 — Topological sort over the run set.
+	// Predecessors = dependencies ∪ (run_after ∩ runSet).
+	// -------------------------------------------------------------------------
+	const visited = new Set<string>();
+	const result: ScriptEntry[] = [];
+
+	function visit(id: string, stack: string[]): void {
+		if (visited.has(id)) return;
+
+		const cycleIndex = stack.indexOf(id);
+		if (cycleIndex !== -1) {
+			throw new CircularDependencyError([...stack.slice(cycleIndex), id]);
+		}
+
+		const entry = byId.get(id);
+		// id is always in byId here: Phase 1 verified all runSet members exist.
+		if (entry === undefined) return;
+
+		const predecessors = [
+			...entry.dependencies,
+			...entry.run_after.filter((rid) => runSet.has(rid)),
+		];
+
+		const nextStack = [...stack, id];
+		for (const predId of predecessors) {
+			visit(predId, nextStack);
+		}
+
 		if (!visited.has(id)) {
 			visited.add(id);
 			result.push(entry);

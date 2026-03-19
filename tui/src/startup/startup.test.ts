@@ -41,6 +41,7 @@ function _makeScript(id: string): ScriptEntry {
 		version: "24.04",
 		script: `scripts/${id}.sh`,
 		dependencies: [],
+		run_after: [],
 		inputs: [],
 		requires_sudo: false,
 		requires_admin: false,

@@ -30,6 +30,7 @@ describe("parseManifest — happy path", () => {
 			arch: "x86",
 			script: "scripts/windows/install-git.ps1",
 			dependencies: [],
+			run_after: [],
 			inputs: [],
 			requires_sudo: false,
 			requires_admin: false,
@@ -74,6 +75,7 @@ describe("parseManifest — happy path", () => {
 			distro: "ubuntu",
 			version: "24.04",
 			dependencies: [],
+			run_after: [],
 			inputs: [],
 			requires_sudo: false,
 			requires_admin: false,
@@ -568,6 +570,69 @@ describe("parseManifest — requires_admin", () => {
   requires_admin: "yes"
 `;
 		expect(() => parseManifest(yaml)).toThrow(/requires_admin/);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// run_after field
+// ---------------------------------------------------------------------------
+
+describe("parseManifest — run_after field", () => {
+	test("run_after omitted defaults to empty array", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.run_after).toEqual([]);
+	});
+
+	test("run_after: [] parses as empty array", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+  run_after: []
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.run_after).toEqual([]);
+	});
+
+	test("run_after with one id parses correctly", () => {
+		const yaml = `
+- id: configure-certs
+  name: Configure Certs
+  description: Configures certs
+  platform: linux
+  arch: x86
+  script: scripts/linux/configure-certs.sh
+  distro: ubuntu
+  version: "24.04"
+  run_after:
+    - install-uv
+`;
+		const result = parseManifest(yaml);
+		expect(result[0]?.run_after).toEqual(["install-uv"]);
+	});
+
+	test("run_after that is not an array throws a descriptive error", () => {
+		const yaml = `
+- id: install-git
+  name: Install Git
+  description: Installs Git on Windows
+  platform: windows
+  arch: x86
+  script: scripts/windows/install-git.ps1
+  run_after: install-curl
+`;
+		expect(() => parseManifest(yaml)).toThrow(/run_after/);
 	});
 });
 

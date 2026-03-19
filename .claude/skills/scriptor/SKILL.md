@@ -100,7 +100,8 @@ Create `scripts/<platform-path>/<script-filename>.spec.md` alongside the script 
 
 | Field | Type | Description |
 |---|---|---|
-| `dependencies` | string[] | List of script ids that must run before this one |
+| `dependencies` | string[] | List of script ids that must run before this one (forces those scripts into the run list) |
+| `run_after` | string[] | Soft ordering: if this script and a listed id are both selected, the listed script runs first. No effect if the other script is not selected. |
 | `inputs` | object[] | Runtime parameters — see Input Types below |
 | `requires_sudo` | boolean | `true` if the script uses `sudo` commands (linux/mac only, defaults to `false`) |
 
@@ -118,6 +119,8 @@ Create `scripts/<platform-path>/<script-filename>.spec.md` alongside the script 
   requires_sudo: true            # optional, linux/mac only
   dependencies:                 # optional
     - <dependency-id>
+  run_after:                    # optional - soft ordering only
+    - <predecessor-id>
   inputs:                       # optional
     - id: <input-id>
       type: <string|number|ssl-cert>
@@ -253,3 +256,5 @@ Optional additional sections (use when relevant): `## Prerequisites`, `## Post-i
 | Missing `requires_sudo` on scripts that use `sudo` | Set `requires_sudo: true` in the manifest for any script with `sudo` commands |
 | Using root checks instead of per-command `sudo` | Remove `if [[ $(/usr/bin/id -u) -ne 0 ]]` checks; use `sudo` on individual commands |
 | Adding `requires_sudo` to windows entries | Windows uses `#Requires -RunAsAdministrator`, not `requires_sudo` |
+| Using `dependencies` when you only need ordering | Use `run_after` if the other script shouldn't be forced to run — `dependencies` always adds the dep to the run list regardless of user selection |
+| Using `run_after` when guaranteed execution is needed | Use `dependencies` if the prerequisite must always run regardless of selection |

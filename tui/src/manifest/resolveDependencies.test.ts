@@ -23,6 +23,7 @@ function entry(
 		arch: "arm",
 		script: `scripts/${id}.sh`,
 		dependencies,
+		run_after: [],
 		inputs: [],
 		requires_sudo: false,
 		requires_admin: false,
@@ -246,6 +247,62 @@ describe("resolveDependencies — CircularDependencyError", () => {
 // ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// run_after — soft ordering
+// ---------------------------------------------------------------------------
+
+describe("resolveDependencies — run_after", () => {
+	test("A run_after B: when both selected, B runs first regardless of selection order", () => {
+		const a = entry("a", [], { run_after: ["b"] });
+		const b = entry("b");
+		// selected: a then b
+		const r1 = resolveDependencies(["a", "b"], [a, b]);
+		expect(r1.map((e) => e.id)).toEqual(["b", "a"]);
+		// selected: b then a
+		const r2 = resolveDependencies(["b", "a"], [a, b]);
+		expect(r2.map((e) => e.id)).toEqual(["b", "a"]);
+	});
+
+	test("A run_after B: only A selected — runs normally, B not added", () => {
+		const a = entry("a", [], { run_after: ["b"] });
+		const b = entry("b");
+		const result = resolveDependencies(["a"], [a, b]);
+		expect(result.map((e) => e.id)).toEqual(["a"]);
+	});
+
+	test("A run_after B: only B selected — runs normally, no constraint applied", () => {
+		const a = entry("a", [], { run_after: ["b"] });
+		const b = entry("b");
+		const result = resolveDependencies(["b"], [a, b]);
+		expect(result.map((e) => e.id)).toEqual(["b"]);
+	});
+
+	test("A depends on C, B run_after C: C always runs before both A and B", () => {
+		const c = entry("c");
+		const a = entry("a", ["c"]);
+		const b = entry("b", [], { run_after: ["c"] });
+		const result = resolveDependencies(["a", "b"], [c, a, b]);
+		const ids = result.map((e) => e.id);
+		expect(ids.indexOf("c")).toBeLessThan(ids.indexOf("a"));
+		expect(ids.indexOf("c")).toBeLessThan(ids.indexOf("b"));
+		expect(result).toHaveLength(3);
+	});
+
+	test("run_after cycle (A run_after B, B run_after A) throws CircularDependencyError", () => {
+		const a = entry("a", [], { run_after: ["b"] });
+		const b = entry("b", [], { run_after: ["a"] });
+		expect(() => resolveDependencies(["a", "b"], [a, b])).toThrow(
+			CircularDependencyError,
+		);
+	});
+
+	test("run_after ID not in available list is silently ignored", () => {
+		const a = entry("a", [], { run_after: ["nonexistent"] });
+		const result = resolveDependencies(["a"], [a]);
+		expect(result.map((e) => e.id)).toEqual(["a"]);
+	});
+});
 
 describe("resolveDependencies — edge cases", () => {
 	test("empty selected list returns empty array", () => {

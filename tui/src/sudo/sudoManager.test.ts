@@ -19,6 +19,7 @@ function makeEntry(overrides: Partial<ScriptEntry> = {}): ScriptEntry {
 		arch: "x86",
 		script: "scripts/test.sh",
 		dependencies: [],
+		run_after: [],
 		inputs: [],
 		requires_sudo: false,
 		requires_admin: false,

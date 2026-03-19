@@ -19,6 +19,7 @@ function makeScript(
 		arch: "x86",
 		script: "echo hi",
 		dependencies: [],
+		run_after: [],
 		inputs: [],
 		distro: "ubuntu",
 		version: "24.04",

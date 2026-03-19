@@ -11,6 +11,7 @@ export interface ScriptEntry {
 	distro?: string;
 	version?: string;
 	dependencies: string[];
+	run_after: string[];
 	inputs: InputDef[];
 	requires_sudo: boolean;
 	requires_admin: boolean;
@@ -88,6 +89,17 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		dependencies = entry.dependencies as string[];
 	}
 
+	// run_after — optional, defaults to []
+	let run_after: string[] = [];
+	if ("run_after" in entry && entry.run_after !== undefined) {
+		if (!Array.isArray(entry.run_after)) {
+			throw new Error(
+				`Entry at index ${index} field "run_after" must be a list of id strings`,
+			);
+		}
+		run_after = entry.run_after as string[];
+	}
+
 	// requires_sudo — optional, defaults to false
 	let requires_sudo = false;
 	if ("requires_sudo" in entry && entry.requires_sudo !== undefined) {
@@ -151,6 +163,7 @@ function validateEntry(raw: unknown, index: number): ScriptEntry {
 		arch: entry.arch as "x86" | "arm",
 		script: entry.script as string,
 		dependencies,
+		run_after,
 		inputs,
 		requires_sudo,
 		requires_admin,

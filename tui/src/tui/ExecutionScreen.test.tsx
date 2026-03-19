@@ -55,6 +55,7 @@ function makeScript(id: string, name: string): ScriptEntry {
 		arch: "x86",
 		script: `echo ${id}`,
 		dependencies: [],
+		run_after: [],
 		inputs: [],
 		distro: "ubuntu",
 		version: "24.04",

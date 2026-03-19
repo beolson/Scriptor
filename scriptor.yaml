@@ -84,11 +84,6 @@
   requires_sudo: true
   dependencies:
     - install-system-basics
-  inputs:
-    - id: private-certs-file
-      type: string
-      label: Private CA bundle path (leave blank if none)
-      required: false
 
 - id: install-bun
   name: Install Bun
@@ -101,11 +96,6 @@
   requires_sudo: true
   dependencies:
     - install-system-basics
-  inputs:
-    - id: private-certs-file
-      type: string
-      label: Private CA bundle path (leave blank if none)
-      required: false
 
 - id: setup-ssh-keys
   name: Setup SSH Keys

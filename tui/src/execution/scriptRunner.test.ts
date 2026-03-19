@@ -22,6 +22,7 @@ function makeEntry(
 		arch: overrides.arch ?? "x86",
 		script: overrides.script ?? "echo hello",
 		dependencies: overrides.dependencies ?? [],
+		run_after: overrides.run_after ?? [],
 		distro: overrides.distro ?? "Ubuntu",
 		version: overrides.version ?? "24.04",
 		inputs: overrides.inputs ?? [],
