@@ -68,6 +68,14 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Add user to sudo group
+Write-Host "[setup-debian-devbox] Adding '$WinUser' to sudo group..."
+wsl --distribution $InstanceName --user root -- usermod -aG sudo $WinUser
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[setup-debian-devbox] ERROR: Failed to add '$WinUser' to sudo group."
+    exit 1
+}
+
 # Set as default login user
 Write-Host "[setup-debian-devbox] Setting default user in /etc/wsl.conf..."
 wsl --distribution $InstanceName --user root -- bash -c "printf '[user]\ndefault=$WinUser\n' > /etc/wsl.conf"
@@ -81,6 +89,14 @@ Write-Host "[setup-debian-devbox] Restarting instance to apply configuration..."
 wsl --terminate $InstanceName *> $null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[setup-debian-devbox] ERROR: Failed to terminate instance."
+    exit 1
+}
+
+# Update packages and install essentials
+Write-Host "[setup-debian-devbox] Updating packages and installing curl and wget..."
+wsl --distribution $InstanceName --user root -- bash -c "apt-get update -y && apt-get upgrade -y && apt-get install -y curl wget"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[setup-debian-devbox] ERROR: Package setup failed."
     exit 1
 }
 

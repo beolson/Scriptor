@@ -216,6 +216,14 @@ async function main() {
 		inputs: ScriptInputs;
 	} | null = null;
 
+	if (!process.stdin.isTTY) {
+		process.stderr.write(
+			"[scriptor] ERROR: Scriptor requires an interactive terminal.\n" +
+				"stdin is not a TTY — run Scriptor directly in a terminal, not piped.\n",
+		);
+		process.exit(1);
+	}
+
 	const { waitUntilExit } = render(
 		React.createElement(App, {
 			hostInfo,

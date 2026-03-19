@@ -25,8 +25,9 @@ export function Footer({ bindings }: FooterProps) {
 			paddingX={1}
 			gap={2}
 		>
-			{bindings.map((binding) => (
-				<Text key={binding.key}>
+			{bindings.map((binding, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: static binding list, order never changes
+				<Text key={i}>
 					<Text bold={true}>{binding.key}</Text>
 					<Text dimColor={true}>{` ${binding.description}`}</Text>
 				</Text>
