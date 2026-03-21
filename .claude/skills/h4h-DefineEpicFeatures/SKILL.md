@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 ## Step 1 — Determine Next Epic Number
 
-Scan `10_Specifications/10.40_Epics/` for files matching `10.40.NNN_*.md` (where NNN is a 3-digit zero-padded number). Find the highest NNN. The new epic number is highest + 1, or `001` if the folder is empty or has no matching files.
+Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*` (where NNN is a 3-digit zero-padded number). Find the highest NNN. The new epic number is highest + 1, or `001` if the folder is empty or has no matching subdirectories.
 
 ## Step 2 — Get High-Level Description
 
@@ -14,9 +14,9 @@ Use `AskUserQuestion` to ask: "Please give a high-level description of the epic 
 
 From the answer, derive a SLUG: ~3 words, TitleCase, underscores between words (e.g. `GitHub_OAuth_Login`, `Script_Search_Filter`, `Update_Notifications`).
 
-Create the file `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}.md` with an initial **Summary** section based on the description.
+Create the directory `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/` and write `functional.md` inside it with an initial **Summary** section based on the description.
 
-Initial document structure:
+Initial document structure (`10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/functional.md`):
 
 ```markdown
 # {NNN} {Epic Title}

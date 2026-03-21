@@ -1,40 +1,44 @@
 ---
-name: plan-delivery
-description: Use when FunctionalRequirements.md and tech-standards.md exist for a phase and you need to create a task-by-task delivery plan. Do NOT invoke automatically — only when the user explicitly requests planning delivery tasks for a phase.
+name: h4h:DefineEpicDelivery
+description: Use when functional.md and technical.md exist for an epic and you need to create a task-by-task delivery plan. Writes delivery.md into the epic's folder under 10_Specifications/10.40_Epics/. Invoke when user says "plan delivery", "define delivery tasks", "create tasks", "break into tasks", or similar.
 disable-model-invocation: true
 ---
 
-# Plan Delivery
+# Define Delivery
 
 ## Overview
 
-Reads `FunctionalRequirements.md` and `tech-standards.md` for the current phase and produces an ordered `tasks.md` file that breaks the requirements into atomic, TDD-driven implementation tasks.
+Reads `functional.md` and `technical.md` for the target epic and produces an ordered `delivery.md` file that breaks the requirements into atomic, TDD-driven implementation tasks.
 
 ## Workflow
 
-### Step 1 — Identify Current Phase
+### Step 1 — Determine Target Epic Folder
 
-- Scan `spec/` for existing `phase{N}` directories
-- The current phase = the highest-numbered N found
-- All paths below use `spec/phase{N}/`
+Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*`. Identify which ones do not yet contain a `delivery.md`.
+
+- If exactly one epic folder has no `delivery.md`, target it automatically and inform the user.
+- If multiple epic folders have no `delivery.md`, use `AskUserQuestion` to ask the user which one to plan delivery for.
+- If all epic folders already have a `delivery.md`, use `AskUserQuestion` to ask which one the user wants to update.
+
+The target file is: `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md`
 
 ### Step 2 — Read Requirements
 
 Load all available requirement documents before generating any tasks:
 
-1. Read `spec/phase{N}/FunctionalRequirements.md`
-2. Read `spec/phase{N}/tech-standards.md`
-3. If `spec/phase{N}/UX.requirements.md` exists, read it too
+1. Read `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/functional.md`
+2. Read `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/technical.md`
+3. If a `ux.md` exists in the same folder, read it too
 
 Do not proceed until all available files have been read in full.
 
 ### Step 3 — Read Prior Art
 
-If `spec/phase{N-1}/tasks.md` exists, read it. Use it as context for:
+Read `delivery.md` from any other epic folders that have one. Use it as context for:
 
 - Naming conventions and task granularity already established
 - Module patterns and dependencies already resolved
-- Ordering principles that worked in the previous phase
+- Ordering principles that worked in prior epics
 
 ### Step 4 — Break Into Tasks
 
@@ -42,9 +46,9 @@ Decompose the requirements into ordered implementation tasks following the **Tas
 
 Tasks must be atomic: completable in one session with one clear deliverable. If a task feels complex, split it.
 
-### Step 5 — Write tasks.md
+### Step 5 — Write delivery.md
 
-Write all tasks to `spec/phase{N}/tasks.md` using the **Task Format** below.
+Write all tasks to `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md` using the **Task Format** below.
 
 ## Task Format
 
@@ -56,7 +60,7 @@ Each task uses this structure:
 **Status:** not started
 
 **Description:**
-<What to build and why. Reference specific functional requirements (e.g. FR-1-001).>
+<What to build and why. Reference specific functional requirements (e.g. FR-001).>
 
 - <bullet: key thing to build or constraint to satisfy>
 - <bullet: another key thing>
@@ -67,7 +71,7 @@ Each task uses this structure:
 - Cover: <comma-separated list of key behaviors to test>
 ```
 
-After a task is implemented, `**TDD Approach:**` is replaced by `**Implementation Notes:**` with actual details. The skill only writes `**TDD Approach:**` sections.
+After a task is implemented, `**TDD Approach:**` is replaced by `**Implementation Notes:**` with actual details. This skill only writes `**TDD Approach:**` sections.
 
 ## Task Ordering Principles
 
@@ -96,15 +100,15 @@ When two tasks are at the same dependency level, order by functional risk: highe
 - Tasks must be completable in one session
 - Each task has one clear deliverable
 - If a task is complex, split it into two tasks
-- Reference functional requirements by ID (e.g. `FR-1-001`) in descriptions
+- Reference functional requirements by ID (e.g. `FR-001`) in descriptions
 - Status values: `not started`, `in progress`, `completed`
 
-## tasks.md Header
+## delivery.md Header
 
 Begin the file with:
 
 ```markdown
-# Phase {N} — Delivery Tasks
+# {Epic Title} — Delivery Tasks
 
 _TDD methodology: write failing tests first (red), then implement to make them pass (green). Tests are part of each task, not separate._
 
@@ -117,8 +121,8 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 |---|---|
 | Writing a "Tests" task separate from implementation | Tests belong inside each task's TDD Approach section |
 | Tasks too large | Split: one session, one deliverable |
-| Forgetting to reference FRs | Include `FR-{N}-NNN` in descriptions |
+| Forgetting to reference FRs | Include `FR-NNN` in descriptions |
 | Ordering by feature area instead of dependency | Order by what each module imports, not by topic |
-| Skipping Step 3 (prior art) | Prior phase tasks reveal naming conventions and pitfalls |
-| Writing tasks before reading both requirement docs | Always read all available docs (including UX.requirements.md) fully before generating tasks |
+| Skipping Step 3 (prior art) | Prior epic delivery files reveal naming conventions and pitfalls |
+| Writing tasks before reading both requirement docs | Always read all available docs (including ux.md) fully before generating tasks |
 | Creating pages before reusable UI components | Components must come first; pages compose them |
