@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Package & Build Setup
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Migrate the TUI workspace from Ink/React to @clack. Install all dependencies required by this epic and wire `VERSION` into the build pipeline so the binary knows its own version at runtime.
@@ -26,7 +26,7 @@ Migrate the TUI workspace from Ink/React to @clack. Install all dependencies req
 
 ## Task 2 — Repo Type and Validation
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Define the `Repo` type and the parsing/validation logic for the `owner/repo` format used by `--repo`. This is the foundational data type for cache keys, API calls, and config storage.
@@ -45,7 +45,7 @@ Define the `Repo` type and the parsing/validation logic for the `owner/repo` for
 
 ## Task 3 — Config Service
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Read and write the YAML config file at `~/.scriptor/config`. Implements the requirement that a missing file, corrupt YAML, or non-object value silently falls back to an empty config with no error.
@@ -65,7 +65,7 @@ Read and write the YAML config file at `~/.scriptor/config`. Implements the requ
 
 ## Task 4 — Cache Service
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Read and write the per-repo file cache at `~/.scriptor/cache/<owner>/<repo>/`. This enables the cache-first startup strategy where Scriptor loads the manifest from disk without a network call.
@@ -85,7 +85,7 @@ Read and write the per-repo file cache at `~/.scriptor/cache/<owner>/<repo>/`. T
 
 ## Task 5 — Keychain Service
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Store and retrieve the OAuth token using platform CLI tools (no native modules). Graceful fallback when the CLI tool is absent or returns an error — callers receive `null` and must not assume persistence is available.
@@ -106,7 +106,7 @@ Store and retrieve the OAuth token using platform CLI tools (no native modules).
 
 ## Task 6 — GitHub API Client
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 All network calls to GitHub are routed through this module. It detects 401/403 responses and throws a typed `AuthRequired` error that upstream code uses to trigger the OAuth device flow.
@@ -128,7 +128,7 @@ All network calls to GitHub are routed through this module. It detects 401/403 r
 
 ## Task 7 — OAuth Service
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Runs the GitHub OAuth device flow via `@octokit/oauth-device` and displays the user code and verification URL using `@clack/prompts` `note()` followed by a polling spinner. After successful authentication the access token is returned to the caller.
@@ -150,7 +150,7 @@ Runs the GitHub OAuth device flow via `@octokit/oauth-device` and displays the u
 
 ## Task 8 — Binary Self-Update
 
-**Status:** not started
+**Status:** completed
 
 **Description:**
 Checks for a newer Scriptor binary, downloads it, and applies it via the download → exec → relaunch pattern. The `--apply-update <old-path>` internal flag causes the new binary to move itself into place and relaunch.
@@ -167,11 +167,25 @@ Checks for a newer Scriptor binary, downloads it, and applies it via the downloa
 - **GREEN:** Implement version comparison and download; handler logic is integration-level
 - Cover: latest release older than VERSION → null, latest release newer → UpdateInfo with download URL, semver comparison handles `v` prefix on tags, download writes bytes to correct path, `handleApplyUpdate` moves file then relaunches
 
+**Implementation Notes:**
+- Created `20_Applications/tui/src/update/updateService.ts`:
+  - `UpdateInfo` class holds `latestTag` and `assets`
+  - `checkForUpdate()` uses `semver.coerce()` to strip the `v` prefix from tags before calling `semver.gt()`
+  - `downloadUpdate()` delegates to `githubClient.downloadBinary()` and writes to `~/.scriptor/scriptor.new`
+  - `applyUpdate()` runs `chmod +x`, spawns the new binary with `--apply-update`, then calls `process.exit(0)` — integration-level, not unit-tested
+  - Injectable `UpdateServiceDeps` interface: `fetchLatestRelease`, `downloadBinary`, `chmod`, `spawn`, `currentVersion`
+- Created `20_Applications/tui/src/update/applyUpdateHandler.ts`:
+  - `handleApplyUpdate()` renames `process.execPath` → `oldPath`, spawns `oldPath`, exits
+  - Injectable `ApplyUpdateHandlerDeps` interface: `rename`, `spawn`, `exit`, `execPath`
+- Created `20_Applications/tui/src/update/updateService.test.ts` — 11 tests covering all TDD cases
+- Created `20_Applications/tui/src/update/applyUpdateHandler.test.ts` — 4 tests covering rename/spawn/exit behaviour
+- All 104 tests pass; lint, format, and typecheck all clean
+
 ---
 
 ## Task 9 — Startup TUI Screens
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Clack-backed UI functions for each interactive moment in the startup flow. These are thin wrappers that keep the orchestrator free of direct clack calls, enabling the orchestrator to be tested without a TTY.
@@ -189,11 +203,18 @@ Clack-backed UI functions for each interactive moment in the startup flow. These
 - **GREEN:** Implement as thin wrappers; screens have no business logic
 - Cover: confirmRepoSwitch returns true when confirm resolves true, returns false on cancel symbol, promptCheckUpdates same, showFetchProgress calls fn and returns its result, showOAuthPrompt calls note with URL and code visible, showFatalError calls process.exit(1)
 
+**Implementation Notes:**
+- Created `20_Applications/tui/src/startup/screens.ts` exporting `confirmRepoSwitch`, `promptCheckUpdates`, `showFetchProgress`, `showOAuthPrompt`, `showFatalError`
+- `ClackDeps` interface covers `confirm`, `note`, `spinner`, and `log.error`; `ScreensDeps` also accepts an injectable `exit` function for `showFatalError`
+- Cancel detection uses `typeof result !== "boolean"` rather than `clackPrompts.isCancel()` so that any injected cancel symbol (not just the real clack symbol) is correctly handled in tests
+- Created `20_Applications/tui/src/startup/screens.test.ts` — 16 tests covering all TDD cases
+- All 120 tests pass; lint, format, and typecheck all clean
+
 ---
 
 ## Task 10 — Startup Orchestrator
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Coordinates all services and screens into the startup sequence. This is the core logic of the epic: resolve repo, load config, check cache, prompt for updates, download if needed, trigger OAuth on 401/403, persist token.
@@ -218,11 +239,18 @@ Implements all acceptance criteria in the functional.md sections: CLI & Config, 
 - **GREEN:** Implement the sequence; each branch is driven by a failing test first
 - Cover: fresh run with no cache fetches immediately, cached run prompts for updates, user declines update → uses cache, user accepts update → refetches and writes cache, stored token sent proactively, 401 without token triggers OAuth flow, 401 with stored token re-triggers OAuth (treats as expired), no cache + network failure calls showFatalError, repo flag switches config after confirmation, repo switch declined → uses old repo
 
+**Implementation Notes:**
+- Created `20_Applications/tui/src/startup/orchestrator.ts` exporting `runStartup`, `StartupOptions`, `ManifestResult`, `OrchestratorDeps`
+- `OrchestratorDeps` interface covers all 11 injectable seams: readConfig, writeConfig, cacheExists, readManifest, writeCache, fetchManifest, keychainGet, keychainSet, runDeviceFlow, confirmRepoSwitch, promptCheckUpdates, showFetchProgress, showFatalError
+- Default deps use lazy `await import()` for all real service modules to avoid circular deps at import time; `showFatalError` uses `require()` since it is synchronous (`never` return type)
+- Created `20_Applications/tui/src/startup/orchestrator.test.ts` — 25 tests covering all TDD cases across 7 describe blocks
+- All 145 tests pass; lint, format, and typecheck all clean
+
 ---
 
 ## Task 11 — CLI Entry Point
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Wire Commander, the `--repo` flag, the hidden `--apply-update` flag, and the orchestrator into the binary's `main()` function. This is the outermost layer and the only place that calls `process.exit`.
@@ -239,3 +267,143 @@ Wire Commander, the `--repo` flag, the hidden `--apply-update` flag, and the orc
 - **RED:** Write tests in `src/index.test.ts` that exercise flag parsing by calling the program with string args (Commander supports `.parseAsync(['--repo', 'bad/format/here'])`)
 - **GREEN:** Wire `parseRepo` as Commander's `parseArg`; tests assert exit code and error output
 - Cover: valid `--repo` parsed correctly, invalid `--repo` format exits with error message, no `--repo` falls back to config/default, `--apply-update` detected and handler called before orchestrator, missing old-path argument for `--apply-update` exits with error
+
+**Implementation Notes:**
+- Created `20_Applications/tui/src/program.ts` — Commander `buildProgram(deps: ProgramDeps)` factory function:
+  - `ProgramDeps` interface covers all injectable seams: `runStartup`, `handleApplyUpdate`, `intro`, `outro`, `log.success`, `exit`
+  - `--repo <owner/repo>` option wired with `parseRepo` as Commander's `parseArg` callback — `InvalidArgumentError` causes Commander to print the error and exit 1 automatically
+  - `--apply-update <old-path>` added via `new Option(...).hideHelp()` to keep it hidden from help output
+  - Action handler checks `--apply-update` first, calls `handleApplyUpdate()` and returns before any orchestrator logic
+  - Calls `deps.intro()` → `deps.runStartup()` → `deps.log.success()` stub → `deps.outro()` for normal flow
+  - Separated from `index.ts` so tests can import `buildProgram` without executing `main()`
+- Updated `20_Applications/tui/src/index.ts` — wires real implementations to `buildProgram` and calls `program.parseAsync(process.argv)` inside `main()`; unhandled rejection handler logs error and exits 1
+- Created `20_Applications/tui/src/index.test.ts` — 9 tests covering all TDD cases:
+  - Valid `--repo` parsed and passed to `runStartup`
+  - Whitespace stripped from `--repo` value
+  - Invalid `--repo` (no slash) causes exit 1
+  - Invalid `--repo` (too many slashes) causes exit 1
+  - No `--repo` flag passes `undefined` to `runStartup`
+  - `--apply-update` calls `handleApplyUpdate` before `runStartup`
+  - Without `--apply-update`, `handleApplyUpdate` is never called
+  - `intro()` called at startup
+  - `outro()` called on clean exit
+- All 154 tests pass; lint, format, and typecheck all clean
+
+---
+
+## Change: Private repo 404 triggers OAuth (2026-03-21)
+
+**Summary:** `raw.githubusercontent.com` returns 404 (not 401/403) for private repos when unauthenticated, so the OAuth device flow was never triggered; fixed by treating 404-without-token as `AuthRequired` in `fetchManifest`.
+
+**Files modified:**
+- `20_Applications/tui/src/github/githubClient.ts` — added special case in `fetchManifest`: if response is 404 and no token was provided, throw `AuthRequired(404)` instead of calling `throwForStatus`
+- `20_Applications/tui/src/github/githubClient.test.ts` — added test: 404 with no token → `AuthRequired`; updated existing 404 test to pass a token (verifying the "genuinely missing file" path still throws `NetworkError`)
+
+**Spec updates:**
+- `functional.md` — amended OAuth acceptance criterion to include 404-without-token as a trigger, with explanatory note about `raw.githubusercontent.com` behaviour
+- `technical.md` — none
+
+**Tests added/modified:**
+- `20_Applications/tui/src/github/githubClient.test.ts` — 1 test added, 1 test updated; 155 total tests pass
+
+---
+
+## Change: Guard spinner stop before start in OAuth flow (2026-03-21)
+
+**Summary:** `clack`'s `spinner().stop()` crashes (`s is not a function`) when called before `spinner().start()` — fixed by tracking whether the spinner was started and only calling `stop()` if it was.
+
+**Root cause:** `createDeviceCode()` throws (e.g., invalid OAuth App client ID) before `onVerification` fires, so `spin.start()` is never called; the catch block then calls `spin.stop()` on an uninitialised spinner, crashing the process.
+
+**Files modified:**
+- `20_Applications/tui/src/oauth/oauthService.ts` — added `spinnerStarted` flag; `spin.stop()` in the catch block is now guarded by `if (spinnerStarted)`
+- `20_Applications/tui/src/oauth/oauthService.test.ts` — added `errorBeforeVerification` option to `makeCreateDeviceFlow` helper; added 2 new tests covering the pre-verification error path
+
+**Spec updates:**
+- `functional.md` — none
+- `technical.md` — none
+
+**Tests added/modified:**
+- `20_Applications/tui/src/oauth/oauthService.test.ts` — 2 tests added; 157 total tests pass
+
+---
+
+## Change: Switch fetchManifest to GitHub Contents API (2026-03-21)
+
+**Summary:** `raw.githubusercontent.com` does not accept `Authorization: Bearer` tokens for private repos and does not resolve `HEAD` — switched to the GitHub Contents API (`api.github.com`) which supports Bearer auth and defaults to the repo's default branch.
+
+**Files modified:**
+- `20_Applications/tui/src/github/githubClient.ts` — `fetchManifest` URL changed from `raw.githubusercontent.com/{owner}/{repo}/HEAD/scriptor.yaml` to `api.github.com/repos/{owner}/{repo}/contents/scriptor.yaml`; Accept header changed from `text/plain` to `application/vnd.github.raw+json`
+- `20_Applications/tui/src/github/githubClient.test.ts` — URL assertion updated to check for `api.github.com`
+
+**Spec updates:**
+- `functional.md` — none
+- `technical.md` — API endpoint documented; reason for not using raw.githubusercontent.com noted
+
+**Tests added/modified:**
+- `20_Applications/tui/src/github/githubClient.test.ts` — 1 test updated; 158 total tests pass
+
+---
+
+## Change: Request `repo` scope in OAuth device flow (2026-03-21)
+
+**Summary:** The OAuth device flow requested no scopes, so the issued token had no permissions and GitHub returned 404 again on the retry for private repositories; fixed by adding `scopes: ["repo"]` to the device flow options.
+
+**Files modified:**
+- `20_Applications/tui/src/oauth/oauthService.ts` — added `scopes: ["repo"]` to `createDeviceFlow` options
+- `20_Applications/tui/src/oauth/oauthService.test.ts` — added test asserting `scopes: ["repo"]` is passed to `createDeviceFlow`
+
+**Spec updates:**
+- `functional.md` — none
+- `technical.md` — OAuth device flow library entry updated to note `scopes: ["repo"]` is requested
+
+**Tests added/modified:**
+- `20_Applications/tui/src/oauth/oauthService.test.ts` — 1 test added; 159 total tests pass
+
+---
+
+## Change: Add `--repo=local` mode (2026-03-22)
+
+**Summary:** Added `--repo=local` as a reserved keyword that reads `scriptor.yaml` directly from the current git root, bypassing GitHub, caching, OAuth, and the update prompt entirely.
+
+**Files modified:**
+- `20_Applications/tui/src/startup/localRepo.ts` — new module: `findGitRoot()`, `readLocalManifest()`, `LocalRepoError`; injectable deps; `Bun.spawn` for `git rev-parse --show-toplevel`
+- `20_Applications/tui/src/startup/localRepo.test.ts` — new test file: 15 tests for `findGitRoot` and `readLocalManifest`
+- `20_Applications/tui/src/startup/orchestrator.ts` — `StartupOptions` gains `localMode?: boolean`; `ManifestResult` gains `localRoot?: string`; `OrchestratorDeps` gains `readLocalManifest`; local-mode early-return branch added at top of `runStartup`
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — added `readLocalManifest` to `makeDeps`; added `local mode` describe block (9 tests)
+- `20_Applications/tui/src/program.ts` — `parseRepoArg` intercepts `"local"` before `parseRepo`; action handler passes `localMode: true` to `runStartup`; success stub shows git root path in local mode
+- `20_Applications/tui/src/index.test.ts` — updated `ProgramDeps` interface; added `--repo=local flag` describe block (2 tests)
+
+**Spec updates:**
+- `functional.md` — added "Local mode" user story; added 5 new acceptance criteria under CLI & Config
+- `technical.md` — added "Local Mode" section documenting `localRepo.ts`, `findGitRoot`, `ManifestResult.localRoot`, and no-cache/no-GitHub behaviour
+
+**Tests added/modified:**
+- `20_Applications/tui/src/startup/localRepo.test.ts` — 15 new tests
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — 9 tests added; `makeDeps` updated
+- `20_Applications/tui/src/index.test.ts` — 2 tests added; 183 total tests pass
+
+---
+
+## Change: Platform detection & startup host display (2026-03-22)
+
+**Summary:** Added host platform/arch/distro detection at startup and displays it as a `log.info()` line before any prompts, with `HostInfo` propagated through `ManifestResult` for downstream use.
+
+**Files modified:**
+- `20_Applications/tui/src/host/types.ts` — new: `HostInfo` type (`platform`, `arch`, optional `distro`/`version`)
+- `20_Applications/tui/src/host/detectHost.ts` — new: `detectHost()` with injectable deps; maps platform/arch, reads `/etc/os-release` on Linux
+- `20_Applications/tui/src/host/detectHost.test.ts` — new: 15 tests covering all platform/arch mappings and distro parsing cases
+- `20_Applications/tui/src/startup/screens.ts` — added `showHostInfo()`; extended `ClackDeps.log` with `info`
+- `20_Applications/tui/src/startup/screens.test.ts` — added `logInfoCalls` tracking to `makeClack`; 6 new `showHostInfo` tests
+- `20_Applications/tui/src/startup/orchestrator.ts` — added `detectHost`/`showHostInfo` to `OrchestratorDeps`; host detected first in all modes; `ManifestResult` gains `host: HostInfo`
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — `makeDeps` updated; 7 new platform detection tests
+- `20_Applications/tui/src/index.test.ts` — `ProgramDeps` updated; all fake `runStartup` returns include `host`
+
+**Spec updates:**
+- `functional.md` — added "Platform Detection" section with user story and 9 acceptance criteria
+- `technical.md` — added "Host Detection" section documenting `src/host/` module, `showHostInfo`, `ManifestResult.host`
+
+**Tests added/modified:**
+- `20_Applications/tui/src/host/detectHost.test.ts` — 15 new tests
+- `20_Applications/tui/src/startup/screens.test.ts` — 6 tests added
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — 7 tests added; `makeDeps` updated
+- `20_Applications/tui/src/index.test.ts` — `ProgramDeps` interface and all fake returns updated; 211 total tests pass

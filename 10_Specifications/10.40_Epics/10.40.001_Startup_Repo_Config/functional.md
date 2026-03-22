@@ -25,6 +25,7 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 - **OAuth token — no keychain**: As a user on a system without a supported keychain, I understand that I will need to re-authenticate via OAuth on each run that accesses a private repo or requires authentication.
 - **First-run, no network**: As a new user with no cache and no network, I receive a clear error message and Scriptor exits — it cannot operate without an initial manifest download.
 - **Default repo**: As a new user with no config, Scriptor uses `beolson/Scriptor` automatically with no setup required.
+- **Local mode**: As a developer, I can run `scriptor --repo=local` to read `scriptor.yaml` and scripts directly from the root of my current git repository, bypassing GitHub, caching, and OAuth entirely.
 
 ---
 
@@ -32,7 +33,11 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 
 ### CLI & Config
 
-- [ ] `--repo` accepts `owner/repo` format; any other format exits immediately with `InvalidArgumentError` before the TUI starts.
+- [ ] `--repo` accepts `owner/repo` format or the reserved keyword `local`; any other format exits immediately with `InvalidArgumentError` before the TUI starts.
+- [ ] `--repo=local` reads `scriptor.yaml` from the current git root; it is never persisted to `~/.scriptor/config`.
+- [ ] `--repo=local` skips cache, keychain, OAuth, and the update prompt entirely.
+- [ ] `--repo=local` fails with a clear fatal error if the current directory is not inside a git repository.
+- [ ] `--repo=local` fails with a clear fatal error if `scriptor.yaml` is not found at the git root.
 - [ ] If `--repo` is provided and differs from the stored config value, the user is prompted to confirm before the config is updated.
 - [ ] If the user declines the repo switch prompt, Scriptor continues with the previously stored (or default) repo.
 - [ ] Resolved repo priority: `--repo` flag → stored `~/.scriptor/config` `repo` field → default `beolson/Scriptor`.
@@ -58,7 +63,7 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 
 ### OAuth
 
-- [ ] OAuth device flow is triggered when GitHub returns HTTP 401 or 403 (not proactively).
+- [ ] OAuth device flow is triggered when GitHub returns HTTP 401, 403, or 404 without an auth token (not proactively). Note: `raw.githubusercontent.com` returns 404 (not 401/403) for private repos when unauthenticated; treating 404-without-token as an auth trigger ensures the device flow fires for private repos.
 - [ ] During the device flow, the Fetch Screen displays the user code and verification URL for the user to act on.
 - [ ] After successful authentication, the failed request is retried with the new token.
 - [ ] If an OS keychain is available, the OAuth token is stored there and sent proactively on future startup requests.
@@ -72,6 +77,30 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 - GitHub is the only supported remote host; GitLab, Bitbucket, and self-hosted Git are not supported.
 - OS keychain support is best-effort: available on macOS (Keychain), Linux (libsecret/GNOME Keyring where present), and Windows (Credential Manager). No keychain = no token persistence; the app must remain fully functional in that case.
 - Binary self-update must support all 6 release targets: `linux/darwin/windows × x64/arm64`.
+
+---
+
+## Platform Detection
+
+### Summary
+
+Scriptor detects the host platform, architecture, and (on Linux) distribution at startup and displays this information before any user prompts.
+
+### User Stories
+
+- **Host info display**: As a user, I see the detected platform, architecture, and (on Linux) distro/version displayed as a single info line at startup, before any prompts appear, so I know Scriptor has correctly identified my machine.
+
+### Acceptance Criteria
+
+- [ ] Platform detection runs on every startup, including local mode.
+- [ ] Detected platform is one of `linux`, `mac`, or `windows`.
+- [ ] Detected arch is one of `x86` or `arm`.
+- [ ] On Linux, `NAME` and `VERSION_ID` fields are read from `/etc/os-release` (stripping surrounding quotes).
+- [ ] If `/etc/os-release` is missing or unreadable on Linux, startup continues without distro/version (non-fatal).
+- [ ] Non-Linux platforms do not include distro or version fields.
+- [ ] Detected host is displayed via `log.info()` before the "Check for updates?" prompt and before the first-run fetch.
+- [ ] Display format: `[linux / x86 / Debian GNU/Linux 13]` on Linux with distro+version, `[linux / arm / Arch Linux]` with distro only, `[linux / x86]` without distro, `[mac / arm]` or `[windows / x86]` on non-Linux.
+- [ ] `ManifestResult` includes a `host: HostInfo` field so downstream phases (script selection) can use the detected platform for filtering without re-detecting.
 
 ---
 
