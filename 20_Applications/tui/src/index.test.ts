@@ -7,6 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import { describe, expect, it } from "bun:test";
+import type { ScriptSelectionResult } from "./manifest/types.js";
 import { buildProgram } from "./program.js";
 
 // ---------------------------------------------------------------------------
@@ -20,16 +21,21 @@ interface FakeHost {
 
 const DEFAULT_HOST: FakeHost = { platform: "linux", arch: "x86" };
 
+type FakeManifestResult = {
+	repo: { owner: string; name: string };
+	manifest: string;
+	host: FakeHost;
+	localRoot?: string;
+};
+
 interface ProgramDeps {
 	runStartup: (opts: {
 		repo?: { owner: string; name: string };
 		localMode?: boolean;
-	}) => Promise<{
-		repo: { owner: string; name: string };
-		manifest: string;
-		host: FakeHost;
-		localRoot?: string;
-	}>;
+	}) => Promise<FakeManifestResult>;
+	runScriptSelection: (
+		result: FakeManifestResult,
+	) => Promise<ScriptSelectionResult>;
 	handleApplyUpdate: (oldPath: string) => Promise<never>;
 	intro: (title: string) => void;
 	outro: (message: string) => void;
@@ -39,13 +45,22 @@ interface ProgramDeps {
 	exit: (code: number) => never;
 }
 
+const DEFAULT_MANIFEST_RESULT: FakeManifestResult = {
+	repo: { owner: "beolson", name: "Scriptor" },
+	manifest: "scripts: []",
+	host: DEFAULT_HOST,
+};
+
+const DEFAULT_SELECTION_RESULT: ScriptSelectionResult = {
+	orderedScripts: [],
+	inputs: new Map(),
+	installedIds: new Set(),
+};
+
 function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
 	return {
-		runStartup: async () => ({
-			repo: { owner: "beolson", name: "Scriptor" },
-			manifest: "scripts: []",
-			host: DEFAULT_HOST,
-		}),
+		runStartup: async () => DEFAULT_MANIFEST_RESULT,
+		runScriptSelection: async () => DEFAULT_SELECTION_RESULT,
 		handleApplyUpdate: async (_path: string): Promise<never> => {
 			throw new Error("handleApplyUpdate called");
 		},
@@ -295,5 +310,60 @@ describe("intro and outro", () => {
 		const program = buildProgram(deps);
 		await program.parseAsync([], { from: "user" });
 		expect(outroCalled).toBe(true);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// runScriptSelection wiring
+// ---------------------------------------------------------------------------
+
+describe("runScriptSelection wiring", () => {
+	it("calls runScriptSelection with the ManifestResult returned by runStartup", async () => {
+		const fakeResult: FakeManifestResult = {
+			repo: { owner: "alice", name: "setup" },
+			manifest: "scripts: []",
+			host: DEFAULT_HOST,
+		};
+		let capturedArg: FakeManifestResult | undefined;
+
+		const deps = makeDeps({
+			runStartup: async () => fakeResult,
+			runScriptSelection: async (result) => {
+				capturedArg = result as FakeManifestResult;
+				return DEFAULT_SELECTION_RESULT;
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(capturedArg).toBe(fakeResult);
+	});
+
+	it("does not call runScriptSelection when --apply-update flag is present", async () => {
+		let selectionCalled = false;
+
+		const deps = makeDeps({
+			handleApplyUpdate: async (_path: string): Promise<never> => {
+				throw new Error("apply-update-called");
+			},
+			runScriptSelection: async () => {
+				selectionCalled = true;
+				return DEFAULT_SELECTION_RESULT;
+			},
+		});
+
+		const program = buildProgram(deps);
+		program.exitOverride();
+
+		try {
+			await program.parseAsync(["--apply-update", "/old/binary"], {
+				from: "user",
+			});
+		} catch {
+			// handleApplyUpdate throws in this fake
+		}
+
+		expect(selectionCalled).toBe(false);
 	});
 });

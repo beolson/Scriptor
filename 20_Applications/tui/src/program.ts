@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------------------
 
 import { Command, Option } from "commander";
+import type { ScriptSelectionResult } from "./manifest/types.js";
 import { parseRepo } from "./repo/parseRepo.js";
 import type { Repo } from "./repo/types.js";
 import type { ManifestResult } from "./startup/orchestrator.js";
@@ -22,6 +23,10 @@ export interface ProgramDeps {
 		repo?: Repo;
 		localMode?: boolean;
 	}) => Promise<ManifestResult>;
+	/** Run the script-selection phase. */
+	runScriptSelection: (
+		result: ManifestResult,
+	) => Promise<ScriptSelectionResult>;
 	/** Apply a self-update from `oldPath` (called when --apply-update is set). */
 	handleApplyUpdate: (oldPath: string) => Promise<never>;
 	/** @clack/prompts intro() */
@@ -89,11 +94,7 @@ export function buildProgram(deps: ProgramDeps): Command {
 					localMode: isLocal || undefined,
 				});
 
-				// Script-list phase is out of scope for this epic — stub:
-				const repoLabel = result.localRoot
-					? `local (${result.localRoot})`
-					: `${result.repo.owner}/${result.repo.name}`;
-				deps.log.success(`Loaded manifest for ${repoLabel}`);
+				await deps.runScriptSelection(result);
 
 				deps.outro("Done");
 			},

@@ -14,6 +14,12 @@ import { handleApplyUpdate } from "./update/applyUpdateHandler.js";
 async function main(): Promise<void> {
 	const program = buildProgram({
 		runStartup,
+		runScriptSelection: async (result) => {
+			const { runScriptSelection } = await import(
+				"./script-selection/index.js"
+			);
+			return runScriptSelection(result);
+		},
 		handleApplyUpdate,
 		intro: clack.intro,
 		outro: clack.outro,

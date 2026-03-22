@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Manifest Types & Error Classes
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Define all shared TypeScript types and error classes for this epic. These pure types are the foundation every other module builds on — no side effects, no external dependencies (FR: Manifest Parsing, Dependency Resolution).
@@ -23,7 +23,7 @@ Define all shared TypeScript types and error classes for this epic. These pure t
 
 ## Task 2 — Manifest Parser & scriptor.yaml Migration
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `parseManifest` with Zod validation and migrate `scriptor.yaml` to the canonical schema (FR: Manifest Parsing; Technical: scriptor.yaml Schema Migration).
@@ -45,7 +45,7 @@ Implement `parseManifest` with Zod validation and migrate `scriptor.yaml` to the
 
 ## Task 3 — Host Filtering
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `filterManifest` to narrow the full manifest to only scripts compatible with the detected host (FR: Host Filtering). Pure function — no side effects, no injectable deps required.
@@ -66,7 +66,7 @@ Implement `filterManifest` to narrow the full manifest to only scripts compatibl
 
 ## Task 4 — Dependency Resolution
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `resolveDependencies` with two-phase DFS topological sort: collect the full transitive run set via `dependencies`, then order it using both `dependencies` (hard edges) and `optional_dependencies` entries that are in the run set (soft edges) (FR: Dependency Resolution).
@@ -87,7 +87,7 @@ Implement `resolveDependencies` with two-phase DFS topological sort: collect the
 
 ## Task 5 — Script Selection Screens
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement all `@clack/prompts` UI wrappers for the script selection phase. These are thin, testable wrappers with no business logic — the orchestrator drives all decisions (FR: Script List Screen — Main Menu, Individual Selection).
@@ -106,7 +106,7 @@ Implement all `@clack/prompts` UI wrappers for the script selection phase. These
 
 ## Task 6 — Script Selection Orchestrator
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `runScriptSelection` — the coordinator that sequences parse → filter → installed-check → main menu → dependency resolution → result (FR: all Script List Screen AC; Installed-Status Detection; Error Handling; Wiring).
@@ -136,7 +136,7 @@ Implement `runScriptSelection` — the coordinator that sequences parse → filt
 
 ## Task 7 — Wire runScriptSelection into program.ts
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Replace the `log.success()` stub in `program.ts` with a call to `runScriptSelection`, threading the new dep through `ProgramDeps` (FR: Wiring).
