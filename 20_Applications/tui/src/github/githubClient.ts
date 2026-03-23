@@ -131,6 +131,48 @@ export async function fetchManifest(
 }
 
 // ---------------------------------------------------------------------------
+// fetchScript
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches the raw content of a script file from the repo via the GitHub
+ * Contents API. `path` is the file's path relative to the repo root
+ * (e.g. "scripts/Debian/13/install-bun.sh").
+ *
+ * Sends an Authorization header when `token` is provided.
+ * Throws `AuthRequired` on 401/403, `NetworkError` on other failures.
+ */
+export async function fetchScript(
+	repo: Repo,
+	path: string,
+	token?: string,
+	deps?: Partial<GitHubClientDeps>,
+): Promise<string> {
+	const resolved = { ...defaultDeps, ...deps };
+	const url = `https://api.github.com/repos/${repo.owner}/${repo.name}/contents/${path}`;
+
+	const headers: Record<string, string> = {
+		Accept: "application/vnd.github.raw+json",
+	};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	let response: Response;
+	try {
+		response = await resolved.fetch(url, { headers });
+	} catch (err) {
+		throw new NetworkError(err instanceof Error ? err.message : "fetch failed");
+	}
+
+	if (!response.ok) {
+		throwForStatus(response.status);
+	}
+
+	return response.text();
+}
+
+// ---------------------------------------------------------------------------
 // fetchLatestRelease
 // ---------------------------------------------------------------------------
 

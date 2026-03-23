@@ -2,9 +2,9 @@ import { describe, expect, it } from "bun:test";
 import type { ScreensDeps } from "./screens.js";
 import {
 	confirmRepoSwitch,
+	formatHostInfo,
 	promptCheckUpdates,
 	showFetchProgress,
-	showHostInfo,
 	showOAuthPrompt,
 } from "./screens.js";
 
@@ -28,12 +28,10 @@ function makeClack(
 	confirmCalls: Array<{ message: string }>;
 	noteCalls: Array<{ message: string; title: string | undefined }>;
 	logErrorCalls: string[];
-	logInfoCalls: string[];
 } {
 	const confirmCalls: Array<{ message: string }> = [];
 	const noteCalls: Array<{ message: string; title: string | undefined }> = [];
 	const logErrorCalls: string[] = [];
-	const logInfoCalls: string[] = [];
 
 	return {
 		confirm: async (confirmOpts: { message: string }) => {
@@ -53,20 +51,16 @@ function makeClack(
 				if (opts.logError) throw opts.logError;
 				logErrorCalls.push(message);
 			},
-			info: (message: string) => {
-				logInfoCalls.push(message);
-			},
+			info: (_message: string) => {},
 		},
 		// exposed for assertions
 		confirmCalls,
 		noteCalls,
 		logErrorCalls,
-		logInfoCalls,
 	} as unknown as ScreensDeps["clack"] & {
 		confirmCalls: Array<{ message: string }>;
 		noteCalls: Array<{ message: string; title: string | undefined }>;
 		logErrorCalls: string[];
-		logInfoCalls: string[];
 	};
 }
 
@@ -228,56 +222,43 @@ describe("showOAuthPrompt", () => {
 });
 
 // ---------------------------------------------------------------------------
-// showHostInfo
+// formatHostInfo
 // ---------------------------------------------------------------------------
 
-describe("showHostInfo", () => {
+describe("formatHostInfo", () => {
 	it("includes platform and arch in the output", () => {
-		const clack = makeClack();
-		showHostInfo({ platform: "mac", arch: "arm" }, { clack });
-		expect(clack.logInfoCalls[0]).toContain("mac");
-		expect(clack.logInfoCalls[0]).toContain("arm");
+		const result = formatHostInfo({ platform: "mac", arch: "arm" });
+		expect(result).toContain("mac");
+		expect(result).toContain("arm");
 	});
 
 	it("formats non-Linux as [platform / arch]", () => {
-		const clack = makeClack();
-		showHostInfo({ platform: "windows", arch: "x86" }, { clack });
-		expect(clack.logInfoCalls[0]).toBe("[windows / x86]");
+		expect(formatHostInfo({ platform: "windows", arch: "x86" })).toBe(
+			"[windows / x86]",
+		);
 	});
 
 	it("formats Linux with distro and version as [linux / arch / distro version]", () => {
-		const clack = makeClack();
-		showHostInfo(
-			{
+		expect(
+			formatHostInfo({
 				platform: "linux",
 				arch: "x86",
 				distro: "Debian GNU/Linux",
 				version: "13",
-			},
-			{ clack },
-		);
-		expect(clack.logInfoCalls[0]).toBe("[linux / x86 / Debian GNU/Linux 13]");
+			}),
+		).toBe("[linux / x86 / Debian GNU/Linux 13]");
 	});
 
 	it("formats Linux with distro but no version as [linux / arch / distro]", () => {
-		const clack = makeClack();
-		showHostInfo(
-			{ platform: "linux", arch: "arm", distro: "Arch Linux" },
-			{ clack },
-		);
-		expect(clack.logInfoCalls[0]).toBe("[linux / arm / Arch Linux]");
+		expect(
+			formatHostInfo({ platform: "linux", arch: "arm", distro: "Arch Linux" }),
+		).toBe("[linux / arm / Arch Linux]");
 	});
 
 	it("formats Linux without distro as [linux / arch]", () => {
-		const clack = makeClack();
-		showHostInfo({ platform: "linux", arch: "x86" }, { clack });
-		expect(clack.logInfoCalls[0]).toBe("[linux / x86]");
-	});
-
-	it("calls log.info exactly once", () => {
-		const clack = makeClack();
-		showHostInfo({ platform: "mac", arch: "x86" }, { clack });
-		expect(clack.logInfoCalls).toHaveLength(1);
+		expect(formatHostInfo({ platform: "linux", arch: "x86" })).toBe(
+			"[linux / x86]",
+		);
 	});
 });
 

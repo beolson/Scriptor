@@ -6,8 +6,9 @@
 //   2. Confirm repo switch if flag differs from stored config
 //   3. Check keychain for stored OAuth token
 //   4. If cache exists → prompt for updates; else fetch immediately
-//   5. Fetch manifest (with OAuth retry on 401/403)
-//   6. Write cache after successful fetch
+//   5. Fetch manifest + platform-matching scripts (with OAuth retry on 401/403)
+//      - fetchScript retried up to 3 times before aborting
+//   6. Write cache (manifest + scripts) after successful fetch
 //   7. Return ManifestResult
 //
 // All deps are injectable so the orchestrator can be unit-tested without
@@ -17,6 +18,7 @@
 import type { Config } from "../config/types.js";
 import { AuthRequired } from "../github/githubClient.js";
 import type { HostInfo } from "../host/types.js";
+import type { ScriptEntry } from "../manifest/types.js";
 import { repoToString } from "../repo/parseRepo.js";
 import type { Repo } from "../repo/types.js";
 
@@ -26,12 +28,15 @@ import type { Repo } from "../repo/types.js";
 
 const DEFAULT_REPO: Repo = { owner: "beolson", name: "Scriptor" };
 const KEYCHAIN_KEY = "scriptor-github-token";
+const SCRIPT_FETCH_ATTEMPTS = 3;
 
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
 export interface StartupOptions {
+	/** Detected host — always provided by the caller (program.ts). */
+	host: HostInfo;
 	/** Parsed Repo from the --repo CLI flag, or undefined if not supplied. */
 	repo?: Repo;
 	/**
@@ -76,6 +81,10 @@ export interface OrchestratorDeps {
 
 	// GitHub API client
 	fetchManifest: (repo: Repo, token?: string) => Promise<string>;
+	fetchScript: (repo: Repo, path: string, token?: string) => Promise<string>;
+
+	// Manifest parsing + host filtering (synchronous; returns [] on error)
+	parseAndFilterScripts: (manifest: string, host: HostInfo) => ScriptEntry[];
 
 	// Local repo reader (used when localMode is true)
 	readLocalManifest: () => Promise<{ manifest: string; gitRoot: string }>;
@@ -87,14 +96,10 @@ export interface OrchestratorDeps {
 	// OAuth service
 	runDeviceFlow: () => Promise<string>;
 
-	// Host detection
-	detectHost: () => Promise<HostInfo>;
-
 	// Startup screens
 	confirmRepoSwitch: (oldRepo: string, newRepo: string) => Promise<boolean>;
 	promptCheckUpdates: () => Promise<boolean>;
 	showFetchProgress: <T>(label: string, fn: () => Promise<T>) => Promise<T>;
-	showHostInfo: (host: HostInfo) => void;
 	showFatalError: (message: string) => never;
 }
 
@@ -130,6 +135,27 @@ function makeDefaultDeps(): OrchestratorDeps {
 			const { fetchManifest } = await import("../github/githubClient.js");
 			return fetchManifest(repo, token);
 		},
+		fetchScript: async (repo, path, token) => {
+			const { fetchScript } = await import("../github/githubClient.js");
+			return fetchScript(repo, path, token);
+		},
+		parseAndFilterScripts: (manifest, host) => {
+			try {
+				const { parseManifest } =
+					require("../manifest/parseManifest.js") as typeof import("../manifest/parseManifest.js");
+				const { filterManifest } =
+					require("../manifest/filterManifest.js") as typeof import("../manifest/filterManifest.js");
+				const parsed = parseManifest(manifest, {
+					log: { error: () => {} },
+					exit: (() => {
+						throw new Error("manifest parse error");
+					}) as (code: number) => never,
+				});
+				return filterManifest(parsed, host);
+			} catch {
+				return [];
+			}
+		},
 		readLocalManifest: async () => {
 			const { readLocalManifest } = await import("./localRepo.js");
 			return readLocalManifest();
@@ -146,10 +172,6 @@ function makeDefaultDeps(): OrchestratorDeps {
 			const { runDeviceFlow } = await import("../oauth/oauthService.js");
 			return runDeviceFlow();
 		},
-		detectHost: async () => {
-			const { detectHost } = await import("../host/detectHost.js");
-			return detectHost();
-		},
 		confirmRepoSwitch: async (oldRepo, newRepo) => {
 			const { confirmRepoSwitch } = await import("./screens.js");
 			return confirmRepoSwitch(oldRepo, newRepo);
@@ -162,19 +184,72 @@ function makeDefaultDeps(): OrchestratorDeps {
 			const { showFetchProgress } = await import("./screens.js");
 			return showFetchProgress(label, fn);
 		},
-		showHostInfo: (host) => {
-			const { showHostInfo } =
-				require("./screens.js") as typeof import("./screens.js");
-			showHostInfo(host);
-		},
 		showFatalError: (message) => {
-			// This is synchronous in screens.ts but we need to handle it here.
-			// We import synchronously at startup and call it.
 			const { showFatalError } =
 				require("./screens.js") as typeof import("./screens.js");
 			return showFatalError(message);
 		},
 	};
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/** Retries `fn` up to `maxAttempts` times before re-throwing the last error. */
+async function withRetry<T>(
+	fn: () => Promise<T>,
+	maxAttempts: number,
+): Promise<T> {
+	let lastErr: unknown;
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		try {
+			return await fn();
+		} catch (err) {
+			lastErr = err;
+		}
+	}
+	throw lastErr;
+}
+
+/**
+ * Downloads all script files for the given entries in parallel.
+ * Each file is retried up to SCRIPT_FETCH_ATTEMPTS times.
+ * Cache key = entry.script with leading "scripts/" stripped, so files land at
+ * ~/.scriptor/cache/<owner>/<repo>/scripts/<platform>/<distro>/script.sh
+ * mirroring the git repo structure.
+ */
+async function downloadScripts(
+	entries: ScriptEntry[],
+	repo: Repo,
+	token: string | undefined,
+	deps: Pick<OrchestratorDeps, "fetchScript">,
+): Promise<Map<string, string>> {
+	const scripts = new Map<string, string>();
+	await Promise.all(
+		entries.map(async (entry) => {
+			const content = await withRetry(
+				() => deps.fetchScript(repo, entry.script, token),
+				SCRIPT_FETCH_ATTEMPTS,
+			);
+			// Strip leading "scripts/" so the key matches cacheService's scriptPath helper.
+			const key = entry.script.replace(/^scripts\//, "");
+			scripts.set(key, content);
+		}),
+	);
+	return scripts;
+}
+
+/**
+ * Parses a stored "owner/repo" string from config back into a Repo object.
+ * Falls back to the default repo if parsing fails.
+ */
+function parseStoredRepo(stored: string): Repo {
+	const parts = stored.split("/");
+	if (parts.length === 2 && parts[0] && parts[1]) {
+		return { owner: parts[0], name: parts[1] };
+	}
+	return DEFAULT_REPO;
 }
 
 // ---------------------------------------------------------------------------
@@ -185,6 +260,9 @@ function makeDefaultDeps(): OrchestratorDeps {
  * Runs the full startup sequence and returns a ManifestResult containing
  * the resolved repo and the raw YAML manifest string.
  *
+ * `opts.host` must be pre-detected by the caller (program.ts) so it can be
+ * included in the intro title before any prompts appear.
+ *
  * This function never returns normally if it encounters a fatal error
  * (no cache + no network): it calls `deps.showFatalError()` which exits.
  */
@@ -192,11 +270,7 @@ export async function runStartup(
 	opts: StartupOptions,
 	deps: OrchestratorDeps = makeDefaultDeps(),
 ): Promise<ManifestResult> {
-	// -------------------------------------------------------------------------
-	// Step 0: Detect and display host platform info (all modes)
-	// -------------------------------------------------------------------------
-	const host = await deps.detectHost();
-	deps.showHostInfo(host);
+	const { host } = opts;
 
 	// -------------------------------------------------------------------------
 	// Local mode: read directly from the git root, skip everything else.
@@ -269,7 +343,7 @@ export async function runStartup(
 		const wantsUpdate = await deps.promptCheckUpdates();
 
 		if (!wantsUpdate) {
-			// User declined — return cached manifest.
+			// User declined — return cached manifest (scripts already on disk).
 			const manifest = await deps.readManifest(repo);
 			return { repo, manifest, host };
 		}
@@ -278,13 +352,23 @@ export async function runStartup(
 	}
 
 	// -------------------------------------------------------------------------
-	// Step 5: Fetch manifest (with OAuth retry on 401/403)
+	// Step 5+6: Fetch manifest + platform-matching scripts, then write cache.
+	// Both operations run under a single spinner.
 	// -------------------------------------------------------------------------
-	let manifest: string;
+	type FetchAll = { manifest: string; scripts: Map<string, string> };
+
+	const doFetchAll = async (fetchToken?: string): Promise<FetchAll> => {
+		return deps.showFetchProgress("Fetching…", async () => {
+			const manifest = await deps.fetchManifest(repo, fetchToken);
+			const entries = deps.parseAndFilterScripts(manifest, host);
+			const scripts = await downloadScripts(entries, repo, fetchToken, deps);
+			return { manifest, scripts };
+		});
+	};
+
+	let fetched: FetchAll;
 	try {
-		manifest = await deps.showFetchProgress("Fetching manifest…", () =>
-			deps.fetchManifest(repo, token),
-		);
+		fetched = await doFetchAll(token);
 	} catch (err) {
 		if (err instanceof AuthRequired) {
 			// Trigger device flow to get a new token.
@@ -294,23 +378,19 @@ export async function runStartup(
 			// Persist the token in the keychain.
 			await deps.keychainSet(KEYCHAIN_KEY, newToken);
 
-			// Retry the fetch with the new token.
+			// Retry the full fetch+scripts with the new token.
 			try {
-				manifest = await deps.showFetchProgress("Fetching manifest…", () =>
-					deps.fetchManifest(repo, newToken),
-				);
+				fetched = await doFetchAll(newToken);
 			} catch (retryErr) {
 				if (!hasCache) {
 					deps.showFatalError(
-						retryErr instanceof Error
-							? retryErr.message
-							: "Failed to fetch manifest",
+						retryErr instanceof Error ? retryErr.message : "Failed to fetch",
 					);
 				}
 				throw retryErr;
 			}
 		} else if (!hasCache) {
-			// Network error with no cache — fatal.
+			// Network/fetch error with no cache — fatal.
 			deps.showFatalError(
 				err instanceof Error ? err.message : "Failed to fetch manifest",
 			);
@@ -322,31 +402,7 @@ export async function runStartup(
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Step 6: Write cache after successful fetch
-	// -------------------------------------------------------------------------
-	// We pass an empty scripts Map here — script fetching is handled by a later
-	// phase (out of scope for this epic).
-	await deps.writeCache(repo, manifest, new Map());
+	await deps.writeCache(repo, fetched.manifest, fetched.scripts);
 
-	// -------------------------------------------------------------------------
-	// Step 7: Return result
-	// -------------------------------------------------------------------------
-	return { repo, manifest, host };
-}
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Parses a stored "owner/repo" string from config back into a Repo object.
- * Falls back to the default repo if parsing fails.
- */
-function parseStoredRepo(stored: string): Repo {
-	const parts = stored.split("/");
-	if (parts.length === 2 && parts[0] && parts[1]) {
-		return { owner: parts[0], name: parts[1] };
-	}
-	return DEFAULT_REPO;
+	return { repo, manifest: fetched.manifest, host };
 }

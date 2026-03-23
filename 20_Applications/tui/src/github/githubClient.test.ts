@@ -6,6 +6,7 @@ import {
 	downloadBinary,
 	fetchLatestRelease,
 	fetchManifest,
+	fetchScript,
 	NetworkError,
 } from "./githubClient.js";
 
@@ -312,6 +313,104 @@ describe("downloadBinary — errors", () => {
 			downloadBinary(RELEASE_ASSET_URL, "/tmp/out", {
 				fetch: fakeFetch,
 				writeFile: fakeWrite,
+			}),
+		).rejects.toBeInstanceOf(NetworkError);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// fetchScript — success
+// ---------------------------------------------------------------------------
+
+describe("fetchScript — success", () => {
+	it("returns raw content string on 200", async () => {
+		const fakeFetch = makeOkFetch("#!/bin/bash\necho hello");
+		const result = await fetchScript(
+			REPO,
+			"scripts/Debian/13/install-bun.sh",
+			undefined,
+			{ fetch: fakeFetch },
+		);
+		expect(result).toBe("#!/bin/bash\necho hello");
+	});
+
+	it("fetches from the GitHub Contents API URL with the provided path", async () => {
+		let capturedUrl = "";
+		const fakeFetch: GitHubClientDeps["fetch"] = async (url, _init) => {
+			capturedUrl = url as string;
+			return new Response("content", { status: 200 });
+		};
+		await fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+			fetch: fakeFetch,
+		});
+		expect(capturedUrl).toContain("api.github.com");
+		expect(capturedUrl).toContain("beolson");
+		expect(capturedUrl).toContain("Scriptor");
+		expect(capturedUrl).toContain("scripts/Debian/13/install-bun.sh");
+	});
+
+	it("sends Authorization header when token is provided", async () => {
+		let capturedHeaders: Record<string, string> = {};
+		const fakeFetch: GitHubClientDeps["fetch"] = async (_url, init) => {
+			capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
+			return new Response("content", { status: 200 });
+		};
+		await fetchScript(REPO, "scripts/Debian/13/install-bun.sh", "gho_tok", {
+			fetch: fakeFetch,
+		});
+		expect(capturedHeaders.Authorization).toContain("gho_tok");
+	});
+
+	it("does not send Authorization header when no token provided", async () => {
+		let capturedHeaders: Record<string, string> = {};
+		const fakeFetch: GitHubClientDeps["fetch"] = async (_url, init) => {
+			capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
+			return new Response("content", { status: 200 });
+		};
+		await fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+			fetch: fakeFetch,
+		});
+		expect(capturedHeaders.Authorization).toBeUndefined();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// fetchScript — errors
+// ---------------------------------------------------------------------------
+
+describe("fetchScript — errors", () => {
+	it("throws AuthRequired on 401", async () => {
+		const fakeFetch = makeStatusFetch(401);
+		await expect(
+			fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+				fetch: fakeFetch,
+			}),
+		).rejects.toBeInstanceOf(AuthRequired);
+	});
+
+	it("throws AuthRequired on 403", async () => {
+		const fakeFetch = makeStatusFetch(403);
+		await expect(
+			fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+				fetch: fakeFetch,
+			}),
+		).rejects.toBeInstanceOf(AuthRequired);
+	});
+
+	it("throws NetworkError when fetch throws", async () => {
+		const fakeFetch = makeThrowingFetch("network failure");
+		await expect(
+			fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+				fetch: fakeFetch,
+			}),
+		).rejects.toBeInstanceOf(NetworkError);
+	});
+
+	it("throws NetworkError on 500", async () => {
+		const fakeFetch = makeStatusFetch(500);
+		await expect(
+			fetchScript(REPO, "scripts/Debian/13/install-bun.sh", undefined, {
+				fetch: fakeFetch,
 			}),
 		).rejects.toBeInstanceOf(NetworkError);
 	});

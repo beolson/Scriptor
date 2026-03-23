@@ -407,3 +407,31 @@ Wire Commander, the `--repo` flag, the hidden `--apply-update` flag, and the orc
 - `20_Applications/tui/src/startup/screens.test.ts` — 6 tests added
 - `20_Applications/tui/src/startup/orchestrator.test.ts` — 7 tests added; `makeDeps` updated
 - `20_Applications/tui/src/index.test.ts` — `ProgramDeps` interface and all fake returns updated; 211 total tests pass
+
+---
+
+## Change: Host info on intro line + script download on fetch (2026-03-22)
+
+**Summary:** Merged host info into the `intro()` title (single line instead of a separate `log.info`) and added concurrent script downloading alongside `scriptor.yaml` — scripts matching the current platform are fetched, retried up to 3 times each, and written to the cache using the same directory structure as the git repo.
+
+**Files modified:**
+- `20_Applications/tui/src/startup/screens.ts` — replaced `showHostInfo()` with `formatHostInfo(host): string` (pure function, no deps); removed `logInfoCalls` from `ClackDeps` usage
+- `20_Applications/tui/src/startup/screens.test.ts` — replaced `showHostInfo` tests with `formatHostInfo` tests; cleaned up `makeClack` helper
+- `20_Applications/tui/src/startup/orchestrator.ts` — removed `detectHost`/`showHostInfo` from `OrchestratorDeps`; added `host: HostInfo` to `StartupOptions`; added `fetchScript` and `parseAndFilterScripts` to `OrchestratorDeps`; combined manifest + script fetch under one `showFetchProgress("Fetching…")` spinner; added `withRetry` (3 attempts) and `downloadScripts` helpers; cache key strips leading `scripts/` prefix
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — rewrote `makeDeps` (no `detectHost`/`showHostInfo`; added `fetchScript`/`parseAndFilterScripts`); all `runStartup` calls now pass `host`; removed platform-detection tests that moved to `index.test.ts`; added 8 script-downloading tests
+- `20_Applications/tui/src/github/githubClient.ts` — added `fetchScript(repo, path, token?, deps?): Promise<string>`
+- `20_Applications/tui/src/github/githubClient.test.ts` — added 8 tests for `fetchScript`
+- `20_Applications/tui/src/program.ts` — added `detectHost` to `ProgramDeps`; action handler detects host first, calls `intro("Scriptor " + formatHostInfo(host))`, passes `host` into `runStartup`
+- `20_Applications/tui/src/index.ts` — wired real `detectHost` via lazy `await import()`
+- `20_Applications/tui/src/index.test.ts` — added `detectHost` to `ProgramDeps` and fakes; added intro-title format test and 2 `detectHost wiring` tests
+
+**Spec updates:**
+- `functional.md` — updated "Host info display" AC (embedded in intro title, not separate line); updated Cache-First and First Run ACs to mention platform-filtered script downloads
+- `technical.md` — replaced `showHostInfo` with `formatHostInfo` in Host Detection section; added "Script Download & Caching" section documenting retry count, cache key convention, and local-mode exclusion
+
+**Tests added/modified:**
+- `20_Applications/tui/src/github/githubClient.test.ts` — 8 tests added (fetchScript success + errors); 32 total
+- `20_Applications/tui/src/startup/screens.test.ts` — `showHostInfo` tests replaced with `formatHostInfo` tests; 21 total
+- `20_Applications/tui/src/startup/orchestrator.test.ts` — platform-detection block removed; 8 script-downloading tests added; 45 total
+- `20_Applications/tui/src/index.test.ts` — `detectHost` dep added; 3 new tests (intro title format + detectHost wiring); 16 total
+- 309 total unit tests pass

@@ -40,11 +40,11 @@
   - If `/etc/os-release` throws (missing/unreadable), returns `HostInfo` without `distro`/`version` — non-fatal
   - Non-Linux platforms skip the file read entirely
   - Injectable `DetectHostDeps`: `platform: string`, `arch: string`, `readOsRelease: () => Promise<string>`
-- `src/startup/screens.ts` — `showHostInfo(host: HostInfo, deps?): void`
-  - Calls `log.info()` with formatted string: `[platform / arch / distro version]` or `[platform / arch]`
-  - `ClackDeps.log` extended with `info: (message: string) => void`
-- `ManifestResult` (in `orchestrator.ts`) gains `host: HostInfo` so downstream phases can use it without re-detecting
-- Platform detection runs before local-mode early-return and before all network/cache calls; `showHostInfo` is called immediately after detection
+- `src/startup/screens.ts` — `formatHostInfo(host: HostInfo): string`
+  - Pure function returning formatted string: `[platform / arch / distro version]` or `[platform / arch]`
+  - Used by `program.ts` to embed host info in the `intro()` title on the same line as "Scriptor"
+- Host detection is performed in `program.ts` before `intro()` is called; the result is passed into `runStartup()` via `StartupOptions.host`
+- `ManifestResult` (in `orchestrator.ts`) carries `host: HostInfo` so downstream phases can use it without re-detecting
 
 ## Local Mode (`--repo=local`)
 
@@ -56,6 +56,18 @@
 - `ManifestResult` gains an optional `localRoot?: string` field (absolute git root path) for use by the future script execution phase
 - In local mode the orchestrator skips all of: config read/write, keychain, cache, update prompt, OAuth, and GitHub fetch
 - `--repo=local` is never written to `~/.scriptor/config`
+
+## Script Download & Caching
+
+Scripts are downloaded alongside `scriptor.yaml` in every fetch path (first run and accepted update). Both operations run under a single `showFetchProgress("Fetching…")` spinner.
+
+- After fetching the manifest, it is parsed and filtered to the current host using `parseManifest` + `filterManifest` (injected into the orchestrator as `parseAndFilterScripts`). If parsing fails, the error propagates as fatal.
+- Each matching `ScriptEntry.script` path (e.g. `scripts/Debian/13/install-bun.sh`) is fetched from the GitHub Contents API using `fetchScript` in `src/github/githubClient.ts`.
+- All script files are downloaded in parallel via `Promise.all`.
+- Each fetch is retried up to **3 attempts** before the error is re-thrown. A fatal error is reported if no cached data exists.
+- **Cache key convention**: the leading `scripts/` prefix is stripped from `entry.script` before passing to `writeCache`, so files land at `~/.scriptor/cache/<owner>/<repo>/scripts/Debian/13/install-bun.sh` — mirroring the git repo's directory structure.
+- When the user declines the update prompt (cache-hit path), no script download occurs; existing cached scripts are used as-is.
+- Local mode never downloads scripts (reads from disk).
 
 ## Architecture Patterns
 - Config file: `~/.scriptor/config` (YAML via `js-yaml`; missing/corrupt → silent empty config)

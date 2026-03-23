@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "bun:test";
 import { AuthRequired, NetworkError } from "../github/githubClient.js";
-import type { OrchestratorDeps } from "./orchestrator.js";
+import type { OrchestratorDeps, StartupOptions } from "./orchestrator.js";
 import { runStartup } from "./orchestrator.js";
 
 // ---------------------------------------------------------------------------
@@ -17,13 +17,14 @@ import { runStartup } from "./orchestrator.js";
 const CACHED_MANIFEST = "scripts:\n  - id: test-script";
 const FETCHED_MANIFEST = "scripts:\n  - id: fetched-script";
 
+const FAKE_HOST = { platform: "linux" as const, arch: "x86" as const };
+const DEFAULT_OPTS: StartupOptions = { host: FAKE_HOST };
+
 /**
  * Builds a complete fake deps object with sensible defaults (cache present,
- * no token, confirm resolves true, fetch succeeds).
+ * no token, confirm resolves true, fetch succeeds, no scripts to download).
  * Override individual properties to test specific branches.
  */
-const FAKE_HOST = { platform: "linux" as const, arch: "x86" as const };
-
 function makeDeps(overrides: Partial<OrchestratorDeps> = {}): OrchestratorDeps {
 	return {
 		readConfig: async () => ({}),
@@ -32,6 +33,8 @@ function makeDeps(overrides: Partial<OrchestratorDeps> = {}): OrchestratorDeps {
 		readManifest: async () => CACHED_MANIFEST,
 		writeCache: async () => {},
 		fetchManifest: async () => FETCHED_MANIFEST,
+		fetchScript: async () => "#!/bin/bash\necho hello",
+		parseAndFilterScripts: () => [],
 		readLocalManifest: async () => ({
 			manifest: FETCHED_MANIFEST,
 			gitRoot: "/fake/git/root",
@@ -39,11 +42,9 @@ function makeDeps(overrides: Partial<OrchestratorDeps> = {}): OrchestratorDeps {
 		keychainGet: async () => null,
 		keychainSet: async () => {},
 		runDeviceFlow: async () => "new-token",
-		detectHost: async () => FAKE_HOST,
 		confirmRepoSwitch: async () => true,
 		promptCheckUpdates: async () => false,
 		showFetchProgress: async (_label, fn) => fn(),
-		showHostInfo: () => {},
 		showFatalError: (_msg) => {
 			throw new Error("showFatalError called");
 		},
@@ -67,7 +68,7 @@ describe("repo resolution — default repo", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(fetchedOwner).toBe("beolson");
 		expect(fetchedName).toBe("Scriptor");
 	});
@@ -82,7 +83,7 @@ describe("repo resolution — default repo", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(fetchedOwner).toBe("owner");
 	});
 
@@ -97,7 +98,7 @@ describe("repo resolution — default repo", () => {
 			},
 		});
 		await runStartup(
-			{ repo: { owner: "flag-owner", name: "flag-repo" } },
+			{ host: FAKE_HOST, repo: { owner: "flag-owner", name: "flag-repo" } },
 			deps,
 		);
 		expect(fetchedOwner).toBe("flag-owner");
@@ -120,7 +121,10 @@ describe("repo switch — flag differs from config", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({ repo: { owner: "new", name: "repo" } }, deps);
+		await runStartup(
+			{ host: FAKE_HOST, repo: { owner: "new", name: "repo" } },
+			deps,
+		);
 		expect(confirmCalled).toBe(true);
 	});
 
@@ -135,7 +139,10 @@ describe("repo switch — flag differs from config", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({ repo: { owner: "new", name: "repo" } }, deps);
+		await runStartup(
+			{ host: FAKE_HOST, repo: { owner: "new", name: "repo" } },
+			deps,
+		);
 		expect(writtenRepo).toBe("new/repo");
 	});
 
@@ -150,7 +157,10 @@ describe("repo switch — flag differs from config", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({ repo: { owner: "new", name: "repo" } }, deps);
+		await runStartup(
+			{ host: FAKE_HOST, repo: { owner: "new", name: "repo" } },
+			deps,
+		);
 		expect(writeConfigCalled).toBe(false);
 	});
 
@@ -165,7 +175,10 @@ describe("repo switch — flag differs from config", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({ repo: { owner: "new", name: "repo" } }, deps);
+		await runStartup(
+			{ host: FAKE_HOST, repo: { owner: "new", name: "repo" } },
+			deps,
+		);
 		expect(fetchedOwner).toBe("old");
 	});
 
@@ -180,7 +193,10 @@ describe("repo switch — flag differs from config", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({ repo: { owner: "same", name: "repo" } }, deps);
+		await runStartup(
+			{ host: FAKE_HOST, repo: { owner: "same", name: "repo" } },
+			deps,
+		);
 		expect(confirmCalled).toBe(false);
 	});
 
@@ -195,7 +211,7 @@ describe("repo switch — flag differs from config", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(confirmCalled).toBe(false);
 	});
 });
@@ -211,7 +227,7 @@ describe("cache-first startup", () => {
 			readManifest: async () => CACHED_MANIFEST,
 			promptCheckUpdates: async () => false,
 		});
-		const result = await runStartup({}, deps);
+		const result = await runStartup(DEFAULT_OPTS, deps);
 		expect(result.manifest).toBe(CACHED_MANIFEST);
 	});
 
@@ -224,7 +240,7 @@ describe("cache-first startup", () => {
 				return false;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(promptCalled).toBe(true);
 	});
 
@@ -238,7 +254,7 @@ describe("cache-first startup", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(fetchCalled).toBe(false);
 	});
 
@@ -252,7 +268,7 @@ describe("cache-first startup", () => {
 				writeCacheCalled = true;
 			},
 		});
-		const result = await runStartup({}, deps);
+		const result = await runStartup(DEFAULT_OPTS, deps);
 		expect(result.manifest).toBe(FETCHED_MANIFEST);
 		expect(writeCacheCalled).toBe(true);
 	});
@@ -273,7 +289,7 @@ describe("first run — no cache", () => {
 			},
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(promptCalled).toBe(false);
 	});
 
@@ -282,7 +298,7 @@ describe("first run — no cache", () => {
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
-		const result = await runStartup({}, deps);
+		const result = await runStartup(DEFAULT_OPTS, deps);
 		expect(result.manifest).toBe(FETCHED_MANIFEST);
 	});
 
@@ -295,7 +311,7 @@ describe("first run — no cache", () => {
 				writeCacheCalled = true;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(writeCacheCalled).toBe(true);
 	});
 
@@ -312,7 +328,7 @@ describe("first run — no cache", () => {
 			},
 		});
 		try {
-			await runStartup({}, deps);
+			await runStartup(DEFAULT_OPTS, deps);
 		} catch (err) {
 			if ((err as Error).message !== "__FATAL__") throw err;
 		}
@@ -335,7 +351,7 @@ describe("token — stored token sent proactively", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(tokenUsed).toBe("stored-token");
 	});
 
@@ -349,7 +365,7 @@ describe("token — stored token sent proactively", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(tokenUsed).toBeUndefined();
 	});
 });
@@ -373,7 +389,7 @@ describe("OAuth — triggered on AuthRequired", () => {
 				return "new-token";
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(deviceFlowCalled).toBe(true);
 	});
 
@@ -387,7 +403,7 @@ describe("OAuth — triggered on AuthRequired", () => {
 			},
 			runDeviceFlow: async () => "new-token",
 		});
-		const result = await runStartup({}, deps);
+		const result = await runStartup(DEFAULT_OPTS, deps);
 		expect(result.manifest).toBe(FETCHED_MANIFEST);
 	});
 
@@ -405,7 +421,7 @@ describe("OAuth — triggered on AuthRequired", () => {
 				storedToken = value;
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(storedToken).toBe("new-token");
 	});
 
@@ -415,7 +431,6 @@ describe("OAuth — triggered on AuthRequired", () => {
 			keychainGet: async () => "expired-token",
 			cacheExists: async () => false,
 			fetchManifest: async (_repo, token) => {
-				// Both the initial call (with expired token) and potentially without token throw AuthRequired
 				if (token === "expired-token" || !token) throw new AuthRequired(401);
 				return FETCHED_MANIFEST;
 			},
@@ -424,7 +439,7 @@ describe("OAuth — triggered on AuthRequired", () => {
 				return "refreshed-token";
 			},
 		});
-		await runStartup({}, deps);
+		await runStartup(DEFAULT_OPTS, deps);
 		expect(deviceFlowCalled).toBe(true);
 	});
 
@@ -442,7 +457,7 @@ describe("OAuth — triggered on AuthRequired", () => {
 			},
 		});
 		try {
-			await runStartup({}, deps);
+			await runStartup(DEFAULT_OPTS, deps);
 		} catch (err) {
 			if ((err as Error).message !== "__FATAL__") throw err;
 		}
@@ -455,82 +470,29 @@ describe("OAuth — triggered on AuthRequired", () => {
 // ---------------------------------------------------------------------------
 
 describe("return value", () => {
-	it("returns ManifestResult with repo and manifest", async () => {
+	it("returns ManifestResult with repo, manifest, and host", async () => {
 		const deps = makeDeps({
 			cacheExists: async () => false,
 			fetchManifest: async () => FETCHED_MANIFEST,
 		});
 		const result = await runStartup(
-			{ repo: { owner: "my", name: "repo" } },
+			{ host: FAKE_HOST, repo: { owner: "my", name: "repo" } },
 			deps,
 		);
 		expect(result.manifest).toBe(FETCHED_MANIFEST);
 		expect(result.repo).toEqual({ owner: "my", name: "repo" });
-	});
-});
-
-// ---------------------------------------------------------------------------
-// Platform detection
-// ---------------------------------------------------------------------------
-
-describe("platform detection", () => {
-	it("calls detectHost on every startup", async () => {
-		let detected = false;
-		const deps = makeDeps({
-			cacheExists: async () => false,
-			detectHost: async () => {
-				detected = true;
-				return FAKE_HOST;
-			},
-		});
-		await runStartup({}, deps);
-		expect(detected).toBe(true);
+		expect(result.host).toEqual(FAKE_HOST);
 	});
 
-	it("calls showHostInfo with the detected host", async () => {
-		const customHost = { platform: "mac" as const, arch: "arm" as const };
-		let shownHost: typeof customHost | undefined;
-		const deps = makeDeps({
-			cacheExists: async () => false,
-			detectHost: async () => customHost,
-			showHostInfo: (h) => {
-				shownHost = h as typeof customHost;
-			},
-		});
-		await runStartup({}, deps);
-		expect(shownHost).toEqual(customHost);
-	});
-
-	it("calls showHostInfo before promptCheckUpdates", async () => {
-		const order: string[] = [];
-		const deps = makeDeps({
-			cacheExists: async () => true,
-			showHostInfo: () => {
-				order.push("showHostInfo");
-			},
-			promptCheckUpdates: async () => {
-				order.push("promptCheckUpdates");
-				return false;
-			},
-		});
-		await runStartup({}, deps);
-		expect(order.indexOf("showHostInfo")).toBeLessThan(
-			order.indexOf("promptCheckUpdates"),
-		);
-	});
-
-	it("propagates host in ManifestResult (normal flow)", async () => {
+	it("propagates host in ManifestResult (fetch flow)", async () => {
 		const customHost = {
 			platform: "linux" as const,
 			arch: "arm" as const,
 			distro: "Ubuntu",
 			version: "22.04",
 		};
-		const deps = makeDeps({
-			cacheExists: async () => false,
-			detectHost: async () => customHost,
-		});
-		const result = await runStartup({}, deps);
+		const deps = makeDeps({ cacheExists: async () => false });
+		const result = await runStartup({ host: customHost }, deps);
 		expect(result.host).toEqual(customHost);
 	});
 
@@ -539,38 +501,158 @@ describe("platform detection", () => {
 		const deps = makeDeps({
 			cacheExists: async () => true,
 			promptCheckUpdates: async () => false,
-			detectHost: async () => customHost,
 		});
-		const result = await runStartup({}, deps);
+		const result = await runStartup({ host: customHost }, deps);
 		expect(result.host).toEqual(customHost);
 	});
+});
 
-	it("propagates host in ManifestResult (local mode)", async () => {
-		const customHost = { platform: "mac" as const, arch: "arm" as const };
-		const deps = makeDeps({
-			detectHost: async () => customHost,
-			readLocalManifest: async () => ({
-				manifest: LOCAL_MANIFEST,
-				gitRoot: FAKE_GIT_ROOT,
-			}),
-		});
-		const result = await runStartup({ localMode: true }, deps);
-		expect(result.host).toEqual(customHost);
-	});
+// ---------------------------------------------------------------------------
+// Script downloading
+// ---------------------------------------------------------------------------
 
-	it("calls showHostInfo even in local mode", async () => {
-		let hostInfoShown = false;
+describe("script downloading", () => {
+	const LINUX_ENTRY = {
+		id: "install-bun",
+		name: "Install Bun",
+		description: "Installs Bun",
+		platform: "linux" as const,
+		arch: "x86" as const,
+		distro: "Debian GNU/Linux",
+		version: "13",
+		script: "scripts/Debian/13/install-bun.sh",
+		dependencies: [],
+		optional_dependencies: [],
+		inputs: [],
+		requires_elevation: false,
+	};
+
+	it("calls parseAndFilterScripts with fetched manifest and host", async () => {
+		let capturedManifest: string | undefined;
+		let capturedHost: unknown;
 		const deps = makeDeps({
-			showHostInfo: () => {
-				hostInfoShown = true;
+			cacheExists: async () => false,
+			fetchManifest: async () => FETCHED_MANIFEST,
+			parseAndFilterScripts: (manifest, host) => {
+				capturedManifest = manifest;
+				capturedHost = host;
+				return [];
 			},
-			readLocalManifest: async () => ({
-				manifest: LOCAL_MANIFEST,
-				gitRoot: FAKE_GIT_ROOT,
-			}),
 		});
-		await runStartup({ localMode: true }, deps);
-		expect(hostInfoShown).toBe(true);
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(capturedManifest).toBe(FETCHED_MANIFEST);
+		expect(capturedHost).toEqual(FAKE_HOST);
+	});
+
+	it("calls fetchScript for each entry returned by parseAndFilterScripts", async () => {
+		const fetchedPaths: string[] = [];
+		const deps = makeDeps({
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async (_repo, path) => {
+				fetchedPaths.push(path);
+				return "#!/bin/bash";
+			},
+		});
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(fetchedPaths).toContain("scripts/Debian/13/install-bun.sh");
+	});
+
+	it("strips scripts/ prefix when building cache key", async () => {
+		let writtenScripts: Map<string, string> | undefined;
+		const deps = makeDeps({
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async () => "#!/bin/bash",
+			writeCache: async (_repo, _manifest, scripts) => {
+				writtenScripts = scripts;
+			},
+		});
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(writtenScripts?.has("Debian/13/install-bun.sh")).toBe(true);
+		expect(writtenScripts?.has("scripts/Debian/13/install-bun.sh")).toBe(false);
+	});
+
+	it("passes scripts map to writeCache", async () => {
+		let writtenScripts: Map<string, string> | undefined;
+		const deps = makeDeps({
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async () => "#!/bin/bash\necho bun",
+			writeCache: async (_repo, _manifest, scripts) => {
+				writtenScripts = scripts;
+			},
+		});
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(writtenScripts?.get("Debian/13/install-bun.sh")).toBe(
+			"#!/bin/bash\necho bun",
+		);
+	});
+
+	it("retries fetchScript on failure and succeeds on 2nd attempt", async () => {
+		let attempts = 0;
+		const deps = makeDeps({
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async () => {
+				attempts++;
+				if (attempts < 2) throw new NetworkError("transient");
+				return "#!/bin/bash";
+			},
+		});
+		// Should not throw — retry succeeds
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(attempts).toBe(2);
+	});
+
+	it("calls showFatalError after all retries exhausted (no cache)", async () => {
+		let fatalCalled = false;
+		const deps = makeDeps({
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async () => {
+				throw new NetworkError("always fails");
+			},
+			showFatalError: (_msg) => {
+				fatalCalled = true;
+				throw new Error("__FATAL__");
+			},
+		});
+		try {
+			await runStartup(DEFAULT_OPTS, deps);
+		} catch (err) {
+			if ((err as Error).message !== "__FATAL__") throw err;
+		}
+		expect(fatalCalled).toBe(true);
+	});
+
+	it("does not call fetchScript when user declines cache update", async () => {
+		let fetchScriptCalled = false;
+		const deps = makeDeps({
+			cacheExists: async () => true,
+			promptCheckUpdates: async () => false,
+			fetchScript: async () => {
+				fetchScriptCalled = true;
+				return "#!/bin/bash";
+			},
+		});
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(fetchScriptCalled).toBe(false);
+	});
+
+	it("passes token to fetchScript", async () => {
+		let tokenUsed: string | undefined;
+		const deps = makeDeps({
+			keychainGet: async () => "my-token",
+			cacheExists: async () => false,
+			parseAndFilterScripts: () => [LINUX_ENTRY],
+			fetchScript: async (_repo, _path, token) => {
+				tokenUsed = token;
+				return "#!/bin/bash";
+			},
+		});
+		await runStartup(DEFAULT_OPTS, deps);
+		expect(tokenUsed).toBe("my-token");
 	});
 });
 
@@ -589,7 +671,7 @@ describe("local mode", () => {
 				gitRoot: FAKE_GIT_ROOT,
 			}),
 		});
-		const result = await runStartup({ localMode: true }, deps);
+		const result = await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(result.manifest).toBe(LOCAL_MANIFEST);
 	});
 
@@ -600,7 +682,7 @@ describe("local mode", () => {
 				gitRoot: FAKE_GIT_ROOT,
 			}),
 		});
-		const result = await runStartup({ localMode: true }, deps);
+		const result = await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(result.localRoot).toBe(FAKE_GIT_ROOT);
 	});
 
@@ -611,8 +693,23 @@ describe("local mode", () => {
 				gitRoot: FAKE_GIT_ROOT,
 			}),
 		});
-		const result = await runStartup({ localMode: true }, deps);
+		const result = await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(result.repo).toEqual({ owner: "local", name: "local" });
+	});
+
+	it("propagates host in ManifestResult", async () => {
+		const customHost = { platform: "mac" as const, arch: "arm" as const };
+		const deps = makeDeps({
+			readLocalManifest: async () => ({
+				manifest: LOCAL_MANIFEST,
+				gitRoot: FAKE_GIT_ROOT,
+			}),
+		});
+		const result = await runStartup(
+			{ host: customHost, localMode: true },
+			deps,
+		);
+		expect(result.host).toEqual(customHost);
 	});
 
 	it("does not call fetchManifest", async () => {
@@ -627,7 +724,7 @@ describe("local mode", () => {
 				return FETCHED_MANIFEST;
 			},
 		});
-		await runStartup({ localMode: true }, deps);
+		await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(fetchCalled).toBe(false);
 	});
 
@@ -643,7 +740,7 @@ describe("local mode", () => {
 				return null;
 			},
 		});
-		await runStartup({ localMode: true }, deps);
+		await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(keychainCalled).toBe(false);
 	});
 
@@ -659,7 +756,7 @@ describe("local mode", () => {
 				return true;
 			},
 		});
-		await runStartup({ localMode: true }, deps);
+		await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(promptCalled).toBe(false);
 	});
 
@@ -679,7 +776,7 @@ describe("local mode", () => {
 				writeConfigCalled = true;
 			},
 		});
-		await runStartup({ localMode: true }, deps);
+		await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(readConfigCalled).toBe(false);
 		expect(writeConfigCalled).toBe(false);
 	});
@@ -700,7 +797,7 @@ describe("local mode", () => {
 				writeCacheCalled = true;
 			},
 		});
-		await runStartup({ localMode: true }, deps);
+		await runStartup({ host: FAKE_HOST, localMode: true }, deps);
 		expect(cacheExistsCalled).toBe(false);
 		expect(writeCacheCalled).toBe(false);
 	});
@@ -712,8 +809,8 @@ describe("local mode", () => {
 				throw new LocalRepoError("Not in a git repo");
 			},
 		});
-		await expect(runStartup({ localMode: true }, deps)).rejects.toThrow(
-			"Not in a git repo",
-		);
+		await expect(
+			runStartup({ host: FAKE_HOST, localMode: true }, deps),
+		).rejects.toThrow("Not in a git repo");
 	});
 });

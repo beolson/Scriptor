@@ -29,7 +29,9 @@ type FakeManifestResult = {
 };
 
 interface ProgramDeps {
+	detectHost: () => Promise<FakeHost>;
 	runStartup: (opts: {
+		host: FakeHost;
 		repo?: { owner: string; name: string };
 		localMode?: boolean;
 	}) => Promise<FakeManifestResult>;
@@ -59,6 +61,7 @@ const DEFAULT_SELECTION_RESULT: ScriptSelectionResult = {
 
 function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
 	return {
+		detectHost: async () => DEFAULT_HOST,
 		runStartup: async () => DEFAULT_MANIFEST_RESULT,
 		runScriptSelection: async () => DEFAULT_SELECTION_RESULT,
 		handleApplyUpdate: async (_path: string): Promise<never> => {
@@ -310,6 +313,67 @@ describe("intro and outro", () => {
 		const program = buildProgram(deps);
 		await program.parseAsync([], { from: "user" });
 		expect(outroCalled).toBe(true);
+	});
+
+	it("intro title contains 'Scriptor' and host info on the same line", async () => {
+		let capturedTitle: string | undefined;
+		const deps = makeDeps({
+			detectHost: async () => ({
+				platform: "linux" as const,
+				arch: "x86" as const,
+				distro: "Debian GNU/Linux",
+				version: "13",
+			}),
+			intro: (title) => {
+				capturedTitle = title;
+			},
+		});
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+		expect(capturedTitle).toContain("Scriptor");
+		expect(capturedTitle).toContain("[linux / x86 / Debian GNU/Linux 13]");
+		// Both on a single string (no newline separator)
+		expect(capturedTitle?.includes("\n")).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// detectHost wiring
+// ---------------------------------------------------------------------------
+
+describe("detectHost wiring", () => {
+	it("calls detectHost before runStartup", async () => {
+		const order: string[] = [];
+		const deps = makeDeps({
+			detectHost: async () => {
+				order.push("detectHost");
+				return DEFAULT_HOST;
+			},
+			runStartup: async () => {
+				order.push("runStartup");
+				return DEFAULT_MANIFEST_RESULT;
+			},
+		});
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+		expect(order.indexOf("detectHost")).toBeLessThan(
+			order.indexOf("runStartup"),
+		);
+	});
+
+	it("passes detected host to runStartup", async () => {
+		const customHost = { platform: "mac" as const, arch: "arm" as const };
+		let capturedHost: FakeHost | undefined;
+		const deps = makeDeps({
+			detectHost: async () => customHost,
+			runStartup: async (opts) => {
+				capturedHost = opts.host;
+				return { ...DEFAULT_MANIFEST_RESULT, host: customHost };
+			},
+		});
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+		expect(capturedHost).toEqual(customHost);
 	});
 });
 

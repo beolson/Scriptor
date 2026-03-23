@@ -8,18 +8,23 @@
 // ---------------------------------------------------------------------------
 
 import { Command, Option } from "commander";
+import type { HostInfo } from "./host/types.js";
 import type { ScriptSelectionResult } from "./manifest/types.js";
 import { parseRepo } from "./repo/parseRepo.js";
 import type { Repo } from "./repo/types.js";
 import type { ManifestResult } from "./startup/orchestrator.js";
+import { formatHostInfo } from "./startup/screens.js";
 
 // ---------------------------------------------------------------------------
 // Injectable deps
 // ---------------------------------------------------------------------------
 
 export interface ProgramDeps {
+	/** Detect the host platform/arch/distro before the intro title is shown. */
+	detectHost: () => Promise<HostInfo>;
 	/** Run the startup orchestration sequence. */
 	runStartup: (opts: {
+		host: HostInfo;
 		repo?: Repo;
 		localMode?: boolean;
 	}) => Promise<ManifestResult>;
@@ -86,10 +91,12 @@ export function buildProgram(deps: ProgramDeps): Command {
 					return;
 				}
 
-				deps.intro("Scriptor");
+				const host = await deps.detectHost();
+				deps.intro(`Scriptor ${formatHostInfo(host)}`);
 
 				const isLocal = options.repo === "local";
 				const result = await deps.runStartup({
+					host,
 					repo: isLocal ? undefined : (options.repo as Repo | undefined),
 					localMode: isLocal || undefined,
 				});

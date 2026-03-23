@@ -141,25 +141,21 @@ export function showOAuthPrompt(
 }
 
 // ---------------------------------------------------------------------------
-// showHostInfo
+// formatHostInfo
 // ---------------------------------------------------------------------------
 
 /**
- * Logs the detected host info as a single info line.
+ * Returns a formatted host info string suitable for embedding in a title line.
  *
  * Format: [linux / x86 / Debian GNU/Linux 13]
  *         [mac / arm]
  */
-export function showHostInfo(
-	host: HostInfo,
-	deps?: Partial<ScreensDeps>,
-): void {
-	const clack = resolveClack(deps);
+export function formatHostInfo(host: HostInfo): string {
 	const parts: string[] = [host.platform, host.arch];
 	if (host.distro) {
 		parts.push(host.version ? `${host.distro} ${host.version}` : host.distro);
 	}
-	clack.log.info(`[${parts.join(" / ")}]`);
+	return `[${parts.join(" / ")}]`;
 }
 
 // ---------------------------------------------------------------------------

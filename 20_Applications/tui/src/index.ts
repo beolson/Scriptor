@@ -13,6 +13,10 @@ import { handleApplyUpdate } from "./update/applyUpdateHandler.js";
 
 async function main(): Promise<void> {
 	const program = buildProgram({
+		detectHost: async () => {
+			const { detectHost } = await import("./host/detectHost.js");
+			return detectHost();
+		},
 		runStartup,
 		runScriptSelection: async (result) => {
 			const { runScriptSelection } = await import(

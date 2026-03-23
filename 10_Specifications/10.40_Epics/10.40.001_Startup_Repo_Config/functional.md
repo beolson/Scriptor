@@ -48,11 +48,11 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 - [ ] If `~/.scriptor/cache/` contains a valid cached manifest for the current repo, Scriptor loads from cache and proceeds to the script list without any network call.
 - [ ] After loading from cache, the user is shown a prompt: "Check for updates?" that covers both the manifest and the Scriptor binary.
 - [ ] If the user declines the update prompt, Scriptor proceeds with cached data.
-- [ ] If the user accepts the update prompt, Scriptor fetches the latest `scriptor.yaml` and all script files from GitHub, replaces the cache, and also checks for a newer Scriptor binary release.
+- [ ] If the user accepts the update prompt, Scriptor fetches the latest `scriptor.yaml` and all script files matching the current platform from GitHub, replaces the cache, and also checks for a newer Scriptor binary release.
 
 ### First Run (No Cache)
 
-- [ ] If no cache exists for the current repo, Scriptor downloads `scriptor.yaml` and all script files immediately without prompting.
+- [ ] If no cache exists for the current repo, Scriptor downloads `scriptor.yaml` and all script files matching the current platform immediately without prompting.
 - [ ] If the network is unavailable and there is no cache, Scriptor displays a clear fatal error message and exits with a non-zero code.
 
 ### Binary Self-Update
@@ -88,7 +88,7 @@ Scriptor detects the host platform, architecture, and (on Linux) distribution at
 
 ### User Stories
 
-- **Host info display**: As a user, I see the detected platform, architecture, and (on Linux) distro/version displayed as a single info line at startup, before any prompts appear, so I know Scriptor has correctly identified my machine.
+- **Host info display**: As a user, I see the detected platform, architecture, and (on Linux) distro/version displayed on the same line as the Scriptor title at startup, so I know Scriptor has correctly identified my machine before any prompts appear.
 
 ### Acceptance Criteria
 
@@ -98,7 +98,7 @@ Scriptor detects the host platform, architecture, and (on Linux) distribution at
 - [ ] On Linux, `NAME` and `VERSION_ID` fields are read from `/etc/os-release` (stripping surrounding quotes).
 - [ ] If `/etc/os-release` is missing or unreadable on Linux, startup continues without distro/version (non-fatal).
 - [ ] Non-Linux platforms do not include distro or version fields.
-- [ ] Detected host is displayed via `log.info()` before the "Check for updates?" prompt and before the first-run fetch.
+- [ ] Detected host is embedded in the `intro()` title on the same line as "Scriptor", before any prompts appear — e.g. `Scriptor [linux / x86 / Debian GNU/Linux 13]`.
 - [ ] Display format: `[linux / x86 / Debian GNU/Linux 13]` on Linux with distro+version, `[linux / arm / Arch Linux]` with distro only, `[linux / x86]` without distro, `[mac / arm]` or `[windows / x86]` on non-Linux.
 - [ ] `ManifestResult` includes a `host: HostInfo` field so downstream phases (script selection) can use the detected platform for filtering without re-detecting.
 
