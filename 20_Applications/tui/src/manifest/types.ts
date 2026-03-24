@@ -59,11 +59,37 @@ export interface ScriptEntry {
 export type Manifest = ScriptEntry[];
 
 // ---------------------------------------------------------------------------
-// ScriptInputs (placeholder)
+// CollectedInput
 // ---------------------------------------------------------------------------
 
-/** Placeholder for the future input-collection epic. */
-export type ScriptInputs = Map<string, string>;
+/**
+ * A single collected input value.
+ * - For string/number inputs: `value` holds the typed string (numbers stored as strings).
+ * - For ssl-cert inputs: `value` holds `inputDef.download_path` and `certCN` holds the CN
+ *   of the selected certificate.
+ */
+export interface CollectedInput {
+	value: string;
+	/** Only present for ssl-cert inputs: the CN of the selected certificate. */
+	certCN?: string;
+}
+
+// ---------------------------------------------------------------------------
+// ScriptInputs
+// ---------------------------------------------------------------------------
+
+/** Maps input definition IDs to their collected values. */
+export type ScriptInputs = Map<string, CollectedInput>;
+
+// ---------------------------------------------------------------------------
+// PreExecutionResult
+// ---------------------------------------------------------------------------
+
+/** Returned by the pre-execution orchestrator after input collection and confirmation. */
+export interface PreExecutionResult {
+	orderedScripts: ScriptEntry[];
+	inputs: ScriptInputs;
+}
 
 // ---------------------------------------------------------------------------
 // ScriptSelectionResult

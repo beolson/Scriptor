@@ -39,7 +39,8 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 - [ ] `--repo=local` fails with a clear fatal error if the current directory is not inside a git repository.
 - [ ] `--repo=local` fails with a clear fatal error if `scriptor.yaml` is not found at the git root.
 - [ ] If `--repo` is provided and differs from the stored config value, the user is prompted to confirm before the config is updated.
-- [ ] If the user declines the repo switch prompt, Scriptor continues with the previously stored (or default) repo.
+- [ ] If the user declines the repo switch prompt (explicit No), Scriptor continues with the previously stored (or default) repo.
+- [ ] If the user presses Esc or Ctrl+C at the repo switch prompt, Scriptor prints "User canceled." and exits with code 0.
 - [ ] Resolved repo priority: `--repo` flag → stored `~/.scriptor/config` `repo` field → default `beolson/Scriptor`.
 - [ ] `~/.scriptor/config` is YAML. Missing file, corrupt YAML, or non-object values silently fall back to an empty config with no error.
 
@@ -47,7 +48,8 @@ Scriptor is useful beyond its default repository. Both individual developers (wh
 
 - [ ] If `~/.scriptor/cache/` contains a valid cached manifest for the current repo, Scriptor loads from cache and proceeds to the script list without any network call.
 - [ ] After loading from cache, the user is shown a prompt: "Check for updates?" that covers both the manifest and the Scriptor binary.
-- [ ] If the user declines the update prompt, Scriptor proceeds with cached data.
+- [ ] If the user declines the update prompt (explicit No), Scriptor proceeds with cached data.
+- [ ] If the user presses Esc or Ctrl+C at the update prompt, Scriptor prints "User canceled." and exits with code 0.
 - [ ] If the user accepts the update prompt, Scriptor fetches the latest `scriptor.yaml` and all script files matching the current platform from GitHub, replaces the cache, and also checks for a newer Scriptor binary release.
 
 ### First Run (No Cache)

@@ -149,3 +149,19 @@ Replace the `log.success()` stub in `program.ts` with a call to `runScriptSelect
 - **RED:** Update `src/index.test.ts` — add `runScriptSelection` to the fake `ProgramDeps`; add a test asserting `runScriptSelection` is called with the `ManifestResult` returned by `runStartup`; run tests to confirm they fail before wiring
 - **GREEN:** Update `ProgramDeps` and the action handler in `program.ts`; all existing tests still pass
 - Cover: runScriptSelection called with ManifestResult returned by runStartup, runScriptSelection not called when --apply-update flag is present
+
+---
+
+## Change: Esc/Ctrl+C exits at all prompts (2026-03-24)
+
+**Summary:** Cancel at the main menu and individual-select list now prints "User canceled." and exits immediately instead of being silently treated as a valid selection.
+
+**Files modified:**
+- `20_Applications/tui/src/script-selection/screens.ts` — `ClackDeps` gained `isCancel`/`cancel`; `showMainMenu` and `showIndividualSelect` call `clack.cancel("User canceled.")` then `exit(0)` on symbol; `defaultClack` wired with `clackPrompts.isCancel` and `clackPrompts.cancel`
+- `20_Applications/tui/src/script-selection/screens.test.ts` — `makeClack` gains `isCancel`/`cancel`; `_CANCEL` renamed to `CANCEL`; cancel-exit tests added for both `showMainMenu` and `showIndividualSelect`
+
+**Spec updates:**
+- `functional.md` — added Esc-exits criteria for main menu and individual-select list
+
+**Tests added/modified:**
+- `20_Applications/tui/src/script-selection/screens.test.ts` — cancel-exit tests added for `showMainMenu` and `showIndividualSelect`

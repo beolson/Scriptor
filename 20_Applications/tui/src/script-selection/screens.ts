@@ -28,6 +28,8 @@ export interface ClackDeps {
 		warn: (message: string) => void;
 		info: (message: string) => void;
 	};
+	isCancel: (val: unknown) => val is symbol;
+	cancel: (hint?: string) => void;
 }
 
 export interface ScreensDeps {
@@ -54,6 +56,8 @@ const defaultClack: ClackDeps = {
 		warn: clackPrompts.log.warn,
 		info: clackPrompts.log.info,
 	},
+	isCancel: clackPrompts.isCancel,
+	cancel: clackPrompts.cancel,
 };
 
 function resolveClack(deps?: ScreensDeps): ClackDeps {
@@ -90,6 +94,7 @@ export async function showMainMenu(
 	deps?: ScreensDeps,
 ): Promise<"individual" | string> {
 	const clack = resolveClack(deps);
+	const exit = deps?.exit ?? ((code: number) => process.exit(code));
 
 	const options: Array<{ value: string; label: string }> = [
 		...groups.map((g) => ({ value: g, label: g })),
@@ -104,14 +109,17 @@ export async function showMainMenu(
 			options,
 		});
 
-		const selection = typeof result === "symbol" ? INDIVIDUAL_VALUE : result;
+		if (clack.isCancel(result)) {
+			clack.cancel("User canceled.");
+			return exit(0);
+		}
 
-		if (selection === SETTINGS_VALUE) {
+		if (result === SETTINGS_VALUE) {
 			clack.log.info("Settings coming soon.");
 			continue;
 		}
 
-		return selection as "individual" | string;
+		return result as "individual" | string;
 	}
 }
 
@@ -136,14 +144,17 @@ export async function showIndividualSelect(
 		hint: s.description,
 	}));
 
+	const exit = deps?.exit ?? ((code: number) => process.exit(code));
+
 	const result = await clack.multiselect({
 		message: "Select scripts to install:",
 		options,
 		initialValues: [],
 	});
 
-	if (typeof result === "symbol") {
-		return [];
+	if (clack.isCancel(result)) {
+		clack.cancel("User canceled.");
+		return exit(0);
 	}
 
 	return result;

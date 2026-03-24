@@ -53,6 +53,8 @@ function makeClack(
 			},
 			info: (_message: string) => {},
 		},
+		isCancel: (val: unknown): val is symbol => typeof val === "symbol",
+		cancel: (_hint?: string) => {},
 		// exposed for assertions
 		confirmCalls,
 		noteCalls,
@@ -83,14 +85,25 @@ describe("confirmRepoSwitch — returns true", () => {
 	});
 });
 
-describe("confirmRepoSwitch — returns false on cancel", () => {
-	it("returns false when confirm returns the cancel symbol", async () => {
+describe("confirmRepoSwitch — cancel symbol exits", () => {
+	it("calls exit(0) when confirm returns the cancel symbol", async () => {
+		let exitCode: number | undefined;
 		const clack = makeClack({ confirmResult: CANCEL });
-		const result = await confirmRepoSwitch("old/repo", "new/repo", { clack });
-		expect(result).toBe(false);
+		try {
+			await confirmRepoSwitch("old/repo", "new/repo", {
+				clack,
+				exit: (code) => {
+					exitCode = code;
+					throw new Error(`exit:${code}`);
+				},
+			});
+		} catch (err) {
+			if (!(err as Error).message.startsWith("exit:")) throw err;
+		}
+		expect(exitCode).toBe(0);
 	});
 
-	it("returns false when confirm returns false", async () => {
+	it("returns false when confirm returns false (explicit No)", async () => {
 		const clack = makeClack({ confirmResult: false });
 		const result = await confirmRepoSwitch("old/repo", "new/repo", { clack });
 		expect(result).toBe(false);
@@ -109,14 +122,25 @@ describe("promptCheckUpdates — returns true", () => {
 	});
 });
 
-describe("promptCheckUpdates — returns false on cancel", () => {
-	it("returns false when confirm returns the cancel symbol", async () => {
+describe("promptCheckUpdates — cancel symbol exits", () => {
+	it("calls exit(0) when confirm returns the cancel symbol", async () => {
+		let exitCode: number | undefined;
 		const clack = makeClack({ confirmResult: CANCEL });
-		const result = await promptCheckUpdates({ clack });
-		expect(result).toBe(false);
+		try {
+			await promptCheckUpdates({
+				clack,
+				exit: (code) => {
+					exitCode = code;
+					throw new Error(`exit:${code}`);
+				},
+			});
+		} catch (err) {
+			if (!(err as Error).message.startsWith("exit:")) throw err;
+		}
+		expect(exitCode).toBe(0);
 	});
 
-	it("returns false when confirm returns false", async () => {
+	it("returns false when confirm returns false (explicit No)", async () => {
 		const clack = makeClack({ confirmResult: false });
 		const result = await promptCheckUpdates({ clack });
 		expect(result).toBe(false);
@@ -198,6 +222,24 @@ describe("showFetchProgress", () => {
 			// expected
 		}
 		expect(stopCalls).toHaveLength(1);
+	});
+
+	it("passes stopLabel to spin.stop when provided", async () => {
+		const stopCalls: Array<string | undefined> = [];
+		const clack = makeClack();
+		clack.spinner = () => ({
+			start: (_msg?: string) => {},
+			stop: (msg?: string, _code?: number) => {
+				stopCalls.push(msg);
+			},
+		});
+		await showFetchProgress(
+			"label",
+			async () => "done",
+			{ clack },
+			"Scripts updated",
+		);
+		expect(stopCalls[0]).toBe("Scripts updated");
 	});
 });
 

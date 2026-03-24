@@ -56,6 +56,7 @@ A user's setup machine may be Linux, Mac, or Windows, with different distros and
 - [ ] If the filtered script list is empty (no scripts match this host), display "No scripts available for {hostLabel}" via `log.warn()` and exit cleanly with code 0.
 - [ ] Groups whose every script was filtered out for the current host do not appear as menu options.
 - [ ] Ungrouped scripts (no `group` field) are accessible only via "Individual scripts" — they do not generate a menu option.
+- [ ] If the user presses Esc or Ctrl+C at the main menu, Scriptor prints "User canceled." and exits with code 0.
 
 ### Script List Screen — Group Selection
 
@@ -69,6 +70,7 @@ A user's setup machine may be Linux, Mac, or Windows, with different distros and
 - [ ] Each option label is the script `name`; hint text shows the `description`.
 - [ ] Already-installed scripts are shown in the list with an `[installed]` suffix in the label but are not pre-checked.
 - [ ] The user can explicitly check an installed script to force a re-run.
+- [ ] If the user presses Esc or Ctrl+C at the individual-select list, Scriptor prints "User canceled." and exits with code 0.
 - [ ] `resolveDependencies` is called on the user's selection before advancing.
 
 ### Dependency Resolution

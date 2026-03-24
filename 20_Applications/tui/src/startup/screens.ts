@@ -26,6 +26,8 @@ export interface ClackDeps {
 		error: (message: string) => void;
 		info: (message: string) => void;
 	};
+	isCancel: (val: unknown) => val is symbol;
+	cancel: (hint?: string) => void;
 }
 
 export interface ScreensDeps {
@@ -42,6 +44,8 @@ const defaultClack: ClackDeps = {
 		error: clackPrompts.log.error,
 		info: clackPrompts.log.info,
 	},
+	isCancel: clackPrompts.isCancel,
+	cancel: clackPrompts.cancel,
 };
 
 function resolveClack(deps?: Partial<ScreensDeps>): ClackDeps {
@@ -63,14 +67,15 @@ export async function confirmRepoSwitch(
 	deps?: Partial<ScreensDeps>,
 ): Promise<boolean> {
 	const clack = resolveClack(deps);
+	const exit = deps?.exit ?? ((code: number) => process.exit(code));
 	const result = await clack.confirm({
 		message: `Switch repo from ${oldRepo} to ${newRepo}?`,
 	});
-	// A symbol result means the user cancelled (Ctrl-C); false means explicit "no".
-	if (typeof result !== "boolean" || result === false) {
-		return false;
+	if (clack.isCancel(result)) {
+		clack.cancel("User canceled.");
+		return exit(0);
 	}
-	return true;
+	return result === true;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,12 +91,13 @@ export async function promptCheckUpdates(
 	deps?: Partial<ScreensDeps>,
 ): Promise<boolean> {
 	const clack = resolveClack(deps);
+	const exit = deps?.exit ?? ((code: number) => process.exit(code));
 	const result = await clack.confirm({ message: "Check for updates?" });
-	// A symbol result means the user cancelled (Ctrl-C); false means explicit "no".
-	if (typeof result !== "boolean" || result === false) {
-		return false;
+	if (clack.isCancel(result)) {
+		clack.cancel("User canceled.");
+		return exit(0);
 	}
-	return true;
+	return result === true;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,13 +113,14 @@ export async function showFetchProgress<T>(
 	label: string,
 	fn: () => Promise<T>,
 	deps?: Partial<ScreensDeps>,
+	stopLabel?: string,
 ): Promise<T> {
 	const clack = resolveClack(deps);
 	const spin = clack.spinner();
 	spin.start(label);
 	try {
 		const result = await fn();
-		spin.stop();
+		spin.stop(stopLabel);
 		return result;
 	} catch (err) {
 		spin.stop();

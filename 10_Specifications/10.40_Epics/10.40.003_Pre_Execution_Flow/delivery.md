@@ -6,7 +6,7 @@ _TDD methodology: write failing tests first (red), then implement to make them p
 
 ## Task 1 — Types: CollectedInput, ScriptInputs, PreExecutionResult
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Update `src/manifest/types.ts` to replace the `ScriptInputs` placeholder with the fully-typed `CollectedInput` structure, and add `PreExecutionResult` as the return type for the pre-execution orchestrator (Technical: TypeScript Types).
@@ -29,7 +29,7 @@ Update `src/manifest/types.ts` to replace the `ScriptInputs` placeholder with th
 
 ## Task 2 — SSL Helpers: Pure Parsing Functions
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the pure, I/O-free helper functions used by the SSL certificate chain walking logic (Technical: SSL Certificate Implementation).
@@ -50,7 +50,7 @@ Implement the pure, I/O-free helper functions used by the SSL certificate chain 
 
 ## Task 3 — SSL Helpers: Chain Fetch + Cert Download
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the I/O-heavy SSL helpers: TLS connection to fetch the leaf cert, AIA chain walking, and cert download to disk (Technical: SSL Certificate Implementation; Functional: SSL Certificate Input Steps 2 and 4).
@@ -83,7 +83,7 @@ Implement the I/O-heavy SSL helpers: TLS connection to fetch the leaf cert, AIA 
 
 ## Task 4 — Elevation Pre-Flight
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the Windows-only admin check that runs synchronously before script execution (Functional: Elevation Pre-Flight; Technical: Two-Phase Architecture).
@@ -107,7 +107,7 @@ Implement the Windows-only admin check that runs synchronously before script exe
 
 ## Task 5 — Confirmation Screen
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement the execution-plan display and confirm/back prompt (Functional: Confirmation Screen; Technical: `@clack/prompts` behavior notes).
@@ -136,7 +136,7 @@ Implement the execution-plan display and confirm/back prompt (Functional: Confir
 
 ## Task 6 — Input Collection: String + Number
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `collectInputs` for `string` and `number` input types. SSL-cert inputs are explicitly not yet handled — throw a descriptive error if encountered (to make the gap obvious until Task 7) (Functional: Input Collection Screen — String Input, Number Input, Queue Ordering, Cancel Behavior).
@@ -165,7 +165,7 @@ Implement `collectInputs` for `string` and `number` input types. SSL-cert inputs
 
 ## Task 7 — Input Collection: SSL-Cert Flow
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Extend `collectInputs` to handle the `ssl-cert` input type: four-step URL entry → chain fetch → certificate selection → download (Functional: SSL Certificate Input Steps 1–4).
@@ -194,7 +194,7 @@ Extend `collectInputs` to handle the `ssl-cert` input type: four-step URL entry 
 
 ## Task 8 — Pre-Execution Orchestrator
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Implement `runPreExecution` — the coordinator that sequences input collection → confirmation (with back-loop) → elevation pre-flight and returns a `PreExecutionResult` (Technical: Wiring to `program.ts`; Functional: Post-Confirmation Routing).
@@ -221,7 +221,7 @@ Implement `runPreExecution` — the coordinator that sequences input collection 
 
 ## Task 9 — Wire runPreExecution into program.ts
 
-**Status:** not started
+**Status:** complete
 
 **Description:**
 Replace the `deps.outro("Done")` stub in `program.ts` with a call to `runPreExecution`, threading the new dep through `ProgramDeps` (Technical: Wiring to `program.ts`).
@@ -236,3 +236,35 @@ Replace the `deps.outro("Done")` stub in `program.ts` with a call to `runPreExec
 - **RED:** Update `src/index.test.ts` — add `runPreExecution` to the fake `ProgramDeps`; add tests asserting `runPreExecution` is called with the `ScriptSelectionResult` returned by `runScriptSelection`, and that `outro` is called after `runPreExecution` completes; run tests to confirm they fail before wiring
 - **GREEN:** Update `ProgramDeps` and the action handler in `program.ts`; update `index.ts` to wire the real dep; all existing tests still pass
 - Cover: runPreExecution called with ScriptSelectionResult returned by runScriptSelection, outro called after runPreExecution returns, runPreExecution not called when --apply-update flag is present
+
+---
+
+## Change: Immediate cancel exit + input deduplication (2026-03-24)
+
+**Summary:** Removed the cancel-confirmation dialog so pressing N/Esc/Ctrl+C during input collection exits immediately with "User canceled."; also deduplicated inputs by ID so multiple scripts sharing the same input ID only prompt the user once.
+
+**Files modified:**
+- `tui/src/pre-execution/inputCollection.ts` — replaced `confirm` dep + `handleCancelConfirm` with `cancel` dep + `handleCancel` (returns `never`); removed `while(true)` loop from `collectStringOrNumberInput`; updated `buildQueue` to skip duplicate input IDs via a `Set<string>`
+
+**Spec updates:**
+- `functional.md` — updated Cancel Behavior acceptance criteria and user story; added deduplication bullet to Queue Ordering and a Shared inputs user story
+
+**Tests added/modified:**
+- `tui/src/pre-execution/inputCollection.test.ts` — replaced confirm-dialog cancel tests with direct-exit tests; updated SSL cancel tests; added three deduplication tests
+
+---
+
+## Change: Confirmation N/Esc exits instead of going back (2026-03-24)
+
+**Summary:** Pressing N or Esc at the confirmation screen now exits immediately with "User canceled." rather than looping back to input collection.
+
+**Files modified:**
+- `tui/src/pre-execution/confirmation.ts` — added `cancel`/`exit` deps; `showConfirmation` return type narrowed to `Promise<"confirm">`; N/Esc calls `cancel("User canceled.")` then `exit(0)`; footer text updated to "N / Esc — Cancel"
+- `tui/src/pre-execution/index.ts` — removed `while(true)` back-loop; `showConfirmation` dep type updated to `Promise<"confirm">`
+
+**Spec updates:**
+- `functional.md` — updated key bindings table, footer display criterion, and Back Navigation section (renamed to "Cancel from Confirmation")
+
+**Tests added/modified:**
+- `tui/src/pre-execution/confirmation.test.ts` — replaced `"back"` return tests with cancel+exit tests; added `cancel`/`exit` to `makeDeps`; updated footer text assertion
+- `tui/src/pre-execution/index.test.ts` — removed back-loop describe block and back-sequencing test; updated `FakeDeps` return type

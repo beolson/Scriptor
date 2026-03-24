@@ -435,3 +435,20 @@ Wire Commander, the `--repo` flag, the hidden `--apply-update` flag, and the orc
 - `20_Applications/tui/src/startup/orchestrator.test.ts` — platform-detection block removed; 8 script-downloading tests added; 45 total
 - `20_Applications/tui/src/index.test.ts` — `detectHost` dep added; 3 new tests (intro title format + detectHost wiring); 16 total
 - 309 total unit tests pass
+
+---
+
+## Change: Esc/Ctrl+C exits at all prompts (2026-03-24)
+
+**Summary:** Cancel at the repo switch and update prompts now prints "User canceled." and exits immediately instead of silently falling through to the default behavior.
+
+**Files modified:**
+- `20_Applications/tui/src/startup/screens.ts` — `ClackDeps` gained `isCancel`/`cancel`; `confirmRepoSwitch` and `promptCheckUpdates` call `clack.cancel("User canceled.")` then `exit(0)` on symbol; `showFetchProgress` gained optional `stopLabel` 4th param; `defaultClack` wired with `clackPrompts.isCancel` and `clackPrompts.cancel`
+- `20_Applications/tui/src/startup/orchestrator.ts` — `OrchestratorDeps.showFetchProgress` type extended with `stopLabel?`; `makeDefaultDeps` wires `stopLabel`; `fetchStopLabel = hasCache ? "Scripts updated" : undefined` passed to both `doFetchAll` calls
+- `20_Applications/tui/src/startup/screens.test.ts` — `makeClack` gains `isCancel`/`cancel`; cancel tests assert `exit(0)` instead of `false`; `stopLabel` test added
+
+**Spec updates:**
+- `functional.md` — split "declines" AC into explicit-No and Esc cases; added Esc-exits criteria for repo switch and update prompts
+
+**Tests added/modified:**
+- `20_Applications/tui/src/startup/screens.test.ts` — cancel-symbol tests updated; `stopLabel` test added

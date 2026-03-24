@@ -24,7 +24,8 @@ Scripts often need runtime configuration values — email addresses, port number
 - **SSL chain walking**: As a user, Scriptor automatically fetches the full certificate chain including intermediate CAs via AIA extension URLs, so I don't need to know where all certificates live.
 - **SSL certificate selection**: As a user, I see a root-first list of discovered certificates and can navigate to select the one I need, even if there is only one.
 - **SSL cert download**: As a user, the selected certificate is downloaded to the path declared in the manifest in the declared format (PEM or DER), with parent directories created automatically.
-- **Cancel confirmation**: As a user, pressing Q or Ctrl+C shows a "Cancel and exit?" confirmation rather than immediately quitting.
+- **Cancel**: As a user, pressing N, Esc, Q, or Ctrl+C during input collection immediately exits Scriptor with a "User canceled." message — no confirmation dialog.
+- **Shared inputs**: As a user, if multiple selected scripts declare an input with the same ID, I am prompted only once and the collected value is reused across all scripts that share that ID.
 
 ### Confirmation Screen
 
@@ -51,6 +52,7 @@ Scripts often need runtime configuration values — email addresses, port number
 - [ ] Inputs are collected in a flat queue: all inputs for script 1 (in manifest declaration order), then all inputs for script 2, and so on.
 - [ ] Scripts with no inputs are silently skipped; the input screen is not shown at all if no selected script has any inputs.
 - [ ] The queue is strictly forward-only: once a prompt is submitted it cannot be revisited.
+- [ ] If multiple selected scripts declare an input with the same `id`, the user is prompted only once (first occurrence). The collected value is reused for all scripts sharing that ID.
 
 **Layout**
 - [ ] Each prompt displays the owning script name (dim) above the active input field.
@@ -103,13 +105,8 @@ Scripts often need runtime configuration values — email addresses, port number
 - [ ] SSL-cert inputs store the `download_path` as the value and the certificate CN in a separate `certCN` field.
 
 **Cancel Behavior**
-- [ ] At any point (including within SSL steps), pressing Q or Ctrl+C shows:
-  ```
-  Cancel input collection and exit? [y/N]
-  Press Y to confirm, N to resume.
-  ```
-- [ ] Pressing Y exits Scriptor cleanly with no scripts run. Any previously downloaded cert files remain on disk.
-- [ ] Pressing N or Esc resumes at the current prompt without any change.
+- [ ] At any point (including within SSL steps), pressing N, Esc, Q, or Ctrl+C immediately prints a "User canceled." message and exits Scriptor cleanly. No confirmation dialog is shown.
+- [ ] Any previously downloaded cert files remain on disk.
 
 ---
 
@@ -123,23 +120,22 @@ Scripts often need runtime configuration values — email addresses, port number
 - [ ] String and number inputs: `{label}: {value}`
 - [ ] SSL-cert inputs: `{label}: {downloadPath} ({certCN})`
 - [ ] Scripts with no collected inputs (or all-blank optional inputs) show only the name/description row.
-- [ ] Key binding summary below the list: `Y / Enter — Run these scripts` and `N / Esc — Go back to the script list`.
+- [ ] Key binding summary below the list: `Y / Enter — Run these scripts` and `N / Esc — Cancel`.
 
 **Key Bindings**
 
 | Key | Action |
 |-----|--------|
 | `Y` / `Enter` | Confirm; advance to Elevation Screen or exit TUI to begin execution |
-| `N` / `Esc` | Return to Script List; selections preserved, collected inputs discarded |
+| `N` / `Esc` | Print "User canceled." and exit Scriptor immediately |
 | `Q` / `Ctrl+C` | Quit Scriptor |
 
 **Post-Confirmation Routing**
 - [ ] On confirm (Y / Enter): exit the TUI (`outro()`), then begin Phase 2 (elevation pre-flight if applicable, then script execution).
 - [ ] Elevation routing and execution are handled outside the TUI — the Confirmation Screen has no knowledge of elevation status.
 
-**Back Navigation**
-- [ ] Pressing N or Esc returns to the Script List with all script selections intact.
-- [ ] All previously collected inputs are discarded; re-confirming runs Input Collection again from the start.
+**Cancel from Confirmation**
+- [ ] Pressing N or Esc immediately prints "User canceled." and exits Scriptor cleanly. No navigation back to Script List.
 
 ---
 

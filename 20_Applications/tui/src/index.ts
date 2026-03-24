@@ -24,6 +24,10 @@ async function main(): Promise<void> {
 			);
 			return runScriptSelection(result);
 		},
+		runPreExecution: async (selectionResult) => {
+			const { runPreExecution } = await import("./pre-execution/index.js");
+			return runPreExecution(selectionResult);
+		},
 		handleApplyUpdate,
 		intro: clack.intro,
 		outro: clack.outro,

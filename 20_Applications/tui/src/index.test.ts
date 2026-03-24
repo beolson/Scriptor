@@ -7,7 +7,10 @@
 // ---------------------------------------------------------------------------
 
 import { describe, expect, it } from "bun:test";
-import type { ScriptSelectionResult } from "./manifest/types.js";
+import type {
+	PreExecutionResult,
+	ScriptSelectionResult,
+} from "./manifest/types.js";
 import { buildProgram } from "./program.js";
 
 // ---------------------------------------------------------------------------
@@ -38,6 +41,9 @@ interface ProgramDeps {
 	runScriptSelection: (
 		result: FakeManifestResult,
 	) => Promise<ScriptSelectionResult>;
+	runPreExecution: (
+		selectionResult: ScriptSelectionResult,
+	) => Promise<PreExecutionResult>;
 	handleApplyUpdate: (oldPath: string) => Promise<never>;
 	intro: (title: string) => void;
 	outro: (message: string) => void;
@@ -59,11 +65,17 @@ const DEFAULT_SELECTION_RESULT: ScriptSelectionResult = {
 	installedIds: new Set(),
 };
 
+const DEFAULT_PRE_EXECUTION_RESULT: PreExecutionResult = {
+	orderedScripts: [],
+	inputs: new Map(),
+};
+
 function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
 	return {
 		detectHost: async () => DEFAULT_HOST,
 		runStartup: async () => DEFAULT_MANIFEST_RESULT,
 		runScriptSelection: async () => DEFAULT_SELECTION_RESULT,
+		runPreExecution: async () => DEFAULT_PRE_EXECUTION_RESULT,
 		handleApplyUpdate: async (_path: string): Promise<never> => {
 			throw new Error("handleApplyUpdate called");
 		},
@@ -429,5 +441,81 @@ describe("runScriptSelection wiring", () => {
 		}
 
 		expect(selectionCalled).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// runPreExecution wiring
+// ---------------------------------------------------------------------------
+
+describe("runPreExecution wiring", () => {
+	it("calls runPreExecution with the ScriptSelectionResult returned by runScriptSelection", async () => {
+		const fakeSelectionResult: ScriptSelectionResult = {
+			orderedScripts: [],
+			inputs: new Map(),
+			installedIds: new Set(),
+		};
+		let capturedArg: ScriptSelectionResult | undefined;
+
+		const deps = makeDeps({
+			runScriptSelection: async () => fakeSelectionResult,
+			runPreExecution: async (selectionResult) => {
+				capturedArg = selectionResult;
+				return DEFAULT_PRE_EXECUTION_RESULT;
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(capturedArg).toBe(fakeSelectionResult);
+	});
+
+	it("outro called after runPreExecution returns", async () => {
+		const order: string[] = [];
+
+		const deps = makeDeps({
+			runPreExecution: async () => {
+				order.push("runPreExecution");
+				return DEFAULT_PRE_EXECUTION_RESULT;
+			},
+			outro: () => {
+				order.push("outro");
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(order.indexOf("runPreExecution")).toBeLessThan(
+			order.indexOf("outro"),
+		);
+	});
+
+	it("runPreExecution not called when --apply-update flag is present", async () => {
+		let preExecutionCalled = false;
+
+		const deps = makeDeps({
+			handleApplyUpdate: async (_path: string): Promise<never> => {
+				throw new Error("apply-update-called");
+			},
+			runPreExecution: async () => {
+				preExecutionCalled = true;
+				return DEFAULT_PRE_EXECUTION_RESULT;
+			},
+		});
+
+		const program = buildProgram(deps);
+		program.exitOverride();
+
+		try {
+			await program.parseAsync(["--apply-update", "/old/binary"], {
+				from: "user",
+			});
+		} catch {
+			// handleApplyUpdate throws in this fake
+		}
+
+		expect(preExecutionCalled).toBe(false);
 	});
 });

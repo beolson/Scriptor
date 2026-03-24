@@ -99,7 +99,11 @@ export interface OrchestratorDeps {
 	// Startup screens
 	confirmRepoSwitch: (oldRepo: string, newRepo: string) => Promise<boolean>;
 	promptCheckUpdates: () => Promise<boolean>;
-	showFetchProgress: <T>(label: string, fn: () => Promise<T>) => Promise<T>;
+	showFetchProgress: <T>(
+		label: string,
+		fn: () => Promise<T>,
+		stopLabel?: string,
+	) => Promise<T>;
 	showFatalError: (message: string) => never;
 }
 
@@ -180,9 +184,9 @@ function makeDefaultDeps(): OrchestratorDeps {
 			const { promptCheckUpdates } = await import("./screens.js");
 			return promptCheckUpdates();
 		},
-		showFetchProgress: async (label, fn) => {
+		showFetchProgress: async (label, fn, stopLabel) => {
 			const { showFetchProgress } = await import("./screens.js");
-			return showFetchProgress(label, fn);
+			return showFetchProgress(label, fn, undefined, stopLabel);
 		},
 		showFatalError: (message) => {
 			const { showFatalError } =
@@ -348,8 +352,10 @@ export async function runStartup(
 			return { repo, manifest, host };
 		}
 
-		// User accepted — fall through to the fetch path below.
+		// User accepted — fall through to the fetch path below (with a stop label).
 	}
+
+	const fetchStopLabel = hasCache ? "Scripts updated" : undefined;
 
 	// -------------------------------------------------------------------------
 	// Step 5+6: Fetch manifest + platform-matching scripts, then write cache.
@@ -357,18 +363,25 @@ export async function runStartup(
 	// -------------------------------------------------------------------------
 	type FetchAll = { manifest: string; scripts: Map<string, string> };
 
-	const doFetchAll = async (fetchToken?: string): Promise<FetchAll> => {
-		return deps.showFetchProgress("Fetching…", async () => {
-			const manifest = await deps.fetchManifest(repo, fetchToken);
-			const entries = deps.parseAndFilterScripts(manifest, host);
-			const scripts = await downloadScripts(entries, repo, fetchToken, deps);
-			return { manifest, scripts };
-		});
+	const doFetchAll = async (
+		fetchToken?: string,
+		stopLabel?: string,
+	): Promise<FetchAll> => {
+		return deps.showFetchProgress(
+			"Fetching…",
+			async () => {
+				const manifest = await deps.fetchManifest(repo, fetchToken);
+				const entries = deps.parseAndFilterScripts(manifest, host);
+				const scripts = await downloadScripts(entries, repo, fetchToken, deps);
+				return { manifest, scripts };
+			},
+			stopLabel,
+		);
 	};
 
 	let fetched: FetchAll;
 	try {
-		fetched = await doFetchAll(token);
+		fetched = await doFetchAll(token, fetchStopLabel);
 	} catch (err) {
 		if (err instanceof AuthRequired) {
 			// Trigger device flow to get a new token.
@@ -380,7 +393,7 @@ export async function runStartup(
 
 			// Retry the full fetch+scripts with the new token.
 			try {
-				fetched = await doFetchAll(newToken);
+				fetched = await doFetchAll(newToken, fetchStopLabel);
 			} catch (retryErr) {
 				if (!hasCache) {
 					deps.showFatalError(

@@ -19,7 +19,7 @@ import {
 // ---------------------------------------------------------------------------
 
 /** Cancel symbol — the value @clack/prompts returns when the user presses Ctrl-C. */
-const _CANCEL = Symbol("clack-cancel");
+const CANCEL = Symbol("clack-cancel");
 
 /**
  * Builds a minimal fake ClackDeps that records calls and returns canned values.
@@ -105,6 +105,8 @@ function makeClack(
 				logInfoCalls.push(message);
 			},
 		},
+		isCancel: (val: unknown): val is symbol => val === CANCEL,
+		cancel: (_hint?: string) => {},
 		// Exposed for assertions
 		selectCalls,
 		multiselectCalls,
@@ -300,6 +302,25 @@ describe("showMainMenu — settings loop", () => {
 	});
 });
 
+describe("showMainMenu — cancel symbol exits", () => {
+	it("calls exit(0) when select returns the cancel symbol", async () => {
+		let exitCode: number | undefined;
+		const clack = makeClack({ selectResult: CANCEL });
+		try {
+			await showMainMenu(["tools"], {
+				clack,
+				exit: (code) => {
+					exitCode = code;
+					throw new Error(`exit:${code}`);
+				},
+			});
+		} catch (err) {
+			if (!(err as Error).message.startsWith("exit:")) throw err;
+		}
+		expect(exitCode).toBe(0);
+	});
+});
+
 // ---------------------------------------------------------------------------
 // showIndividualSelect
 // ---------------------------------------------------------------------------
@@ -366,5 +387,25 @@ describe("showIndividualSelect — return value", () => {
 		const scripts = [makeEntry({ id: "a", name: "Alpha" })];
 		const result = await showIndividualSelect(scripts, { clack });
 		expect(result).toEqual([]);
+	});
+});
+
+describe("showIndividualSelect — cancel symbol exits", () => {
+	it("calls exit(0) when multiselect returns the cancel symbol", async () => {
+		let exitCode: number | undefined;
+		const clack = makeClack({ multiselectResult: CANCEL });
+		const scripts = [makeEntry({ id: "a", name: "Alpha" })];
+		try {
+			await showIndividualSelect(scripts, {
+				clack,
+				exit: (code) => {
+					exitCode = code;
+					throw new Error(`exit:${code}`);
+				},
+			});
+		} catch (err) {
+			if (!(err as Error).message.startsWith("exit:")) throw err;
+		}
+		expect(exitCode).toBe(0);
 	});
 });

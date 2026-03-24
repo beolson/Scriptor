@@ -1,4 +1,9 @@
 import { describe, expect, it } from "bun:test";
+import type {
+	CollectedInput,
+	PreExecutionResult,
+	ScriptInputs,
+} from "./types.js";
 import { CircularDependencyError, MissingDependencyError } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -53,5 +58,59 @@ describe("CircularDependencyError", () => {
 		const msg = "Circular dependency detected: A → B → A";
 		const error = new CircularDependencyError(msg);
 		expect(error.message).toBe(msg);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// CollectedInput
+// ---------------------------------------------------------------------------
+
+describe("CollectedInput", () => {
+	it("is valid with only value (no certCN)", () => {
+		const input: CollectedInput = { value: "hello" };
+		expect(input.value).toBe("hello");
+		expect(input.certCN).toBeUndefined();
+	});
+
+	it("is valid with both value and certCN", () => {
+		const input: CollectedInput = {
+			value: "/path/to/cert.pem",
+			certCN: "my.domain.com",
+		};
+		expect(input.value).toBe("/path/to/cert.pem");
+		expect(input.certCN).toBe("my.domain.com");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// ScriptInputs
+// ---------------------------------------------------------------------------
+
+describe("ScriptInputs", () => {
+	it("is assignable as Map<string, CollectedInput>", () => {
+		const inputs: ScriptInputs = new Map<string, CollectedInput>();
+		inputs.set("my-input", { value: "test" });
+		expect(inputs.get("my-input")?.value).toBe("test");
+	});
+
+	it("stores and retrieves CollectedInput with certCN", () => {
+		const inputs: ScriptInputs = new Map<string, CollectedInput>();
+		inputs.set("cert-input", { value: "/tmp/cert.pem", certCN: "example.com" });
+		expect(inputs.get("cert-input")?.certCN).toBe("example.com");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// PreExecutionResult
+// ---------------------------------------------------------------------------
+
+describe("PreExecutionResult", () => {
+	it("has orderedScripts array and inputs Map", () => {
+		const result: PreExecutionResult = {
+			orderedScripts: [],
+			inputs: new Map<string, CollectedInput>(),
+		};
+		expect(Array.isArray(result.orderedScripts)).toBe(true);
+		expect(result.inputs).toBeInstanceOf(Map);
 	});
 });
