@@ -89,6 +89,7 @@ export type ScriptInputs = Map<string, CollectedInput>;
 export interface PreExecutionResult {
 	orderedScripts: ScriptEntry[];
 	inputs: ScriptInputs;
+	installedIds: Set<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +103,19 @@ export interface ScriptSelectionResult {
 	/** IDs of all filtered entries whose creates path exists on disk. */
 	installedIds: Set<string>;
 }
+
+// ---------------------------------------------------------------------------
+// ScriptRunResult
+// ---------------------------------------------------------------------------
+
+/** Returned by the script execution engine after running all selected scripts. */
+export type ScriptRunResult =
+	| { success: true }
+	| {
+			success: false;
+			failedScript: ScriptEntry;
+			exitCode: number;
+	  };
 
 // ---------------------------------------------------------------------------
 // Error Classes

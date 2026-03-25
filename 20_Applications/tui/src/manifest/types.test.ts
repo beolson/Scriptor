@@ -109,6 +109,7 @@ describe("PreExecutionResult", () => {
 		const result: PreExecutionResult = {
 			orderedScripts: [],
 			inputs: new Map<string, CollectedInput>(),
+			installedIds: new Set<string>(),
 		};
 		expect(Array.isArray(result.orderedScripts)).toBe(true);
 		expect(result.inputs).toBeInstanceOf(Map);

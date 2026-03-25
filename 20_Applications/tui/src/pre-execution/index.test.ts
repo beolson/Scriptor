@@ -171,6 +171,38 @@ describe("happy path", () => {
 
 		expect(result.inputs).toBe(fakeInputs);
 	});
+
+	it("returns PreExecutionResult with installedIds from selectionResult", async () => {
+		const installedIds = new Set(["script-a", "script-b"]);
+		const selectionResult: ScriptSelectionResult = {
+			orderedScripts: [],
+			inputs: new Map(),
+			installedIds,
+		};
+
+		const result: PreExecutionResult = await runPreExecution(
+			selectionResult,
+			makeDeps(),
+		);
+
+		expect(result.installedIds).toBe(installedIds);
+	});
+
+	it("returns empty installedIds set when selectionResult has no installed scripts", async () => {
+		const selectionResult: ScriptSelectionResult = {
+			orderedScripts: [],
+			inputs: new Map(),
+			installedIds: new Set(),
+		};
+
+		const result: PreExecutionResult = await runPreExecution(
+			selectionResult,
+			makeDeps(),
+		);
+
+		expect(result.installedIds).toBeInstanceOf(Set);
+		expect(result.installedIds.size).toBe(0);
+	});
 });
 
 // ---------------------------------------------------------------------------

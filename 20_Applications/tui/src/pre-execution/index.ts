@@ -81,5 +81,5 @@ export async function runPreExecution(
 	// Step 3: Elevation pre-flight (Windows only)
 	await deps.checkWindowsElevation(orderedScripts);
 
-	return { orderedScripts, inputs };
+	return { orderedScripts, inputs, installedIds: selectionResult.installedIds };
 }

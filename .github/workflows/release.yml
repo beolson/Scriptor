@@ -80,7 +80,6 @@ jobs:
           bun build src/index.ts --compile --target=bun-darwin-x64   --outfile ../dist/scriptor-darwin-x64
           bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile ../dist/scriptor-darwin-arm64
           bun build src/index.ts --compile --target=bun-windows-x64   --outfile ../dist/scriptor-windows-x64.exe
-          bun build src/index.ts --compile --target=bun-windows-arm64 --outfile ../dist/scriptor-windows-arm64.exe
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
@@ -92,7 +91,6 @@ jobs:
             dist/scriptor-darwin-x64
             dist/scriptor-darwin-arm64
             dist/scriptor-windows-x64.exe
-            dist/scriptor-windows-arm64.exe
 
   web-release:
     name: Build Web & Deploy to GitHub Pages

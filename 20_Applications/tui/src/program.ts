@@ -11,6 +11,7 @@ import { Command, Option } from "commander";
 import type { HostInfo } from "./host/types.js";
 import type {
 	PreExecutionResult,
+	ScriptRunResult,
 	ScriptSelectionResult,
 } from "./manifest/types.js";
 import { parseRepo } from "./repo/parseRepo.js";
@@ -39,6 +40,11 @@ export interface ProgramDeps {
 	runPreExecution: (
 		selectionResult: ScriptSelectionResult,
 	) => Promise<PreExecutionResult>;
+	/** Run the script execution phase. */
+	runScriptExecution: (
+		manifestResult: ManifestResult,
+		preExecResult: PreExecutionResult,
+	) => Promise<ScriptRunResult>;
 	/** Apply a self-update from `oldPath` (called when --apply-update is set). */
 	handleApplyUpdate: (oldPath: string) => Promise<never>;
 	/** @clack/prompts intro() */
@@ -110,9 +116,10 @@ export function buildProgram(deps: ProgramDeps): Command {
 
 				const selectionResult = await deps.runScriptSelection(result);
 
-				await deps.runPreExecution(selectionResult);
+				const preExecResult = await deps.runPreExecution(selectionResult);
 
-				deps.outro("Done");
+				const runResult = await deps.runScriptExecution(result, preExecResult);
+				deps.exit(runResult.success ? 0 : 1);
 			},
 		);
 

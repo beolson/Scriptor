@@ -7,8 +7,10 @@
 // ---------------------------------------------------------------------------
 
 import { describe, expect, it } from "bun:test";
+import { guardTTY } from "./index.js";
 import type {
 	PreExecutionResult,
+	ScriptRunResult,
 	ScriptSelectionResult,
 } from "./manifest/types.js";
 import { buildProgram } from "./program.js";
@@ -44,6 +46,10 @@ interface ProgramDeps {
 	runPreExecution: (
 		selectionResult: ScriptSelectionResult,
 	) => Promise<PreExecutionResult>;
+	runScriptExecution: (
+		manifestResult: FakeManifestResult,
+		preExecResult: PreExecutionResult,
+	) => Promise<ScriptRunResult>;
 	handleApplyUpdate: (oldPath: string) => Promise<never>;
 	intro: (title: string) => void;
 	outro: (message: string) => void;
@@ -68,6 +74,7 @@ const DEFAULT_SELECTION_RESULT: ScriptSelectionResult = {
 const DEFAULT_PRE_EXECUTION_RESULT: PreExecutionResult = {
 	orderedScripts: [],
 	inputs: new Map(),
+	installedIds: new Set(),
 };
 
 function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
@@ -76,6 +83,7 @@ function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
 		runStartup: async () => DEFAULT_MANIFEST_RESULT,
 		runScriptSelection: async () => DEFAULT_SELECTION_RESULT,
 		runPreExecution: async () => DEFAULT_PRE_EXECUTION_RESULT,
+		runScriptExecution: async () => ({ success: true }),
 		handleApplyUpdate: async (_path: string): Promise<never> => {
 			throw new Error("handleApplyUpdate called");
 		},
@@ -83,7 +91,8 @@ function makeDeps(overrides: Partial<ProgramDeps> = {}): ProgramDeps {
 		outro: () => {},
 		log: { success: () => {} },
 		exit: (_code: number): never => {
-			throw new Error("process.exit called");
+			// Default fake: silently swallow exit so normal test flows complete.
+			return undefined as never;
 		},
 		...overrides,
 	};
@@ -315,7 +324,7 @@ describe("intro and outro", () => {
 		expect(introCalled).toBe(true);
 	});
 
-	it("calls outro on clean exit", async () => {
+	it("does not call outro (removed in favour of runScriptExecution)", async () => {
 		let outroCalled = false;
 		const deps = makeDeps({
 			outro: () => {
@@ -324,7 +333,7 @@ describe("intro and outro", () => {
 		});
 		const program = buildProgram(deps);
 		await program.parseAsync([], { from: "user" });
-		expect(outroCalled).toBe(true);
+		expect(outroCalled).toBe(false);
 	});
 
 	it("intro title contains 'Scriptor' and host info on the same line", async () => {
@@ -471,7 +480,7 @@ describe("runPreExecution wiring", () => {
 		expect(capturedArg).toBe(fakeSelectionResult);
 	});
 
-	it("outro called after runPreExecution returns", async () => {
+	it("runScriptExecution called after runPreExecution returns", async () => {
 		const order: string[] = [];
 
 		const deps = makeDeps({
@@ -479,8 +488,9 @@ describe("runPreExecution wiring", () => {
 				order.push("runPreExecution");
 				return DEFAULT_PRE_EXECUTION_RESULT;
 			},
-			outro: () => {
-				order.push("outro");
+			runScriptExecution: async () => {
+				order.push("runScriptExecution");
+				return { success: true as const };
 			},
 		});
 
@@ -488,7 +498,7 @@ describe("runPreExecution wiring", () => {
 		await program.parseAsync([], { from: "user" });
 
 		expect(order.indexOf("runPreExecution")).toBeLessThan(
-			order.indexOf("outro"),
+			order.indexOf("runScriptExecution"),
 		);
 	});
 
@@ -517,5 +527,252 @@ describe("runPreExecution wiring", () => {
 		}
 
 		expect(preExecutionCalled).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// guardTTY
+// ---------------------------------------------------------------------------
+
+describe("guardTTY", () => {
+	it("calls stderrWrite before exit when isTTY is false", () => {
+		const order: string[] = [];
+
+		try {
+			guardTTY({
+				isTTY: false,
+				stderrWrite: () => {
+					order.push("stderrWrite");
+				},
+				exit: (_code) => {
+					order.push("exit");
+					throw new Error("exit");
+				},
+			});
+		} catch {
+			// expected
+		}
+
+		expect(order[0]).toBe("stderrWrite");
+		expect(order[1]).toBe("exit");
+	});
+
+	it("calls exit(1) when isTTY is false", () => {
+		let exitCode: number | undefined;
+
+		try {
+			guardTTY({
+				isTTY: false,
+				stderrWrite: () => {},
+				exit: (code) => {
+					exitCode = code;
+					throw new Error(`exit:${code}`);
+				},
+			});
+		} catch {
+			// expected — exit throws in this fake
+		}
+
+		expect(exitCode).toBe(1);
+	});
+
+	it("stderrWrite called with exact error message when isTTY is false", () => {
+		let writtenMsg: string | undefined;
+
+		try {
+			guardTTY({
+				isTTY: false,
+				stderrWrite: (msg) => {
+					writtenMsg = msg;
+				},
+				exit: (_code) => {
+					throw new Error("exit");
+				},
+			});
+		} catch {
+			// expected
+		}
+
+		expect(writtenMsg).toBe(
+			"[scriptor] ERROR: Scriptor requires an interactive terminal.\nstdin is not a TTY — run Scriptor directly in a terminal, not piped.\n",
+		);
+	});
+
+	it("error message contains '[scriptor] ERROR'", () => {
+		let writtenMsg: string | undefined;
+
+		try {
+			guardTTY({
+				isTTY: false,
+				stderrWrite: (msg) => {
+					writtenMsg = msg;
+				},
+				exit: (_code) => {
+					throw new Error("exit");
+				},
+			});
+		} catch {
+			// expected
+		}
+
+		expect(writtenMsg).toContain("[scriptor] ERROR");
+	});
+
+	it("error message contains 'stdin is not a TTY'", () => {
+		let writtenMsg: string | undefined;
+
+		try {
+			guardTTY({
+				isTTY: false,
+				stderrWrite: (msg) => {
+					writtenMsg = msg;
+				},
+				exit: (_code) => {
+					throw new Error("exit");
+				},
+			});
+		} catch {
+			// expected
+		}
+
+		expect(writtenMsg).toContain("stdin is not a TTY");
+	});
+
+	it("does not call stderrWrite when isTTY is true", () => {
+		let stderrCalled = false;
+
+		guardTTY({
+			isTTY: true,
+			stderrWrite: () => {
+				stderrCalled = true;
+			},
+			exit: (_code) => {
+				throw new Error("should not be called");
+			},
+		});
+
+		expect(stderrCalled).toBe(false);
+	});
+
+	it("does not call exit when isTTY is true", () => {
+		let exitCalled = false;
+
+		guardTTY({
+			isTTY: true,
+			stderrWrite: () => {},
+			exit: (_code) => {
+				exitCalled = true;
+				throw new Error("should not be called");
+			},
+		});
+
+		expect(exitCalled).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// runScriptExecution wiring
+// ---------------------------------------------------------------------------
+
+describe("runScriptExecution wiring", () => {
+	it("calls runScriptExecution with ManifestResult from runStartup", async () => {
+		const fakeManifestResult = {
+			repo: { owner: "alice", name: "setup" },
+			manifest: "scripts: []",
+			host: DEFAULT_HOST,
+		};
+		let capturedManifestResult: FakeManifestResult | undefined;
+
+		const deps = makeDeps({
+			runStartup: async () => fakeManifestResult,
+			runScriptExecution: async (mr) => {
+				capturedManifestResult = mr as FakeManifestResult;
+				return { success: true as const };
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(capturedManifestResult).toBe(fakeManifestResult);
+	});
+
+	it("calls runScriptExecution with PreExecutionResult from runPreExecution", async () => {
+		const fakePreExecResult: PreExecutionResult = {
+			orderedScripts: [],
+			inputs: new Map(),
+			installedIds: new Set(),
+		};
+		let capturedPreExecResult: PreExecutionResult | undefined;
+
+		const deps = makeDeps({
+			runPreExecution: async () => fakePreExecResult,
+			runScriptExecution: async (_mr, per) => {
+				capturedPreExecResult = per;
+				return { success: true as const };
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(capturedPreExecResult).toBe(fakePreExecResult);
+	});
+
+	it("outro('Done') no longer called", async () => {
+		let outroCalled = false;
+
+		const deps = makeDeps({
+			outro: () => {
+				outroCalled = true;
+			},
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		expect(outroCalled).toBe(false);
+	});
+
+	it("runScriptExecution not called when --apply-update flag is present", async () => {
+		let runScriptExecutionCalled = false;
+
+		const deps = makeDeps({
+			handleApplyUpdate: async (_path: string): Promise<never> => {
+				throw new Error("apply-update-called");
+			},
+			runScriptExecution: async () => {
+				runScriptExecutionCalled = true;
+				return { success: true as const };
+			},
+		});
+
+		const program = buildProgram(deps);
+		program.exitOverride();
+
+		try {
+			await program.parseAsync(["--apply-update", "/old/binary"], {
+				from: "user",
+			});
+		} catch {
+			// handleApplyUpdate throws in this fake
+		}
+
+		expect(runScriptExecutionCalled).toBe(false);
+	});
+
+	it("ProgramDeps type accepts a fake runScriptExecution returning { success: true }", async () => {
+		// Type-level test: if this compiles, the interface is correct.
+		const deps = makeDeps({
+			runScriptExecution: async (): Promise<ScriptRunResult> => ({
+				success: true,
+			}),
+		});
+
+		const program = buildProgram(deps);
+		await program.parseAsync([], { from: "user" });
+
+		// No assertion needed — this test verifies the type is compatible.
+		expect(true).toBe(true);
 	});
 });
