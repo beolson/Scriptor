@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=./scriptor.schema.json
 # Scriptor — host-specific setup script manifest
 
 - id: setup-debian-devbox

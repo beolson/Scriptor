@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "scriptor.schema.json",
+  "title": "Scriptor Manifest",
+  "description": "Array of script entries that Scriptor fetches and presents in its interactive TUI. Each entry describes one setup script, its target platform, optional user inputs, and dependency ordering.",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/ScriptEntry"
+  },
+  "definitions": {
+    "InputDef": {
+      "type": "object",
+      "description": "Defines a user prompt collected before a script executes. All collected values are exported as environment variables into the script process.",
+      "required": ["id", "type", "label"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this input within the script. Must not be duplicated within the same entry. Used as the environment variable name passed to the script."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "ssl-cert"],
+          "description": "Input kind. 'string': free-text prompt. 'number': numeric prompt with format validation. 'ssl-cert': fetches a TLS certificate chain from a host, presents cert selection, and downloads the chosen cert to disk."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable prompt label shown to the user in the TUI."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "When true, empty input is rejected and the user must provide a value. When false or absent, the user may leave the input blank."
+        },
+        "default": {
+          "type": "string",
+          "description": "Pre-filled default value. Shown to the user and used if they submit without typing."
+        },
+        "download_path": {
+          "type": "string",
+          "description": "ssl-cert only. Absolute path on disk where the downloaded certificate will be written (e.g. /tmp/my-cert.pem)."
+        },
+        "format": {
+          "type": "string",
+          "enum": ["pem", "PEM", "der", "DER"],
+          "description": "ssl-cert only. Encoding format for the downloaded certificate. Case-insensitive. Defaults to PEM."
+        }
+      }
+    },
+    "ScriptEntry": {
+      "type": "object",
+      "description": "A single setup script registered in the manifest. The TUI filters entries by the host platform, arch, distro, and version before displaying them.",
+      "required": ["id", "name", "description", "platform", "arch", "script"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique script identifier across the entire manifest. Used as the reference key in 'dependencies' and 'optional_dependencies' arrays. Must be unique — duplicate IDs cause a fatal parse error."
+        },
+        "name": {
+          "type": "string",
+          "description": "Short display name shown in the TUI script list (e.g. 'Install Git & GitHub CLI')."
+        },
+        "description": {
+          "type": "string",
+          "description": "One-sentence description shown in the TUI detail view and on the documentation website."
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["linux", "mac", "windows"],
+          "description": "Target operating system. Mapped from Node.js process.platform: 'linux' → linux, 'darwin' → mac, 'win32' → windows. Entries not matching the host platform are hidden."
+        },
+        "arch": {
+          "type": "string",
+          "enum": ["x86", "arm"],
+          "description": "Target CPU architecture. Mapped from Node.js process.arch: 'x64'/'ia32'/other → x86, 'arm64'/'arm' → arm. Entries not matching the host arch are hidden."
+        },
+        "script": {
+          "type": "string",
+          "description": "Repo-relative path to the script file (e.g. 'scripts/Debian/13/install-git-gh.sh' or 'scripts/Windows/setup-debian-devbox.ps1')."
+        },
+        "distro": {
+          "type": "string",
+          "description": "Linux only — required when platform is 'linux'. The value of the NAME field in /etc/os-release (e.g. 'Debian GNU/Linux', 'Ubuntu'). Case-sensitive exact match against the host value."
+        },
+        "version": {
+          "type": "string",
+          "description": "Linux only — required when platform is 'linux'. The value of the VERSION_ID field in /etc/os-release (e.g. '13', '22.04'). Exact string equality — '13' does NOT match '13.1'."
+        },
+        "group": {
+          "type": "string",
+          "description": "Optional logical grouping label shown in the TUI (e.g. 'DevTools', 'networking'). Used for visual organisation only; does not affect filtering or execution order."
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Hard-ordered prerequisites. Each value is a script 'id'. If any listed ID is not available for the current host, the manifest fails to load. Selected scripts always have their dependencies added to the run set, and dependencies are guaranteed to execute before the dependent script. Cycles cause a fatal error."
+        },
+        "optional_dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Soft ordering constraints. Each value is a script 'id'. Unlike 'dependencies', missing IDs are silently ignored and the dependency is NOT automatically added to the run set. The ordering constraint is only applied when the referenced script is already in the run set (e.g. because the user selected it or a hard dependency pulled it in)."
+        },
+        "requires_elevation": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, the TUI validates sudo credentials before executing this script (Linux/Mac) or prompts for UAC elevation (Windows). The sudo keepalive is refreshed throughout execution."
+        },
+        "creates": {
+          "type": "string",
+          "description": "A ~ -expanded file system path that the script creates when successfully installed (e.g. '~/.config/git/config', '~/.local/bin/uv'). If the path exists before execution the script is shown as 'installed' in the TUI. Not present in script output; only used for status detection."
+        },
+        "inputs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/InputDef" },
+          "default": [],
+          "description": "User prompts collected before execution. Prompts are shown in order in an input-collection screen that precedes the confirmation screen. Input values with the same 'id' across multiple selected scripts are deduplicated — the user is asked once and the value is reused."
+        }
+      },
+      "allOf": [
+        {
+          "description": "Linux entries must declare distro and version.",
+          "if": {
+            "properties": { "platform": { "const": "linux" } },
+            "required": ["platform"]
+          },
+          "then": {
+            "required": ["distro", "version"]
+          }
+        },
+        {
+          "description": "Non-linux entries must not include distro or version.",
+          "if": {
+            "properties": { "platform": { "enum": ["mac", "windows"] } },
+            "required": ["platform"]
+          },
+          "then": {
+            "properties": {
+              "distro": false,
+              "version": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}

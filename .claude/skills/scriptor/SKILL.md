@@ -101,8 +101,11 @@ Create `scripts/<platform-path>/<script-filename>.spec.md` alongside the script 
 | Field | Type | Description |
 |---|---|---|
 | `dependencies` | string[] | List of script ids that must run before this one |
+| `optional_dependencies` | string[] | Script ids to run first if already present in the selection |
+| `group` | string | Display group/category label in the TUI |
+| `creates` | string | Artifact path this script produces (used for dependency tracking) |
 | `inputs` | object[] | Runtime parameters — see Input Types below |
-| `requires_sudo` | boolean | `true` if the script uses `sudo` commands (linux/mac only, defaults to `false`) |
+| `requires_elevation` | boolean | `true` if the script uses `sudo` commands (linux/mac only, defaults to `false`) |
 
 ### Manifest Entry Template
 
@@ -115,7 +118,7 @@ Create `scripts/<platform-path>/<script-filename>.spec.md` alongside the script 
   distro: <Distro Name>        # linux only
   version: "<version>"          # linux only, always quoted
   script: scripts/<platform-path>/<filename>   # e.g., scripts/Debian/13/install-foo.sh
-  requires_sudo: true            # optional, linux/mac only
+  requires_elevation: true       # optional, linux/mac only
   dependencies:                 # optional
     - <dependency-id>
   inputs:                       # optional
@@ -193,8 +196,8 @@ Write-Host "[<script-id>] Done."
 
 - Use `sudo` on individual commands that need root (e.g., `sudo apt-get install -y git`), not at the script level
 - Do NOT add root checks (`if [[ $(/usr/bin/id -u) -ne 0 ]]`) — the TUI handles sudo credential caching before scripts run
-- Set `requires_sudo: true` in the manifest for any script that uses `sudo` commands
-- Never use `requires_sudo` on `platform: windows` entries — use `#Requires -RunAsAdministrator` instead
+- Set `requires_elevation: true` in the manifest for any script that uses `sudo` commands
+- Never use `requires_elevation` on `platform: windows` entries — use `#Requires -RunAsAdministrator` instead
 - Leave unprivileged commands (e.g., `mktemp`, `echo`, `wget`) without `sudo`
 
 ### Script Conventions
@@ -250,6 +253,6 @@ Optional additional sections (use when relevant): `## Prerequisites`, `## Post-i
 | Forgetting to update all three artifacts | A change to any artifact likely requires changes to the other two |
 | Adding `distro`/`version` to windows or mac entries | These fields are linux-only; omit them for other platforms |
 | Log prefix doesn't match manifest id | Use `[<id>]` where `<id>` is the exact `id` from the manifest entry |
-| Missing `requires_sudo` on scripts that use `sudo` | Set `requires_sudo: true` in the manifest for any script with `sudo` commands |
+| Missing `requires_elevation` on scripts that use `sudo` | Set `requires_elevation: true` in the manifest for any script with `sudo` commands |
 | Using root checks instead of per-command `sudo` | Remove `if [[ $(/usr/bin/id -u) -ne 0 ]]` checks; use `sudo` on individual commands |
-| Adding `requires_sudo` to windows entries | Windows uses `#Requires -RunAsAdministrator`, not `requires_sudo` |
+| Adding `requires_elevation` to windows entries | Windows uses `#Requires -RunAsAdministrator`, not `requires_elevation` |
