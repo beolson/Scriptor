@@ -12,7 +12,7 @@
 
 ## 1. Overview
 
-Scriptor is a command-line tool that helps developers set up new machines by fetching and running host-specific setup scripts from a GitHub repository. It detects the host platform, architecture, and Linux distribution, then presents an interactive terminal UI where the user selects which scripts to run. Selected scripts are executed sequentially with automatic dependency ordering, input collection, and privilege elevation handling.
+Scriptor is a command-line tool that helps developers set up new machines by fetching and running host-specific setup scripts from a GitHub repository. It detects the host OS, version, and architecture, then presents an interactive terminal UI where the user selects which scripts to run. Selected scripts are executed sequentially with automatic dependency ordering, input collection, and privilege elevation handling.
 
 The tool supports a multi-repo deployment model. Different teams or organizations maintain their own script repositories, and users switch between them via a CLI flag or persistent configuration. Scripts are defined in a central YAML manifest alongside the script files themselves.
 
@@ -26,11 +26,11 @@ A complete Scriptor session proceeds through five phases:
 
 ### Phase 1: Startup
 
-The user launches the binary. Scriptor verifies that stdin is an interactive terminal (TTY), then detects the host platform, architecture, and (on Linux) the distribution and version. It resolves which GitHub repository to use — the CLI `--repo` flag takes priority, followed by the persisted config, falling back to a default repository. If a local cache exists, the user is prompted to check for updates; otherwise Scriptor fetches the manifest and scripts immediately. Private repositories trigger an OAuth device flow, with the resulting token stored in the platform keychain.
+The user launches the binary. Scriptor verifies that stdin is an interactive terminal (TTY), then detects the host OS name, version, and architecture. It resolves which GitHub repository to use — the CLI `--repo` flag takes priority, followed by the persisted config, falling back to a default repository. If a local cache exists, the user is prompted to check for updates; otherwise Scriptor fetches the manifest and scripts immediately. Private repositories trigger an OAuth device flow, with the resulting token stored in the platform keychain.
 
 ### Phase 2: Script Selection
 
-The manifest is parsed, validated, and filtered to only scripts matching the detected host. If no scripts match, Scriptor displays a warning and exits. Each script's installed status is checked by testing whether the path declared in its `creates` field exists on disk. Scripts are organized by group. The user either selects a group (which queues all non-installed scripts in that group) or chooses "Individual scripts" to multi-select from the full list. Dependencies are resolved into a topological execution order.
+The manifest is parsed, validated, and filtered to only scripts matching the detected host. If no scripts match, Scriptor displays a warning and exits. Each script's installed status is checked by testing whether the path declared in its `creates` field exists on disk. If the manifest defines groups, they appear in the main menu. The user either selects a group (which queues all non-installed member scripts and applies group-level dependencies) or chooses "Individual scripts" to multi-select from the full list. Dependencies are resolved into a topological execution order.
 
 ### Phase 3: Pre-Execution
 
@@ -52,37 +52,45 @@ Scriptor detects three properties of the host machine:
 
 | Property | Values | Source |
 |----------|--------|--------|
-| Platform | `linux`, `mac`, `windows` | Mapped from the OS identifier (`darwin` to `mac`, `win32` to `windows`, all others to `linux`) |
-| Architecture | `x86`, `arm` | Mapped from the CPU architecture (`arm64` and `arm` to `arm`, all others to `x86`) |
-| Distro | Free-text string (e.g., `Debian GNU/Linux`) | Linux only. Parsed from the `NAME` field in `/etc/os-release` |
-| Version | Free-text string (e.g., `13`) | Linux only. Parsed from the `VERSION_ID` field in `/etc/os-release` |
+| OS Name | Free-text string (e.g., `Debian GNU/Linux`, `mac`, `windows`) | For macOS: `mac`. For Windows: `windows`. For Linux: the `NAME` field from `/etc/os-release`. |
+| OS Version | Free-text string (e.g., `13`, `22.04`) | Linux only. Parsed from the `VERSION_ID` field in `/etc/os-release`. Absent for macOS and Windows. |
+| Architecture | `x64`, `arm` | Mapped from the CPU architecture (`arm64` and `arm` to `arm`, all others to `x64`) |
 
-If `/etc/os-release` is missing or unreadable, Scriptor continues without distro and version information. This means no Linux-specific scripts will match, but cross-platform scripts still work.
+If `/etc/os-release` is missing or unreadable on Linux, Scriptor continues without OS name and version information, meaning no Linux script entries will match.
 
 ---
 
 ## 4. Manifest System
 
-The manifest is a YAML file named `scriptor.yaml` located at the root of the script repository. It contains an array of script entries. Each entry is validated at parse time.
+The manifest is a YAML file named `scriptor.yaml` located at the root of the script repository. It is a YAML object with two top-level keys: `scripts` (required array of script entries) and `groups` (optional array of group entries). All entries are validated at parse time.
 
 ### Script Entry Fields
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `id` | string | yes | — | Unique identifier for the script |
+| `id` | string | yes | — | Unique identifier for the script. Duplicate IDs cause a fatal parse error. |
 | `name` | string | yes | — | Human-readable display name |
 | `description` | string | yes | — | Short description shown in the selection UI |
-| `platform` | `linux` \| `mac` \| `windows` | yes | — | Target platform |
-| `arch` | `x86` \| `arm` | yes | — | Target architecture |
+| `os` | object | yes | — | Target OS specification. Contains `name`, optional `version`, and `arch`. |
+| `os.name` | string | yes | — | OS name. For Linux: `NAME` from `/etc/os-release` (e.g. `Debian GNU/Linux`). For macOS: `mac`. For Windows: `windows`. |
+| `os.version` | string | no | — | OS version. For Linux: `VERSION_ID` from `/etc/os-release`. If omitted, matches any version of the named OS. |
+| `os.arch` | `x64` \| `arm` | yes | — | Target CPU architecture. |
 | `script` | string | yes | — | Relative path to the script file (from the `scripts/` directory) |
-| `distro` | string | no | — | Target Linux distribution name (must match `NAME` from os-release) |
-| `version` | string | no | — | Target Linux distribution version (must match `VERSION_ID` from os-release) |
-| `group` | string | no | — | Grouping label for the selection menu |
 | `dependencies` | string[] | no | `[]` | IDs of scripts that must run before this one (hard dependencies) |
-| `optional_dependencies` | string[] | no | `[]` | IDs of scripts that should run before this one if they are also selected (soft dependencies) |
+| `run_after` | string[] | no | `[]` | IDs of scripts that should run before this one if they are also selected (soft ordering) |
+| `run_if` | string \| string[] | no | — | One or more script IDs. When set, this script is only added to the run set if all referenced scripts are considered present — either selected by the user this session or already installed on the host (via `creates`). Applies to both individual and group selection. |
 | `requires_elevation` | boolean | no | `false` | Whether the script needs sudo (Unix) or administrator (Windows) privileges |
 | `creates` | string | no | — | A filesystem path. If this path exists, the script is considered already installed. Supports `~` for the home directory. |
 | `inputs` | InputDef[] | no | `[]` | Inputs to collect from the user before execution |
+
+### Group Entry Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `id` | string | yes | — | Unique group identifier across the manifest |
+| `name` | string | yes | — | Display name shown in the TUI main menu |
+| `description` | string | yes | — | One-sentence description of the group |
+| `scripts` | string[] | yes | — | Script IDs belonging to this group. Each must reference a valid script `id`. A script may appear in multiple groups. |
 
 ### Input Definition Fields
 
@@ -93,28 +101,30 @@ The manifest is a YAML file named `scriptor.yaml` located at the root of the scr
 | `label` | string | yes | — | Prompt text shown to the user |
 | `required` | boolean | no | `false` | Whether the input must be non-empty |
 | `default` | string | no | — | Pre-filled default value |
+| `download_path` | string | ssl-cert only | — | Absolute path where the downloaded certificate will be written |
+| `format` | `pem` \| `PEM` \| `der` \| `DER` | ssl-cert only | — | Certificate encoding format. Case-insensitive. Defaults to PEM. |
 
-Additional passthrough fields are permitted on input definitions to support type-specific configuration (e.g., SSL certificate format preferences).
+Additional passthrough fields are permitted on input definitions to support type-specific configuration.
 
 ### Validation Rules
 
-- Every script entry must have a unique `id`.
-- `distro` and `version` are only permitted when `platform` is `linux`. Non-Linux entries with these fields are rejected.
+- Every script entry must have a unique `id`. Duplicate script IDs cause a fatal parse error before the user is asked to select scripts.
 - Input IDs must be unique within a single script entry.
+- Every group entry must have a unique `id`.
+- Every script ID referenced in a group's `scripts` array must exist in the `scripts` array.
 - The manifest is rejected entirely if any entry fails validation. Scriptor logs the validation errors and exits.
 
 ---
 
 ## 5. Script Filtering
 
-After parsing, the manifest is filtered to match the detected host:
+After parsing, the manifest is filtered to match the detected host using each entry's `os` field:
 
-- **Platform**: Exact match required.
-- **Architecture**: Exact match required.
-- **Distro** (Linux only): If the script declares a `distro`, the host must have a detected distro that matches exactly. If the host has no detected distro (os-release unreadable), no distro-specific scripts match.
-- **Version** (Linux only): Same exact-match logic as distro.
+- **`os.name`**: Exact string match required against the detected host OS name.
+- **`os.version`**: If specified on the entry, exact string match against the detected host OS version. If omitted on the entry, it matches any host version for the given OS name.
+- **`os.arch`**: Exact match required against the detected host architecture.
 
-Scripts without `distro` or `version` match any Linux host (as long as platform and arch match).
+If `/etc/os-release` is unreadable on Linux, all Linux entries are excluded (name and version cannot be determined).
 
 ---
 
@@ -124,7 +134,9 @@ The selection screen presents two modes:
 
 ### Group Mode
 
-If scripts define `group` values, the main menu lists each unique group as a selectable option (in manifest order, deduplicated). Selecting a group queues all non-installed scripts in that group for execution.
+If the manifest defines group entries, the main menu lists each group as a selectable option (in manifest order). Selecting a group adds all of the group's member scripts to the candidate pool. Groups whose member scripts have all been filtered out (none match the current host) are not shown.
+
+After the candidate set is assembled (from group member scripts or individual picks), Scriptor evaluates `run_if` conditions before proceeding to dependency resolution. Any script whose `run_if` IDs are not all present is silently removed. This applies identically in both group and individual selection modes.
 
 ### Individual Mode
 
@@ -137,7 +149,7 @@ A script is considered installed if its `creates` field is defined and the speci
 ### Main Menu Structure
 
 The main menu presents options in this order:
-1. Each unique group name (if any scripts have groups)
+1. Each group name (from the `groups` array, in manifest order, filtered to groups with at least one host-matching script)
 2. "Individual scripts"
 3. "Settings" (currently displays "Settings coming soon." and returns to the menu)
 
@@ -145,11 +157,13 @@ The main menu presents options in this order:
 
 ## 7. Dependency Resolution
 
-After the user selects scripts, Scriptor resolves dependencies into a topological execution order using a two-phase depth-first search:
+After the user selects scripts (individually or via a group), Scriptor resolves dependencies into a topological execution order using a three-phase process:
 
-**Phase 1 — Transitive Run Set**: Starting from the selected script IDs, recursively follow all hard `dependencies` to build the complete set of scripts that must run.
+**Phase 0 — `run_if` Filtering**: Scripts whose `run_if` condition is not satisfied are removed from the candidate set. A condition is satisfied when every script ID listed in `run_if` is **present** — meaning it is either (a) in the current candidate set — selected by the user this session — or (b) already installed on the host (its `creates` path exists on disk). Scripts without a `creates` field can only satisfy the condition via (a). This pass runs once; removals do not trigger re-evaluation. Scripts removed here do not pull in their hard dependencies.
 
-**Phase 2 — Topological Sort**: Perform a post-order DFS over the run set, following both hard dependencies and soft `optional_dependencies` (but only when the optional dependency is already in the run set). This produces a valid execution order where every script runs after its dependencies.
+**Phase 1 — Transitive Run Set**: Starting from the filtered candidate set, recursively follow all hard `dependencies` to build the complete set of scripts that must run.
+
+**Phase 2 — Topological Sort**: Perform a post-order DFS over the run set, following both hard dependencies and soft `run_after` constraints (but only when the referenced script is already in the run set). This produces a valid execution order where every script runs after its dependencies.
 
 ### Error Conditions
 
@@ -157,6 +171,7 @@ After the user selects scripts, Scriptor resolves dependencies into a topologica
 |-------|-----------|----------|
 | Missing dependency | A script declares a dependency ID that does not exist in the filtered manifest | Fatal: log error, exit 1 |
 | Circular dependency | The dependency graph contains a cycle | Fatal: log error, exit 1 |
+| Invalid `run_if` reference | A script's `run_if` array contains an ID that does not exist anywhere in the manifest | Fatal: log error, exit 1 |
 
 ---
 
@@ -193,12 +208,12 @@ Before running scripts, Scriptor displays the execution plan: a numbered list of
 
 ### Script Invocation
 
-Scripts run sequentially in dependency order. The invocation method depends on the platform:
+Scripts run sequentially in dependency order. Each script's name is announced via `log.step()` before execution. The invocation method depends on the platform:
 
 | Platform | Method |
 |----------|--------|
-| Unix (Linux, macOS) | `sh -c <script-content> sh <args...>` — the script content is passed as the command string to `sh` |
-| Windows | The script content is written to a temporary `.ps1` file (with UTF-8 BOM), then executed via `powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File <temp-file> <args...>`. The temp file is deleted after execution. |
+| Unix (Linux, macOS) | `sh -c <script-content> sh <args...>` — the script content is passed as the command string to `sh`. Stdout is piped back to Scriptor. |
+| Windows | The script content is written to a temporary `.ps1` file (with UTF-8 BOM), then executed via `powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File <temp-file> <args...>`. Stdout is piped back to Scriptor. The temp file is deleted after execution. |
 
 ### Argument Passing
 
@@ -208,7 +223,9 @@ Each script receives positional arguments in this order:
 
 ### Output and Failure
 
-Script stdout and stderr are inherited by the parent process, so output appears directly in the terminal. If a script exits with a non-zero code, execution stops immediately. The failed script name and exit code are reported. Subsequent scripts do not run.
+Script stdout is piped through `@clack/prompts` `stream.step()`, which displays each line with a `│  ` prefix. ANSI color codes in script output pass through intact. Stderr is inherited by the parent process and appears directly in the terminal without formatting. Stdin is inherited so scripts can read interactive input if needed.
+
+If a script exits with a non-zero code, execution stops immediately. The failed script name and exit code are reported via `log.error()`. Subsequent scripts do not run. Successful completion of each script is reported via `log.success()`.
 
 ---
 
@@ -218,8 +235,8 @@ Script stdout and stderr are inherited by the parent process, so output appears 
 
 If any selected script has `requires_elevation: true`, Scriptor handles sudo authentication before execution begins:
 
-1. **Non-interactive check**: Runs `sudo -n -v`. If this succeeds (exit 0), sudo credentials are already cached and no prompt is needed.
-2. **Password prompt**: If the non-interactive check fails, Scriptor switches to raw TTY mode and displays a password prompt. Characters are masked with `*`. Pressing Escape exits Scriptor immediately. Pressing Enter submits the password via `sudo -S -v`. On failure, an error message is shown and the prompt repeats (unlimited retries).
+1. **Non-interactive check**: A spinner displays while Scriptor runs `sudo -n -v`. If this succeeds (exit 0), sudo credentials are already cached — the spinner stops with a cached-credentials message and no prompt is shown.
+2. **Password prompt**: If the non-interactive check fails, the spinner stops and Scriptor calls `@clack/prompts` `password()` with `mask: "*"`. The password is submitted to `sudo -S -v` via piped stdin. On success, `log.success()` confirms validation. On failure, `log.error()` shows an error and the prompt repeats (unlimited retries). Pressing Escape or Ctrl+C cancels via `isCancel()` and exits with code 0.
 3. **Keepalive**: During script execution, a background timer runs `sudo -v` every four minutes to prevent credential expiry. When execution completes, the timer is stopped and `sudo -k` invalidates the cached credentials.
 
 ### Windows
@@ -360,7 +377,10 @@ All user interaction uses the `@clack/prompts` library, providing:
 - **Select**: Single-choice menus (main menu, certificate selection)
 - **Multi-select**: Multiple-choice lists (individual script selection)
 - **Text**: Free-text input (string/number inputs, SSL hostname)
-- **Spinner**: Progress indicators (fetching manifest, downloading certs)
+- **Password**: Masked input (sudo password collection, `mask: "*"`)
+- **Spinner**: Progress indicators (fetching manifest, downloading certs, sudo credential check)
+- **Stream**: Formatted output display (`stream.step()` for script stdout with `│  ` prefix, ANSI passthrough)
+- **Log**: Status messages (`log.step()` for script start, `log.success()` / `log.error()` for results)
 - **Note**: Informational displays (OAuth instructions)
 
 Pressing Escape or Ctrl+C at any prompt cancels the operation and exits with code 0.
@@ -396,10 +416,19 @@ Represents the detected host machine.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `platform` | `"linux"` \| `"mac"` \| `"windows"` | Detected platform |
-| `arch` | `"x86"` \| `"arm"` | Detected architecture |
-| `distro` | string (optional) | Linux distribution name |
-| `version` | string (optional) | Linux distribution version |
+| `osName` | string | Detected OS name (e.g. `"Debian GNU/Linux"`, `"mac"`, `"windows"`) |
+| `osVersion` | string (optional) | Detected OS version. Present on Linux when `/etc/os-release` is readable. Absent on macOS and Windows. |
+| `arch` | `"x64"` \| `"arm"` | Detected architecture |
+
+### Os
+
+The target OS specification on a script entry.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | OS name. For Linux: `NAME` from `/etc/os-release`. For macOS: `"mac"`. For Windows: `"windows"`. |
+| `version` | string (optional) | OS version. If omitted, matches any version of the named OS. |
+| `arch` | `"x64"` \| `"arm"` | Target CPU architecture. |
 
 ### Repo
 
@@ -420,7 +449,11 @@ Persisted user configuration.
 
 ### ScriptEntry
 
-A single script in the manifest. See [Section 4: Manifest System](#4-manifest-system) for the full field reference.
+A single script in the `scripts` array. See [Section 4: Manifest System](#4-manifest-system) for the full field reference.
+
+### GroupEntry
+
+A logical group of scripts in the `groups` array. See [Section 4: Manifest System](#4-manifest-system) for the full field reference.
 
 ### InputDef
 
@@ -478,7 +511,11 @@ The output of the execution phase.
 | TTY guard | stdin is not an interactive terminal | Log error, exit 1 |
 | YAML parse error | Manifest contains invalid YAML | Log error, exit 1 |
 | Schema validation | Manifest entries fail Zod validation | Log all errors, exit 1 |
-| Missing dependency | A declared dependency ID is not in the filtered manifest | Log error, exit 1 |
+| Duplicate script ID | Two or more entries in the `scripts` array share the same `id` | Log error, exit 1 |
+| Invalid group script ref | A group's `scripts` array references an `id` not in the manifest | Log error, exit 1 |
+| Invalid `run_if` reference | A script's `run_if` references an `id` not present in the manifest | Log error, exit 1 |
+| Duplicate group ID | Two or more groups share the same `id` | Log error, exit 1 |
+| Missing dependency | A declared dependency ID (script-level or group-level) is not in the filtered manifest | Log error, exit 1 |
 | Circular dependency | The dependency graph contains a cycle | Log error, exit 1 |
 | Auth required | GitHub returns 401/403, or 404 without a token | Trigger OAuth device flow, retry |
 | Network error | GitHub API call fails for non-auth reasons | If cache exists, fall back to cache. Otherwise, log error and exit 1 |
