@@ -158,6 +158,23 @@ The existing `.github/workflows/release.yml` has incorrect paths and is missing 
 
 ---
 
+## Change: Remove JSX config, establish Clack-only TUI architecture (2026-03-31)
+
+**Summary:** Removed `"jsx": "react-jsx"` from `20_Applications/tui/tsconfig.json` and updated all specs/docs to reflect a Clack-only TUI. No React, no Ink, no JSX — `@clack/prompts` is the sole terminal UI library.
+
+**Files modified:**
+- `20_Applications/tui/tsconfig.json` — removed `"jsx": "react-jsx"` compiler option
+- `CLAUDE.md` — updated stack description and `src/tui/` architecture listing
+- `10_Specifications/Epics/Plan-TUI.md` — Epics 2, 6, 8, 9: replaced Ink screen components (`.tsx`, state machine, `App.tsx`, `Header`/`Footer`) with Clack async function equivalents (`.ts` files, sequential orchestrator)
+
+**Spec updates:**
+- `technical.md` — TypeScript Configuration table: TUI `jsx` row updated from `react-jsx` to `— (no JSX)`
+
+**Tests added/modified:**
+- None required — no `.tsx` source files exist; `bun run typecheck` continues to pass
+
+---
+
 ## Change: Move install scripts to dedicated folder (2026-03-31)
 
 **Summary:** Moved the two install scripts out of `tui/src/` into a dedicated `tui/install/` folder so the directory contains only shell scripts with no JS/TS dependency.

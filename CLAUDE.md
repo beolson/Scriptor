@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Scriptor** is a CLI tool that fetches and runs host-specific setup scripts from a GitHub repository. It detects the host platform/arch/distro and presents a filtered, interactive TUI for selecting and executing scripts.
 
 Monorepo with two workspaces:
-- `tui/` — the CLI tool itself (TypeScript + React/Ink, compiled to a binary via `bun build --compile`)
+- `tui/` — the CLI tool itself (TypeScript + Clack, compiled to a binary via `bun build --compile`)
 - `web/` — static documentation/marketing site (Next.js 16 App Router, deployed to GitHub Pages)
 
 Scripts and their spec files live in `scripts/`. The manifest of all scripts is `scriptor.yaml` at the repo root.
@@ -75,10 +75,10 @@ In the TUI, use `.js` extensions on imports (e.g. `import { Foo } from "./foo.js
 
 **Purpose**: CLI tool. Entrypoint: `tui/src/index.ts`. Build output: `/dist/scriptor` binary.
 
-**Stack**: TypeScript, React 19, Ink 6 (terminal UI rendering), Commander (CLI args), Zod (input validation), js-yaml.
+**Stack**: TypeScript, `@clack/prompts` (terminal UI), Commander (CLI args), Zod (input validation), js-yaml.
 
 **Architecture**:
-- `src/tui/` — React/Ink screen components (`App.tsx`, `FetchScreen`, `ScriptListScreen`, `ConfirmationScreen`, `SudoScreen`, `ExecutionScreen`, `Header`, `Footer`)
+- `src/tui/` — async Clack functions (`fetch.ts`, `scriptList.ts`, `confirmation.ts`, `sudo.ts`, `execution.ts`)
 - `src/manifest/` — `parseManifest.ts`, `filterManifest.ts`, `resolveDependencies.ts`
 - `src/startup/` — orchestrates GitHub fetch sequence, emits typed `StartupEvent`s
 - `src/execution/` — `scriptRunner.ts` runs scripts via Bun process spawning, emits `ProgressEvent`s

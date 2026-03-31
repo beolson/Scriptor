@@ -36,9 +36,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 **Theme:** TUI entry point and runtime environment detection.
 
 - `src/host/detectHost.ts`: Linux `/etc/os-release` parser for `NAME` and `VERSION_ID`; macOS constant `"mac"`; Windows constant `"windows"`; arch mapping (`arm64`/`arm` → `"arm"`, all else → `"x64"`); graceful handling of missing `/etc/os-release`
-- `src/index.ts`: Commander entrypoint; `--repo <owner/repo|local>` flag; `--apply-update <old-path>` flag (hidden from help); TTY guard — exit 1 with error if stdin is not an interactive terminal
-- Minimal Ink `App.tsx` shell with typed screen-routing state machine (`fetch | script-list | input-collection | confirmation | sudo | execution`)
-- `Header` and `Footer` Ink components
+- `src/index.ts`: Commander entrypoint; `--repo <owner/repo|local>` flag; `--apply-update <old-path>` flag (hidden from help); TTY guard — exit 1 with error if stdin is not an interactive terminal; top-level async orchestrator — calls startup, selection, input collection, confirmation, sudo, and execution functions in sequence
 
 ---
 
@@ -91,8 +89,8 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 **Theme:** The interactive script selection experience.
 
 - `src/startup/` orchestrator emitting typed `StartupEvent`s: fetch start, update prompt, parse result, filter result
-- `src/tui/FetchScreen.tsx`: spinner while fetching; update prompt on cache hit; manifest fetch → parse → filter pipeline; error states for network failure and validation failure
-- `src/tui/ScriptListScreen.tsx`:
+- `src/tui/fetch.ts`: async function; spinner while fetching; update prompt on cache hit; manifest fetch → parse → filter pipeline; error states for network failure and validation failure
+- `src/tui/scriptList.ts`:
   - Main menu: groups in manifest order (filtered to those with at least one host-matching script) → "Individual scripts" → "Settings"
   - Group mode: selecting a group queues all non-installed member scripts
   - Individual mode: `@clack/prompts` multi-select of all filtered scripts; each script shows name + description; already-installed scripts labeled `[installed]` with creates-path hint
@@ -122,14 +120,14 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 **Status:** Not Started
 **Theme:** Safety gates before any scripts run.
 
-- `src/tui/ConfirmationScreen.tsx`: display numbered execution plan in dependency order; list non-empty collected inputs beneath each script entry; Y/Enter confirms, N/Esc cancels (exit 0)
+- `src/tui/confirmation.ts`: async function; display numbered execution plan in dependency order; list non-empty collected inputs beneath each script entry; Y/Enter confirms, N/Esc cancels (exit 0)
 - `src/sudo/` Unix sudo flow:
   1. Spinner while running `sudo -n -v`; if exit 0, display cached-credentials confirmation and skip prompt
   2. If non-interactive check fails: `@clack/prompts` `password()` with `mask: "*"`
   3. Submit password to `sudo -S -v` via piped stdin; `log.success()` on pass; `log.error()` and retry on failure (unlimited retries); Esc/Ctrl+C → exit 0
   4. Keepalive: background timer runs `sudo -v` every 4 minutes during execution; stopped and followed by `sudo -k` when execution completes
 - Windows elevation: spawn `net session`; non-zero exit → display relaunch-as-administrator instructions, exit 1
-- `src/tui/SudoScreen.tsx`
+- `src/tui/sudo.ts`
 
 ---
 
@@ -144,7 +142,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 - **Argument order**: for each declared input in declaration order — collected value or empty string; final argument is colon-delimited IDs of already-installed scripts (empty string if none)
 - **Output handling**: stdout piped through `stream.step()` → `│  ` prefix with ANSI color passthrough; stderr and stdin inherited directly by parent process
 - Per-script `log.step()` before execution; `log.success()` on exit 0; non-zero exit → `log.error()` with script name and exit code, stop all subsequent scripts, exit 1
-- `src/tui/ExecutionScreen.tsx`
+- `src/tui/execution.ts`
 
 ---
 

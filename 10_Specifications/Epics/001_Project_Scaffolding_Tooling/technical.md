@@ -90,7 +90,7 @@ All binaries go to `dist/` at the repo root.
 | Target | ESNext | ES2017 |
 | Module | Preserve | ESNext |
 | moduleResolution | bundler | bundler |
-| jsx | react-jsx | preserve |
+| jsx | — (no JSX) | preserve |
 | Path alias | none | `@/*` → `./` (relative to `web/`) |
 | resolveJsonModule | true | — |
 
