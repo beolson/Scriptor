@@ -402,9 +402,22 @@ Scriptor is compiled to a standalone binary using Bun's `--compile` flag. The ve
 | Windows | x64 | `scriptor-windows-x64.exe` |
 | Windows | arm64 | `scriptor-windows-arm64.exe` |
 
+### Install Scripts
+
+Two install scripts are published as assets on every GitHub Release:
+
+| File | Platform | Behavior |
+|------|----------|----------|
+| `install` | Linux / macOS (bash) | Detects host platform and architecture, downloads the correct binary from the GitHub Release, makes it executable, and installs it to the user's PATH. If `~/.local/bin` is on PATH, it is used (no sudo required); otherwise falls back to `/usr/local/bin` (prompts for sudo). |
+| `install-win` | Windows (PowerShell) | Detects host architecture, downloads the correct binary from the GitHub Release, and installs it to `AppData\Local\Microsoft\WindowsApps` (user-writable, typically on PATH). |
+
+If a `scriptor` binary already exists at the install location, the script overwrites it and prints a message such as "Updated scriptor from vX.Y.Z to vA.B.C".
+
+The Scriptor documentation website links to these scripts by their GitHub Release URL so that users can copy and paste a single command to install the binary.
+
 ### Release Process
 
-Releases are managed with Changesets. Merging a version PR to the main branch triggers the release workflow, which builds all six binaries and attaches them to a GitHub Release. The documentation site is deployed to GitHub Pages in the same workflow.
+Releases are managed with Changesets. Merging a version PR to the main branch triggers the release workflow, which builds all six binaries, attaches them and both install scripts to a GitHub Release, and deploys the documentation site to GitHub Pages.
 
 ---
 

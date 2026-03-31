@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Workflow
 
-1. **Find the target epic**: Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*` that contain a `delivery.md` with at least one task status of `not started` or `in progress`. If exactly one such epic exists, target it automatically. If multiple match, use `AskUserQuestion` to ask the user which one to work on.
+1. **Find the target epic**: Scan `10_Specifications/Epics/` for subdirectories matching `NNN_*` that contain a `delivery.md` with at least one task status of `not started` or `in progress`. If exactly one such epic exists, target it automatically. If multiple match, use `AskUserQuestion` to ask the user which one to work on.
 
 2. **Find the task**: Open the target epic's `delivery.md`. Scan from the top for the first task with status `not started` or `in progress`. Update its status to `in progress`.
 

@@ -1,6 +1,6 @@
 ---
 name: h4h:DefineEpicDelivery
-description: Use when functional.md and technical.md exist for an epic and you need to create a task-by-task delivery plan. Writes delivery.md into the epic's folder under 10_Specifications/10.40_Epics/. Invoke when user says "plan delivery", "define delivery tasks", "create tasks", "break into tasks", or similar.
+description: Use when functional.md and technical.md exist for an epic and you need to create a task-by-task delivery plan. Writes delivery.md into the epic's folder under 10_Specifications/Epics/. Invoke when user says "plan delivery", "define delivery tasks", "create tasks", "break into tasks", or similar.
 disable-model-invocation: true
 ---
 
@@ -14,20 +14,20 @@ Reads `functional.md` and `technical.md` for the target epic and produces an ord
 
 ### Step 1 — Determine Target Epic Folder
 
-Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*`. Identify which ones do not yet contain a `delivery.md`.
+Scan `10_Specifications/Epics/` for subdirectories matching `NNN_*`. Identify which ones do not yet contain a `delivery.md`.
 
 - If exactly one epic folder has no `delivery.md`, target it automatically and inform the user.
 - If multiple epic folders have no `delivery.md`, use `AskUserQuestion` to ask the user which one to plan delivery for.
 - If all epic folders already have a `delivery.md`, use `AskUserQuestion` to ask which one the user wants to update.
 
-The target file is: `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md`
+The target file is: `10_Specifications/Epics/{NNN}_{SLUG}/delivery.md`
 
 ### Step 2 — Read Requirements
 
 Load all available requirement documents before generating any tasks:
 
-1. Read `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/functional.md`
-2. Read `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/technical.md`
+1. Read `10_Specifications/Epics/{NNN}_{SLUG}/functional.md`
+2. Read `10_Specifications/Epics/{NNN}_{SLUG}/technical.md`
 3. If a `ux.md` exists in the same folder, read it too
 
 Do not proceed until all available files have been read in full.
@@ -48,7 +48,7 @@ Tasks must be atomic: completable in one session with one clear deliverable. If 
 
 ### Step 5 — Write delivery.md
 
-Write all tasks to `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md` using the **Task Format** below.
+Write all tasks to `10_Specifications/Epics/{NNN}_{SLUG}/delivery.md` using the **Task Format** below.
 
 ## Task Format
 

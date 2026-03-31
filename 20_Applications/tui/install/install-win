@@ -1,0 +1,75 @@
+# Scriptor Windows installer
+# Usage: irm https://github.com/h4h/scriptor/releases/latest/download/install-win | iex
+
+$ErrorActionPreference = "Stop"
+
+$OWNER = "h4h"
+$REPO  = "scriptor"
+$GITHUB_RELEASES = "https://github.com/$OWNER/$REPO/releases/download"
+
+# ---------------------------------------------------------------------------
+# Detect CPU architecture
+# ---------------------------------------------------------------------------
+$processorArch = $env:PROCESSOR_ARCHITECTURE
+switch ($processorArch) {
+    "AMD64" { $BINARY_NAME = "scriptor-windows-x64.exe" }
+    "ARM64" { $BINARY_NAME = "scriptor-windows-arm64.exe" }
+    default {
+        Write-Error "Unsupported architecture: $processorArch"
+        exit 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Resolve the latest release tag
+# ---------------------------------------------------------------------------
+if ($env:SCRIPTOR_VERSION) {
+    $TAG = $env:SCRIPTOR_VERSION
+} else {
+    $apiUrl = "https://api.github.com/repos/$OWNER/$REPO/releases/latest"
+    $release = Invoke-RestMethod -Uri $apiUrl -UseBasicParsing
+    $TAG = $release.tag_name
+}
+
+$DOWNLOAD_URL = "$GITHUB_RELEASES/$TAG/$BINARY_NAME"
+
+# ---------------------------------------------------------------------------
+# Resolve install path
+# ---------------------------------------------------------------------------
+$INSTALL_DIR  = "$env:LocalAppData\Microsoft\WindowsApps"
+$INSTALL_PATH = "$INSTALL_DIR\scriptor.exe"
+
+# ---------------------------------------------------------------------------
+# Check for an existing installation (upgrade detection)
+# ---------------------------------------------------------------------------
+$OLD_VERSION = ""
+if (Test-Path $INSTALL_PATH) {
+    try { $OLD_VERSION = & $INSTALL_PATH --version 2>$null } catch { $OLD_VERSION = "" }
+}
+
+# ---------------------------------------------------------------------------
+# Download to a temp file then move into place
+# ---------------------------------------------------------------------------
+$TMP_FILE = [System.IO.Path]::GetTempFileName() + ".exe"
+
+Write-Host "Downloading $BINARY_NAME $TAG..."
+Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TMP_FILE -UseBasicParsing
+
+# ---------------------------------------------------------------------------
+# Install
+# ---------------------------------------------------------------------------
+if (-not (Test-Path $INSTALL_DIR)) {
+    New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null
+}
+Move-Item -Path $TMP_FILE -Destination $INSTALL_PATH -Force
+
+# ---------------------------------------------------------------------------
+# Post-install message
+# ---------------------------------------------------------------------------
+try { $NEW_VERSION = & $INSTALL_PATH --version 2>$null } catch { $NEW_VERSION = "" }
+
+if ($OLD_VERSION -and ($OLD_VERSION -ne $NEW_VERSION)) {
+    Write-Host "Updated scriptor from $OLD_VERSION to $NEW_VERSION"
+} else {
+    Write-Host "Installed scriptor $NEW_VERSION to $INSTALL_PATH"
+}

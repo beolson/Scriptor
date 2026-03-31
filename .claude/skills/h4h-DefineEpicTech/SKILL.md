@@ -1,6 +1,6 @@
 ---
 name: h4h:DefineEpicTech
-description: Use when the user wants to define technical standards for an epic through structured Q&A elicitation, before any implementation. Writes technical.md into the epic's folder under 10_Specifications/10.40_Epics/. Invoke when user says "define tech standards", "define tech", "document tech choices", "tech elicitation", or similar.
+description: Use when the user wants to define technical standards for an epic through structured Q&A elicitation, before any implementation. Writes technical.md into the epic's folder under 10_Specifications/Epics/. Invoke when user says "define tech standards", "define tech", "document tech choices", "tech elicitation", or similar.
 disable-model-invocation: true
 ---
 
@@ -14,19 +14,19 @@ A Q&A elicitation session that builds a `technical.md` document inside an existi
 
 ### Step 1 — Determine Target Epic Folder
 
-Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*`. Identify which ones do not yet contain a `technical.md`.
+Scan `10_Specifications/Epics/` for subdirectories matching `NNN_*`. Identify which ones do not yet contain a `technical.md`.
 
 - If exactly one epic folder has no `technical.md`, target it automatically and inform the user.
 - If multiple epic folders have no `technical.md`, use `AskUserQuestion` to ask the user which one to populate.
 - If all epic folders already have a `technical.md`, use `AskUserQuestion` to ask which one the user wants to update.
 
-The target file is: `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/technical.md`
+The target file is: `10_Specifications/Epics/{NNN}_{SLUG}/technical.md`
 
 ### Step 2 — Review Context
 
 Before asking any questions:
 
-1. Read `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/functional.md` to understand what is being built
+1. Read `10_Specifications/Epics/{NNN}_{SLUG}/functional.md` to understand what is being built
 2. Read any `technical.md` files from other epic folders to avoid re-establishing already-decided standards
 3. Review source code files (e.g. `package.json`, `tsconfig.json`, config files, key modules) to understand the existing tech stack
 4. If `technical.md` already exists in the target folder, read it — update it, don't replace it

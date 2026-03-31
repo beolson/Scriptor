@@ -14,9 +14,9 @@ Identifies the target epic, then dispatches subagents one at a time to complete 
 
 ### Step 1 — Identify Target Epic
 
-Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*` that contain a `delivery.md` with at least one task status of `not started`. If exactly one such epic exists, target it automatically. If multiple match, use `AskUserQuestion` to ask the user which one to build.
+Scan `10_Specifications/Epics/` for subdirectories matching `NNN_*` that contain a `delivery.md` with at least one task status of `not started`. If exactly one such epic exists, target it automatically. If multiple match, use `AskUserQuestion` to ask the user which one to build.
 
-All subsequent steps use `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md`.
+All subsequent steps use `10_Specifications/Epics/{NNN}_{SLUG}/delivery.md`.
 
 ### Step 2 — Check for Remaining Tasks
 
@@ -32,7 +32,7 @@ If none found → **stop**. All tasks are complete. Report to the user.
 
 Create **one** subagent with this prompt (substitute the actual epic folder path):
 
-> Use the `h4h-NextTaskInEpic` skill to find and complete the next pending task. The delivery file for this epic is at `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/delivery.md` — read that file first to find the first task with `**Status:** not started`.
+> Use the `h4h-NextTaskInEpic` skill to find and complete the next pending task. The delivery file for this epic is at `10_Specifications/Epics/{NNN}_{SLUG}/delivery.md` — read that file first to find the first task with `**Status:** not started`.
 
 Wait for the subagent to finish before continuing.
 

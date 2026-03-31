@@ -1,12 +1,12 @@
 ---
 name: h4h:DefineEpicFeatures
-description: Use when the user wants to define the featureset for a new epic. Elicits requirements via Q&A and writes a structured epic document to 10_Specifications/10.40_Epics/. Invoke when user says "define epic", "create epic", "plan epic features", or similar.
+description: Use when the user wants to define the featureset for a new epic. Elicits requirements via Q&A and writes a structured epic document to 10_Specifications/Epics/. Invoke when user says "define epic", "create epic", "plan epic features", or similar.
 disable-model-invocation: true
 ---
 
 ## Step 1 — Determine Next Epic Number
 
-Scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*` (where NNN is a 3-digit zero-padded number). Find the highest NNN. The new epic number is highest + 1, or `001` if the folder is empty or has no matching subdirectories.
+Scan `10_Specifications/Epics/` for subdirectories matching `NNN_*` (where NNN is a 3-digit zero-padded number). Find the highest NNN. The new epic number is highest + 1, or `001` if the folder is empty or has no matching subdirectories.
 
 ## Step 2 — Get High-Level Description
 
@@ -14,9 +14,9 @@ Use `AskUserQuestion` to ask: "Please give a high-level description of the epic 
 
 From the answer, derive a SLUG: ~3 words, TitleCase, underscores between words (e.g. `GitHub_OAuth_Login`, `Script_Search_Filter`, `Update_Notifications`).
 
-Create the directory `10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/` and write `functional.md` inside it with an initial **Summary** section based on the description.
+Create the directory `10_Specifications/Epics/{NNN}_{SLUG}/` and write `functional.md` inside it with an initial **Summary** section based on the description.
 
-Initial document structure (`10_Specifications/10.40_Epics/10.40.{NNN}_{SLUG}/functional.md`):
+Initial document structure (`10_Specifications/Epics/{NNN}_{SLUG}/functional.md`):
 
 ```markdown
 # {NNN} {Epic Title}

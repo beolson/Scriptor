@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+OWNER="h4h"
+REPO="scriptor"
+GITHUB_RELEASES="https://github.com/${OWNER}/${REPO}/releases/download"
+
+# ---------------------------------------------------------------------------
+# Detect platform
+# ---------------------------------------------------------------------------
+OS="$(uname -s)"
+case "$OS" in
+	Linux)  PLATFORM="linux" ;;
+	Darwin) PLATFORM="darwin" ;;
+	*)
+		echo "Unsupported platform: $OS" >&2
+		exit 1
+		;;
+esac
+
+# ---------------------------------------------------------------------------
+# Detect CPU architecture
+# ---------------------------------------------------------------------------
+ARCH_RAW="$(uname -m)"
+case "$ARCH_RAW" in
+	x86_64)          ARCH="x64" ;;
+	aarch64 | arm64) ARCH="arm64" ;;
+	*)
+		echo "Unsupported architecture: $ARCH_RAW" >&2
+		exit 1
+		;;
+esac
+
+BINARY_NAME="scriptor-${PLATFORM}-${ARCH}"
+
+# ---------------------------------------------------------------------------
+# Resolve the latest release tag
+# ---------------------------------------------------------------------------
+if [ -z "${SCRIPTOR_VERSION:-}" ]; then
+	TAG="$(curl -fsSL "https://api.github.com/repos/${OWNER}/${REPO}/releases/latest" \
+		| grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')"
+else
+	TAG="$SCRIPTOR_VERSION"
+fi
+
+DOWNLOAD_URL="${GITHUB_RELEASES}/${TAG}/${BINARY_NAME}"
+
+# ---------------------------------------------------------------------------
+# Choose install location
+# ---------------------------------------------------------------------------
+INSTALL_DIR=""
+if echo ":${PATH}:" | grep -q ":${HOME}/.local/bin:"; then
+	INSTALL_DIR="${HOME}/.local/bin"
+fi
+
+if [ -z "$INSTALL_DIR" ]; then
+	INSTALL_DIR="/usr/local/bin"
+	USE_SUDO=true
+else
+	USE_SUDO=false
+fi
+
+INSTALL_PATH="${INSTALL_DIR}/scriptor"
+
+# ---------------------------------------------------------------------------
+# Check for an existing installation (upgrade detection)
+# ---------------------------------------------------------------------------
+OLD_VERSION=""
+if [ -x "$INSTALL_PATH" ]; then
+	OLD_VERSION="$("$INSTALL_PATH" --version 2>/dev/null || true)"
+fi
+
+# ---------------------------------------------------------------------------
+# Download
+# ---------------------------------------------------------------------------
+TMP_FILE="$(mktemp)"
+trap 'rm -f "$TMP_FILE"' EXIT
+
+echo "Downloading ${BINARY_NAME} ${TAG}..."
+curl -fsSL "$DOWNLOAD_URL" -o "$TMP_FILE"
+chmod +x "$TMP_FILE"
+
+# ---------------------------------------------------------------------------
+# Install
+# ---------------------------------------------------------------------------
+if [ "$USE_SUDO" = "true" ]; then
+	sudo mv "$TMP_FILE" "$INSTALL_PATH"
+else
+	mv "$TMP_FILE" "$INSTALL_PATH"
+fi
+
+# ---------------------------------------------------------------------------
+# Post-install message
+# ---------------------------------------------------------------------------
+NEW_VERSION="$("$INSTALL_PATH" --version 2>/dev/null || true)"
+
+if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+	echo "Updated scriptor from ${OLD_VERSION} to ${NEW_VERSION}"
+else
+	echo "Installed scriptor ${NEW_VERSION} to ${INSTALL_PATH}"
+fi

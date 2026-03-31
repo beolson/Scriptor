@@ -13,7 +13,7 @@ Applies a targeted change or fix to an epic's implementation and keeps `function
 
 ### Step 1 — Identify the Epic
 
-If the user specified an epic in their request (e.g., a number like `001`, or a name like `Startup_Repo_Config`), resolve it directly. Otherwise scan `10_Specifications/10.40_Epics/` for subdirectories matching `10.40.NNN_*`.
+If the user specified an epic in their request (e.g., a number like `001`, or a name like `Startup_Repo_Config`), resolve it directly. Otherwise scan `10_Specifications/Epics/` for subdirectories matching `NNN_*`.
 
 - If exactly one epic exists → target it automatically
 - If multiple exist → use `AskUserQuestion` to ask which one
