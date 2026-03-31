@@ -16,7 +16,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 
 ## Epic 1 — Project Scaffolding & Tooling
 
-**Status:** Not Started
+**Status:** Completed
 **Theme:** Foundation shared by both workspaces.
 
 - Bun monorepo: `tui/` and `web/` workspaces with root `package.json` and all turbo task scripts
@@ -212,7 +212,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 
 | Order | Epic | Key Dependencies | Status |
 |-------|------|-----------------|--------|
-| 1 | Epic 1: Project Scaffolding & Tooling | — | Not Started |
+| 1 | Epic 1: Project Scaffolding & Tooling | — | Completed |
 | 2 | Epic 2: Host Detection & CLI Foundation | Epic 1 | Not Started |
 | 3 | Epic 3: Manifest System | Epic 1 | Not Started |
 | 4 | Epic 4: Configuration, Keychain & GitHub Client | Epics 1, 2 | Not Started |
