@@ -87,3 +87,11 @@ export class ManifestValidationError extends Error {
 		Object.setPrototypeOf(this, new.target.prototype);
 	}
 }
+
+export class ResolutionError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "ResolutionError";
+		Object.setPrototypeOf(this, new.target.prototype);
+	}
+}

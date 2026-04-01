@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { ManifestValidationError } from "./types.js";
+import { ManifestValidationError, ResolutionError } from "./types.js";
 
 describe("ManifestValidationError", () => {
 	it("extends Error", () => {
@@ -29,5 +29,33 @@ describe("ManifestValidationError", () => {
 		const err = new ManifestValidationError(messages);
 		expect(err.errors).toBe(err.errors); // same reference
 		expect(err.errors.length).toBe(1);
+	});
+});
+
+describe("ResolutionError", () => {
+	it("is an instance of Error", () => {
+		const err = new ResolutionError("something went wrong");
+		expect(err).toBeInstanceOf(Error);
+	});
+
+	it("name equals ResolutionError", () => {
+		const err = new ResolutionError("something went wrong");
+		expect(err.name).toBe("ResolutionError");
+	});
+
+	it("message contains the string passed to the constructor", () => {
+		const msg = "cycle detected involving script: foo";
+		const err = new ResolutionError(msg);
+		expect(err.message).toBe(msg);
+	});
+
+	it("instanceof ResolutionError is true for a thrown and caught instance", () => {
+		let caught: unknown;
+		try {
+			throw new ResolutionError("oops");
+		} catch (e) {
+			caught = e;
+		}
+		expect(caught).toBeInstanceOf(ResolutionError);
 	});
 });
