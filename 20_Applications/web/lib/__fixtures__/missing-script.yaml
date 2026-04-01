@@ -1,0 +1,8 @@
+scripts:
+  - id: missing-file
+    name: Missing File Script
+    description: Script that references a non-existent file
+    os:
+      name: Debian GNU/Linux
+      arch: x64
+    script: scripts/linux/does-not-exist.sh

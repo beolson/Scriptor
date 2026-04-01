@@ -9,6 +9,7 @@
 		"lint": "biome check .",
 		"format": "biome format --write .",
 		"typecheck": "tsc --noEmit",
+		"test:unit": "bun test lib/ || (bun test lib/ 2>&1 | grep -q 'No tests found' && exit 0 || exit 1)",
 		"test:e2e": "playwright test"
 	},
 	"dependencies": {

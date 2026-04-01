@@ -1,0 +1,30 @@
+scripts:
+  - id: test-script
+    name: Test Script
+    description: A minimal linux test script
+    os:
+      name: Debian GNU/Linux
+      version: "13"
+      arch: x64
+    script: scripts/linux/test-script.sh
+    inputs:
+      - id: username
+        type: string
+        label: Username
+        required: true
+
+  - id: test-no-spec
+    name: Test No Spec
+    description: A linux script without a spec file
+    os:
+      name: Debian GNU/Linux
+      arch: x64
+    script: scripts/linux/test-no-spec.sh
+
+  - id: test-win
+    name: Test Windows Script
+    description: A windows test script
+    os:
+      name: windows
+      arch: x64
+    script: scripts/windows/test-win.ps1
