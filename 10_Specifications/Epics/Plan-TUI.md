@@ -32,7 +32,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 
 ## Epic 2 — Host Detection & CLI Foundation
 
-**Status:** Not Started
+**Status:** Completed
 **Theme:** TUI entry point and runtime environment detection.
 
 - `src/host/detectHost.ts`: Linux `/etc/os-release` parser for `NAME` and `VERSION_ID`; macOS constant `"mac"`; Windows constant `"windows"`; arch mapping (`arm64`/`arm` → `"arm"`, all else → `"x64"`); graceful handling of missing `/etc/os-release`
@@ -42,7 +42,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 
 ## Epic 3 — Manifest System
 
-**Status:** Not Started
+**Status:** Completed
 **Theme:** The shared data spine — parsing, validation, and filtering for both TUI and Web.
 
 **TUI:**
@@ -58,7 +58,7 @@ This plan breaks the Scriptor TUI and Scriptor Web products into 12 deliverable 
 
 ## Epic 4 — Configuration, Keychain & GitHub Client
 
-**Status:** Not Started
+**Status:** Completed
 **Theme:** Persistence layer and remote data access.
 
 - `src/config/`: read/write `~/.scriptor/config` as YAML; resilient to missing, invalid YAML, or schema failures (treat as empty config)
