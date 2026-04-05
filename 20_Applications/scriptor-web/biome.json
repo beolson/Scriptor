@@ -1,0 +1,13 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+	"root": false,
+	"extends": ["../../biome.json"],
+	"files": {
+		"includes": ["!!**/.next", "!!**/out"]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	}
+}

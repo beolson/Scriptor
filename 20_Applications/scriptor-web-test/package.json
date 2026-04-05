@@ -1,0 +1,16 @@
+{
+	"name": "@scriptor/scriptor-web-test",
+	"private": true,
+	"scripts": {
+		"test:e2e": "playwright test",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@scriptor/scriptor-web": "workspace:*"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.0.0",
+		"@types/node": "^22.0.0",
+		"typescript": "^6.x"
+	}
+}

@@ -11,7 +11,7 @@
 				"!**/*.test.ts",
 				"!**/*.spec.ts"
 			],
-			"outputs": ["dist/**"]
+			"outputs": ["dist/**", ".next/**", "out/**"]
 		},
 		"dev": {
 			"cache": false,

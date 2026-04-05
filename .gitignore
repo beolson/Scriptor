@@ -48,3 +48,6 @@ Thumbs.db
 
 
 .playwright-cli/
+
+# Claude Code worktrees
+.claude/worktrees/
