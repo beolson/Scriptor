@@ -145,6 +145,28 @@ Uses [Changesets](https://github.com/changesets/changesets) for version manageme
    - **TUI**: 6 platform binaries (`linux/darwin/windows × x64/arm64`) uploaded to GitHub Release
    - **Web**: Static site built and deployed to GitHub Pages
 
+## WSL Detection & Headed Browser
+
+### Detecting WSL
+
+Before launching a browser, check if you're running in WSL:
+
+```bash
+cat /proc/version        # contains "microsoft-standard-WSL2" if in WSL
+echo $WSL_DISTRO_NAME    # non-empty if in WSL (e.g. "Debian13Dev")
+```
+
+### Opening a Headed Chrome Browser in WSL
+
+When running in WSL, use the Windows Chrome executable via `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` with the `playwright-cli` skill and the `--headed` flag:
+
+```bash
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" \
+  playwright-cli open --headed https://example.com
+```
+
+This launches Chrome as a headed Windows process (visible on the Windows desktop) while being controlled from WSL via Playwright.
+
 ## CI/CD
 
 GitHub Actions only. Two workflows:
