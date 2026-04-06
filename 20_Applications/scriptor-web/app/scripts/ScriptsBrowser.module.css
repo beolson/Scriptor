@@ -1,0 +1,36 @@
+.browser {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-md, 1rem);
+}
+
+.filterRow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-sm, 0.5rem);
+}
+
+.scriptList {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-xs, 0.25rem);
+}
+
+.scriptItem {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 4px);
+}
+
+.scriptLink {
+	display: block;
+	padding: var(--gap-sm, 0.5rem) var(--gap-md, 1rem);
+	color: var(--foreground);
+	text-decoration: none;
+}
+
+.scriptLink:hover {
+	background-color: var(--muted);
+}

@@ -1,0 +1,41 @@
+.filterButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.25rem 0.75rem;
+	border-radius: var(--radius-md);
+	border: 1px solid var(--border);
+	background-color: var(--background);
+	color: var(--foreground);
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition:
+		background-color 0.15s,
+		color 0.15s,
+		border-color 0.15s;
+	white-space: nowrap;
+	user-select: none;
+}
+
+.filterButton:hover:not(.disabled) {
+	background-color: var(--muted);
+	color: var(--foreground);
+}
+
+.active {
+	background-color: var(--primary);
+	color: var(--primary-foreground);
+	border-color: var(--primary);
+}
+
+.active:hover {
+	background-color: var(--primary);
+	color: var(--primary-foreground);
+}
+
+.disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	pointer-events: none;
+}
