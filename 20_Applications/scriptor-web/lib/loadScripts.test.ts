@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { loadScripts } from "./loadScripts.js";
 import type { LoadScriptsDeps } from "./loadScripts.js";
+import { loadScripts } from "./loadScripts.js";
 
 // Helper to build a minimal spec file string
 function makeSpec(overrides: Record<string, string> = {}): string {
