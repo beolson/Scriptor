@@ -16,6 +16,7 @@
 		"paths": {
 			"@/*": ["./*"]
 		},
+		"types": ["bun"],
 		"plugins": [
 			{
 				"name": "next"

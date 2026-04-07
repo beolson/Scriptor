@@ -1,0 +1,12 @@
+.emptyState {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem 1rem;
+	text-align: center;
+}
+
+.message {
+	color: var(--muted-foreground);
+	font-size: 0.9375rem;
+}

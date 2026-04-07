@@ -22,9 +22,14 @@ A reusable question-and-answer process for incrementally discovering requirement
       - Remove questions that are now answered or irrelevant
       - Re-prioritize based on the updated understanding
    c. If meaningful questions remain, go to step 3.
-   d. If no high-impact unknowns remain, elicitation is complete.
+   d. If no high-impact unknowns remain, proceed to step 5.
 
-5. **Finalize** — When elicitation is complete:
+5. **Open feedback gate** — Before finalizing, ask the user via `AskUserQuestion`:
+   > "Is there anything else you'd like to add or change?"
+   - If the user provides additional input: incorporate it into the document immediately, treat it as new context, re-seed the question list (step 1), and restart the elicitation loop from step 2.
+   - If the user says no (or equivalent): proceed to step 6.
+
+6. **Finalize** — When the user confirms there is nothing more to add:
    - Review the document for internal consistency
    - Update the document's YAML frontmatter status from `Draft` to `Ready`
    - Inform the user that the document is complete
