@@ -1,6 +1,5 @@
 ---
-platform: linux
-os: ubuntu-24.04
+platform: ubuntu-24.04-x64
 title: Install curl
 ---
 

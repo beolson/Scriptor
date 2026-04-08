@@ -1,13 +1,5 @@
-import { loadScripts } from "@/lib/loadScripts";
+import { redirect } from "next/navigation";
 
-import { ScriptsBrowser } from "./ScriptsBrowser";
-
-export default async function ScriptsPage() {
-	const scripts = await loadScripts();
-	return (
-		<main>
-			<h1>Browse Scripts</h1>
-			<ScriptsBrowser scripts={scripts} />
-		</main>
-	);
+export default function ScriptsPage() {
+	redirect("/");
 }

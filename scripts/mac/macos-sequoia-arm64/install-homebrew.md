@@ -1,6 +1,5 @@
 ---
-platform: mac
-os: macos-sequoia
+platform: macos-sequoia-arm64
 title: Install Homebrew
 ---
 

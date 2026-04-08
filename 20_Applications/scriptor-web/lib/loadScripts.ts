@@ -1,8 +1,8 @@
-import { readFile as fsReadFile, readdir, stat } from "node:fs/promises";
+import { readFile as fsReadFile, readdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
-import type { Arch, Platform, Script } from "./types.js";
+import type { Script } from "./types.js";
 
 // ─── Dependency injection types ───────────────────────────────────────────────
 
@@ -11,12 +11,10 @@ import type { Arch, Platform, Script } from "./types.js";
  * in-memory fixtures instead of hitting the real filesystem.
  */
 export interface LoadScriptsDeps {
-	/** Returns relative paths (from scriptsDir) of all .md files under scripts/ */
-	glob: (pattern: string) => Promise<string[]>;
+	/** Yields relative paths (from scriptsDir) of all .md files under scripts/ */
+	glob: (pattern: string, dir: string) => AsyncIterable<string>;
 	/** Reads a file by absolute path and returns its text contents */
-	readFile: (absolutePath: string) => Promise<string>;
-	/** Returns true if a file exists at the given absolute path */
-	fileExists: (absolutePath: string) => Promise<boolean>;
+	readFile: (path: string) => Promise<string>;
 	/** Absolute path to the scripts root directory */
 	scriptsDir: string;
 }
@@ -30,9 +28,8 @@ const RAW_BASE =
 
 interface SpecFrontmatter {
 	platform?: unknown;
-	os?: unknown;
-	arch?: unknown;
 	title?: unknown;
+	description?: unknown;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -42,16 +39,10 @@ function idFromRelPath(relPath: string): string {
 	return relPath.replace(/\.md$/, "");
 }
 
-/** Return the extension for the script source file based on platform */
-function sourceExt(platform: Platform): string {
-	return platform === "windows" ? ".ps1" : ".sh";
-}
-
-/** Build the one-liner run command for a given script id and platform */
-function buildRunCommand(id: string, platform: Platform): string {
-	const ext = sourceExt(platform);
+/** Build the one-liner run command for a given script id and file extension */
+function buildRunCommand(id: string, ext: ".sh" | ".ps1"): string {
 	const url = `${RAW_BASE}/${id}${ext}`;
-	if (platform === "windows") {
+	if (ext === ".ps1") {
 		return `irm ${url} | iex`;
 	}
 	return `curl -fsSL ${url} | bash`;
@@ -73,76 +64,78 @@ function splitFrontmatter(
 // ─── Real-filesystem deps ─────────────────────────────────────────────────────
 
 /**
- * Recursively collect all .md files under a directory, returning paths
- * relative to that base directory. Uses Node.js fs APIs so it works in both
- * Bun and the Vitest/Node environment used for integration tests.
+ * Recursively collect all .md files under a directory, yielding paths
+ * relative to that base directory.
  */
-async function collectMdFiles(baseDir: string, subDir = ""): Promise<string[]> {
-	const results: string[] = [];
+async function* collectMdFiles(
+	baseDir: string,
+	subDir = "",
+): AsyncIterable<string> {
 	const entries = await readdir(join(baseDir, subDir), {
 		withFileTypes: true,
 	});
 	for (const entry of entries) {
 		const rel = subDir ? `${subDir}/${entry.name}` : entry.name;
 		if (entry.isDirectory()) {
-			const nested = await collectMdFiles(baseDir, rel);
-			results.push(...nested);
+			yield* collectMdFiles(baseDir, rel);
 		} else if (entry.name.endsWith(".md")) {
-			results.push(rel);
+			yield rel;
 		}
 	}
-	return results;
 }
 
-/** Build the real filesystem deps using Node.js APIs (works in Bun and Node) */
-function makeNodeDeps(scriptsDir: string): LoadScriptsDeps {
-	return {
-		scriptsDir,
-		glob: (_pattern: string) => collectMdFiles(scriptsDir),
-		readFile: async (absolutePath: string) => fsReadFile(absolutePath, "utf8"),
-		fileExists: async (absolutePath: string) => {
-			try {
-				await stat(absolutePath);
-				return true;
-			} catch {
-				return false;
-			}
-		},
-	};
+/**
+ * Read a file as text. Uses Bun.file() when available (production / bun run),
+ * falls back to node:fs/promises readFile when running under Vitest/Node.
+ */
+function readFileCompat(path: string): Promise<string> {
+	if (typeof Bun !== "undefined") {
+		return Bun.file(path).text();
+	}
+	return fsReadFile(path, "utf8");
 }
+
+/** Default production deps using Bun-native file I/O where available */
+export const defaultDeps = (scriptsDir: string): LoadScriptsDeps => ({
+	scriptsDir,
+	readFile: readFileCompat,
+	glob: async function* (_pattern: string, dir: string) {
+		yield* collectMdFiles(dir);
+	},
+});
 
 // ─── loadScripts ─────────────────────────────────────────────────────────────
 
 /**
  * Reads all spec files from the `scripts/` directory at build time.
  * Skips specs with missing required frontmatter fields (no build error).
- * Returns Script[] sorted by platform, then os, then title.
+ * Returns Script[] sorted by platform, then title.
  *
  * Pass `deps` to override filesystem behaviour in unit tests.
- * When called without `deps`, uses Node.js fs APIs against the real
+ * When called without `deps`, uses Bun-native APIs against the real
  * `scripts/` folder at the repo root (3 levels above this module).
  */
 export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 	const resolvedDeps =
 		deps ??
-		makeNodeDeps(
+		defaultDeps(
 			// Navigate from lib/ → scriptor-web/ → 20_Applications/ → repo root → scripts/
 			resolve(dirname(fileURLToPath(import.meta.url)), "../../..", "scripts"),
 		);
 
-	const { glob, readFile, fileExists, scriptsDir } = resolvedDeps;
+	const { glob, readFile, scriptsDir } = resolvedDeps;
 
-	let relPaths: string[];
+	const scripts: Script[] = [];
+
+	let paths: AsyncIterable<string>;
 	try {
-		relPaths = await glob("**/*.md");
+		paths = glob("**/*.md", scriptsDir);
 	} catch {
 		console.warn("[loadScripts] scripts/ directory not found — returning []");
 		return [];
 	}
 
-	const scripts: Script[] = [];
-
-	for (const relPath of relPaths) {
+	for await (const relPath of paths) {
 		const absSpecPath = `${scriptsDir}/${relPath}`;
 
 		let text: string;
@@ -175,59 +168,49 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 		}
 
 		// Validate required fields
-		if (
-			typeof fm.platform !== "string" ||
-			typeof fm.os !== "string" ||
-			typeof fm.title !== "string" ||
-			!fm.platform ||
-			!fm.os ||
-			!fm.title
-		) {
+		if (typeof fm.platform !== "string" || !fm.platform) {
 			console.warn(
-				`[loadScripts] Missing required frontmatter fields in ${relPath} — skipping`,
+				`[loadScripts] Skipping script ${relPath}: missing required field 'platform'`,
 			);
 			continue;
 		}
 
-		const platform = fm.platform as Platform;
+		if (typeof fm.title !== "string" || !fm.title) {
+			console.warn(
+				`[loadScripts] Skipping script ${relPath}: missing required field 'title'`,
+			);
+			continue;
+		}
+
 		const id = idFromRelPath(relPath);
-		const ext = sourceExt(platform);
-		const absSourcePath = `${scriptsDir}/${id}${ext}`;
 
 		let source = "";
 		let runCommand = "";
 
-		const sourceExists = await fileExists(absSourcePath);
-		if (sourceExists) {
+		for (const ext of [".sh", ".ps1"] as const) {
 			try {
-				source = await readFile(absSourcePath);
-				runCommand = buildRunCommand(id, platform);
-			} catch (err) {
-				console.warn(
-					`[loadScripts] Could not read source ${absSourcePath}: ${(err as Error).message}`,
-				);
+				source = await readFile(`${scriptsDir}/${id}${ext}`);
+				runCommand = buildRunCommand(id, ext);
+				break;
+			} catch {
+				// Try next extension
 			}
 		}
-
-		const arch =
-			typeof fm.arch === "string" && fm.arch ? (fm.arch as Arch) : undefined;
 
 		scripts.push({
 			id,
 			title: fm.title,
-			platform,
-			os: fm.os,
-			...(arch !== undefined ? { arch } : {}),
+			description: typeof fm.description === "string" ? fm.description : "",
+			platform: fm.platform,
 			body,
 			source,
 			runCommand,
 		});
 	}
 
-	// Sort by platform, then os, then title
+	// Sort by platform, then title
 	scripts.sort((a, b) => {
 		if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
-		if (a.os !== b.os) return a.os.localeCompare(b.os);
 		return a.title.localeCompare(b.title);
 	});
 

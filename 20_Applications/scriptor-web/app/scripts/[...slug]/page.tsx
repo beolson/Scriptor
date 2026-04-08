@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
-import { CopyButton } from "@/components/ui/copy-button";
+import { CodeBlock } from "@/components/CodeBlock";
+import { loadPlatforms } from "@/lib/loadPlatforms";
 import { loadScripts } from "@/lib/loadScripts";
 
 import styles from "./detail-page.module.css";
@@ -23,45 +24,60 @@ export default async function ScriptDetailPage({ params }: PageProps) {
 	const { slug } = await params;
 	const id = slug.join("/");
 
-	const scripts = await loadScripts();
+	const [scripts, platforms] = await Promise.all([
+		loadScripts(),
+		loadPlatforms(),
+	]);
 	const script = scripts.find((s) => s.id === id);
 
 	if (!script) {
 		notFound();
 	}
 
+	const platformLabel = platforms[script.platform] ?? script.platform;
+
 	return (
-		<main className={styles.detail}>
-			<h1>{script.title}</h1>
+		<div className={styles.detail}>
+			<header className={styles.detailHeader}>
+				<h1 className={styles.heading}>
+					&gt; {script.title} - {platformLabel}
+				</h1>
+			</header>
 
-			<div className={styles.metadata}>
-				<span className={styles.metaTag}>{script.platform}</span>
-				<span className={styles.metaTag}>{script.os}</span>
-				{script.arch && <span className={styles.metaTag}>{script.arch}</span>}
-			</div>
-
-			<section className={styles.section}>
-				<ReactMarkdown>{script.body}</ReactMarkdown>
-			</section>
-
-			<section className={styles.section}>
-				<h2 className={styles.sectionHeading}>Source</h2>
-				{script.source ? (
-					<pre className={styles.sourceBlock}>
-						<code>{script.source}</code>
-					</pre>
-				) : (
-					<p>Source unavailable.</p>
-				)}
-			</section>
-
-			<section className={styles.section}>
-				<h2 className={styles.sectionHeading}>Run Command</h2>
-				<div className={styles.runCommandWrapper}>
-					<pre className={styles.runCommand}>{script.runCommand}</pre>
-					<CopyButton text={script.runCommand} />
+			{script.runCommand && (
+				<div className={styles.runSection}>
+					<CodeBlock label="// run command" command={script.runCommand} />
 				</div>
-			</section>
-		</main>
+			)}
+
+			<div className={styles.detailBody}>
+				<main className={styles.mainCol}>
+					<div className={styles.specContent}>
+						<span className={styles.boxLabel}>{"// spec"}</span>
+						<ReactMarkdown>{script.body}</ReactMarkdown>
+					</div>
+
+					{script.source && (
+						<pre className={styles.sourceBlock}>
+							<span className={styles.boxLabel}>{"// source"}</span>
+							{script.source}
+						</pre>
+					)}
+				</main>
+
+				<aside className={styles.sidebar}>
+					<div className={styles.metadataCard}>
+						<div className={styles.metaRow}>
+							<span className={styles.metaKey}>platform</span>
+							<span className={styles.metaValue}>{slug[0]}</span>
+						</div>
+						<div className={styles.metaRow}>
+							<span className={styles.metaKey}>target</span>
+							<span className={styles.metaValue}>{script.platform}</span>
+						</div>
+					</div>
+				</aside>
+			</div>
+		</div>
 	);
 }

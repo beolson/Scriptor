@@ -48,6 +48,16 @@
 }
 
 :root {
+	--gap-xs: 0.25rem;
+	--gap-sm: 0.5rem;
+	--gap-md: 1rem;
+	--gap-lg: 2rem;
+	--font-mono: var(--font-ibmplex), "IBM Plex Mono", monospace;
+	--scriptor-text: #111111;
+	--scriptor-muted: #6b7280;
+	--scriptor-accent: #059669;
+	--scriptor-border: #e5e7eb;
+	--scriptor-bg: #ffffff;
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 	--card: oklch(1 0 0);
@@ -122,6 +132,7 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+		font-family: var(--font-ibmplex), monospace;
 	}
 	html {
 		@apply font-sans;

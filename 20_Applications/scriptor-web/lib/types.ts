@@ -1,16 +1,12 @@
-export type Platform = "linux" | "windows" | "mac";
-export type Arch = "x64" | "arm64";
-
 export interface Script {
-	/** Unique identifier derived from folder path: e.g., "linux/ubuntu-24.04/install-docker" */
+	/** Unique identifier derived from folder path: e.g., "linux/ubuntu-24.04-x64/install-docker" */
 	id: string;
 	/** Human-readable display name from frontmatter `title` field */
 	title: string;
-	platform: Platform;
-	/** OS/distro value from controlled vocabulary, e.g. "ubuntu-24.04" */
-	os: string;
-	/** Target architecture; undefined means arch-agnostic */
-	arch?: Arch;
+	/** One-line description from frontmatter `description` field */
+	description: string;
+	/** Combined target identifier, e.g. "ubuntu-24.04-x64", "macos-tahoe-arm64", "windows-11-x64" */
+	platform: string;
 	/** Full Markdown body of the spec file (rendered on detail page) */
 	body: string;
 	/** Raw source code of the script file */
