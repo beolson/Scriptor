@@ -21,9 +21,11 @@
 		"db:dev": "docker compose -f 40_Infrastructure/docker-compose.dev.yml up -d",
 		"shadcn": "bun --cwd 20_Applications/agent-sap shadcn",
 		"db:migrate": "bun --cwd 20_Applications/agent-sap run db:migrate",
-		"pre:stop": "bun run lint && bun run check && bun run typecheck"
+		"pre:stop": "bun run lint && bun run check && bun run typecheck",
+		"version": "changeset version"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.0",
 		"@biomejs/biome": "2.4.8",
 		"@types/bun": "^1.3.11",
 		"turbo": "^2.8.20",
