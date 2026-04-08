@@ -1,6 +1,6 @@
 # Scriptor
 
-CLI tool that runs host-specific setup scripts from a GitHub repo.
+Platform for browsing and running host-specific setup scripts.
 
 ## Releasing
 
@@ -36,8 +36,6 @@ to release.
 Merging the version PR triggers the release workflow, which:
 
 1. Tags the commit as `v{version}`
-2. Builds TUI binaries for Linux, macOS, and Windows (x64 + arm64)
-3. Creates a GitHub Release with all six binaries attached
-4. Builds the web site and deploys to GitHub Pages
+2. Builds the web site, runs E2E tests, and deploys to GitHub Pages
 
 Monitor progress at: `github.com/beolson/Scriptor/actions`

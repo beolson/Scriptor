@@ -43,7 +43,7 @@ jobs:
         id: tag
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
-          VERSION=$(jq -r .version tui/package.json)
+          VERSION=$(jq -r .version 20_Applications/scriptor-web/package.json)
           if ! git rev-parse "v$VERSION" >/dev/null 2>&1; then
             git tag "v$VERSION"
             git push origin "v$VERSION"
