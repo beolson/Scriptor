@@ -1,70 +1,140 @@
 .detail {
 	display: flex;
 	flex-direction: column;
-	gap: var(--gap-lg, 1.5rem);
 }
 
-.metadata {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--gap-sm, 0.5rem);
-}
-
-.metaTag {
-	background-color: var(--muted);
-	color: var(--muted-foreground);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-md, 4px);
-	padding: 0.125rem 0.5rem;
-	font-size: 0.875em;
-}
-
-.section {
+.detailHeader {
+	padding: 48px 120px;
 	display: flex;
 	flex-direction: column;
-	gap: var(--gap-xs, 0.25rem);
+	gap: 16px;
 }
 
-.sectionHeading {
-	font-size: 1rem;
-	font-weight: 600;
-	color: var(--muted-foreground);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
+.heading {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--scriptor-text);
 	margin: 0;
+}
+
+.description {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 16px;
+	color: var(--scriptor-muted);
+	margin: 0;
+}
+
+.badges {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+}
+
+.badge {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 11px;
+	color: var(--scriptor-muted);
+	border: 1px solid var(--scriptor-border);
+	padding: 4px 6px;
+}
+
+.runSection {
+	padding: 0 120px;
+	margin-bottom: 24px;
+}
+
+.detailBody {
+	padding: 0 120px 40px;
+	display: flex;
+	flex-direction: row;
+	gap: 48px;
+}
+
+.mainCol {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.boxLabel {
+	display: block;
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
+	padding-bottom: 12px;
+	margin-bottom: 16px;
+	border-bottom: 1px solid var(--scriptor-border);
+}
+
+.specContent {
+	border: 1px solid var(--scriptor-border);
+	padding: 20px 24px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 13px;
+}
+
+.specContent h1,
+.specContent h2,
+.specContent h3,
+.specContent h4,
+.specContent h5,
+.specContent h6 {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 14px;
 }
 
 .sourceBlock {
-	background-color: var(--muted);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-md, 4px);
-	padding: var(--gap-md, 1rem);
+	border: 1px solid var(--scriptor-border);
+	padding: 20px 24px 24px;
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
 	overflow-x: auto;
 	margin: 0;
-}
-
-.sourceBlock code {
-	font-family: var(--font-mono, monospace);
-	font-size: 0.875em;
 	white-space: pre;
 }
 
-.runCommandWrapper {
+.sidebar {
+	width: 280px;
+	flex-shrink: 0;
 	display: flex;
-	align-items: flex-start;
-	gap: var(--gap-sm, 0.5rem);
-	flex-wrap: wrap;
+	flex-direction: column;
+	gap: 20px;
 }
 
-.runCommand {
+.metadataCard {
+	border: 1px solid var(--scriptor-border);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+}
+
+.metaRow {
+	display: flex;
+	flex-direction: row;
+	border-bottom: 1px solid var(--scriptor-border);
+	padding: 10px 0;
+}
+
+.metaRow:last-child {
+	border-bottom: none;
+}
+
+.metaKey {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
 	flex: 1;
-	background-color: var(--muted);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-md, 4px);
-	padding: var(--gap-sm, 0.5rem) var(--gap-md, 1rem);
-	font-family: var(--font-mono, monospace);
-	font-size: 0.875em;
-	margin: 0;
-	white-space: pre-wrap;
-	word-break: break-all;
+}
+
+.metaValue {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 12px;
+	color: var(--scriptor-text);
+	text-align: right;
 }

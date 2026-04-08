@@ -1,7 +1,24 @@
 import { expect, test } from "@playwright/test";
 
-test("home page loads and renders a button", async ({ page }) => {
+test("home page loads and renders platform cards", async ({ page }) => {
 	await page.goto("/");
-	const button = page.getByRole("button");
-	await expect(button).toBeVisible();
+	// Platform cards link to each OS section
+	await expect(
+		page.getByRole("link", { name: /ubuntu/i }).first(),
+	).toBeVisible();
+	await expect(
+		page.getByRole("link", { name: /windows/i }).first(),
+	).toBeVisible();
+	await expect(
+		page.getByRole("link", { name: /macos/i }).first(),
+	).toBeVisible();
+});
+
+test("clicking a platform card navigates to that platform's script list", async ({
+	page,
+}) => {
+	await page.goto("/");
+	await page.getByRole("link", { name: /windows/i }).first().click();
+	await expect(page).toHaveURL(/\/scripts\/windows/);
+	await expect(page.getByText("Setup winget")).toBeVisible();
 });

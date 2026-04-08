@@ -1,0 +1,26 @@
+.footer {
+	height: 80px;
+	padding: 0 48px;
+	background: var(--scriptor-bg);
+	border-top: 1px solid var(--scriptor-border);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.tagline {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 13px;
+	color: var(--scriptor-muted);
+}
+
+.github {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
+	text-decoration: none;
+}
+
+.github:hover {
+	color: var(--scriptor-text);
+}

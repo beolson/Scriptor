@@ -1,14 +1,14 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { LoadScriptsDeps } from "./loadScripts.js";
 import { loadScripts } from "./loadScripts.js";
 
-// Helper to build a minimal spec file string
+// Helper to build a minimal spec file string using new single-field platform
 function makeSpec(overrides: Record<string, string> = {}): string {
 	const fm = {
-		platform: "linux",
-		os: "ubuntu-24.04",
+		platform: "ubuntu-24.04-x64",
 		title: "Install curl",
+		description: "Installs curl on the system.",
 		...overrides,
 	};
 	const yamlLines = Object.entries(fm)
@@ -20,9 +20,8 @@ function makeSpec(overrides: Record<string, string> = {}): string {
 // Minimal deps factory — callers override what they need
 function makeDeps(overrides: Partial<LoadScriptsDeps> = {}): LoadScriptsDeps {
 	return {
-		glob: async () => [],
+		glob: async function* () {},
 		readFile: async () => "",
-		fileExists: async () => false,
 		scriptsDir: "/fake/scripts",
 		...overrides,
 	};
@@ -32,72 +31,89 @@ describe("loadScripts()", () => {
 	it("parses a valid spec into a Script with all fields", async () => {
 		const specContent = makeSpec();
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/install-curl.md"],
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.md";
+			},
 			readFile: async (p) => {
 				if (p.endsWith(".md")) return specContent;
 				return "#!/bin/bash\napt-get install -y curl";
 			},
-			fileExists: async () => true,
 		});
 
 		const scripts = await loadScripts(deps);
 
 		expect(scripts).toHaveLength(1);
 		const s = scripts[0];
-		expect(s.id).toBe("linux/ubuntu-24.04/install-curl");
+		expect(s.id).toBe("linux/ubuntu-24.04-x64/install-curl");
 		expect(s.title).toBe("Install curl");
-		expect(s.platform).toBe("linux");
-		expect(s.os).toBe("ubuntu-24.04");
+		expect(s.description).toBe("Installs curl on the system.");
+		expect(s.platform).toBe("ubuntu-24.04-x64");
 		expect(s.body).toContain("This installs curl");
 		expect(s.source).toBe("#!/bin/bash\napt-get install -y curl");
 		expect(s.runCommand).toBe(
-			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04/install-curl.sh | bash",
+			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04-x64/install-curl.sh | bash",
 		);
+		// Must not have os or arch
+		expect("os" in s).toBe(false);
+		expect("arch" in s).toBe(false);
+	});
+
+	it("sets description to empty string when frontmatter field is absent", async () => {
+		const noDescSpec = `---\nplatform: ubuntu-24.04-x64\ntitle: Install curl\n---\n\nBody.\n`;
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.md";
+			},
+			readFile: async (p) => {
+				if (p.endsWith(".md")) return noDescSpec;
+				return "#!/bin/bash";
+			},
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].description).toBe("");
 	});
 
 	it("skips a spec missing the required title field", async () => {
-		// Rebuild without title (note: makeSpec with empty title still emits "title: " which yaml parses as "")
-		const noTitleSpec = `---\nplatform: linux\nos: ubuntu-24.04\n---\n\nBody here.\n`;
+		const noTitleSpec = `---\nplatform: ubuntu-24.04-x64\n---\n\nBody here.\n`;
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/bad-script.md"],
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/bad-script.md";
+			},
 			readFile: async () => noTitleSpec,
-			fileExists: async () => true,
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts).toHaveLength(0);
 	});
 
-	it("skips a spec missing the required platform field", async () => {
-		const noPlatformSpec = `---\nos: ubuntu-24.04\ntitle: Some Script\n---\n\nBody.\n`;
+	it("skips a spec missing the required platform field and warns", async () => {
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const noPlatformSpec = `---\ntitle: Some Script\n---\n\nBody.\n`;
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/some-script.md"],
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/some-script.md";
+			},
 			readFile: async () => noPlatformSpec,
-			fileExists: async () => true,
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts).toHaveLength(0);
-	});
-
-	it("skips a spec missing the required os field", async () => {
-		const noOsSpec = `---\nplatform: linux\ntitle: Some Script\n---\n\nBody.\n`;
-		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/some-script.md"],
-			readFile: async () => noOsSpec,
-			fileExists: async () => true,
-		});
-
-		const scripts = await loadScripts(deps);
-		expect(scripts).toHaveLength(0);
+		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("platform"));
+		warnSpy.mockRestore();
 	});
 
 	it("sets source to empty string when co-located script file does not exist", async () => {
 		const specContent = makeSpec();
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/install-curl.md"],
-			readFile: async () => specContent,
-			fileExists: async () => false,
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.md";
+			},
+			readFile: async (p) => {
+				if (p.endsWith(".md")) return specContent;
+				throw new Error("file not found");
+			},
 		});
 
 		const scripts = await loadScripts(deps);
@@ -108,114 +124,117 @@ describe("loadScripts()", () => {
 	it("sets runCommand to empty string when source file does not exist", async () => {
 		const specContent = makeSpec();
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/install-curl.md"],
-			readFile: async () => specContent,
-			fileExists: async () => false,
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.md";
+			},
+			readFile: async (p) => {
+				if (p.endsWith(".md")) return specContent;
+				throw new Error("file not found");
+			},
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts[0].runCommand).toBe("");
 	});
 
-	it("parses optional arch field when present", async () => {
-		const specContent = makeSpec({ arch: "x64" });
+	it("buildRunCommand produces correct URL for a known id", async () => {
+		const specContent = makeSpec({
+			platform: "ubuntu-24.04-x64",
+			title: "Install curl",
+		});
 		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/install-curl.md"],
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.md";
+			},
 			readFile: async (p) => {
 				if (p.endsWith(".md")) return specContent;
 				return "#!/bin/bash";
 			},
-			fileExists: async () => true,
-		});
-
-		const scripts = await loadScripts(deps);
-		expect(scripts[0].arch).toBe("x64");
-	});
-
-	it("leaves arch undefined when not present in frontmatter (arch-agnostic)", async () => {
-		const specContent = makeSpec(); // no arch
-		const deps = makeDeps({
-			glob: async () => ["linux/ubuntu-24.04/install-curl.md"],
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				return "#!/bin/bash";
-			},
-			fileExists: async () => true,
-		});
-
-		const scripts = await loadScripts(deps);
-		expect(scripts[0].arch).toBeUndefined();
-	});
-
-	it("derives the correct windows run command", async () => {
-		const specContent = makeSpec({ platform: "windows", os: "windows-11" });
-		const deps = makeDeps({
-			glob: async () => ["windows/windows-11/setup-winget.md"],
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				return "# PowerShell";
-			},
-			fileExists: async () => true,
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts[0].runCommand).toBe(
-			"irm https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/windows/windows-11/setup-winget.ps1 | iex",
+			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04-x64/install-curl.sh | bash",
+		);
+	});
+
+	it("derives a PowerShell run command for .ps1 scripts", async () => {
+		const specContent = makeSpec({
+			platform: "windows-11-x64",
+			title: "Setup winget",
+		});
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "windows/windows-11-x64/setup-winget.md";
+			},
+			readFile: async (p) => {
+				if (p.endsWith(".md")) return specContent;
+				if (p.endsWith(".ps1")) return "# PowerShell";
+				throw new Error("file not found");
+			},
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts[0].runCommand).toBe(
+			"irm https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/windows/windows-11-x64/setup-winget.ps1 | iex",
 		);
 	});
 
 	it("derives the correct mac run command", async () => {
-		const specContent = makeSpec({ platform: "mac", os: "macos-sequoia" });
+		const specContent = makeSpec({
+			platform: "macos-sequoia-arm64",
+			title: "Install Homebrew",
+		});
 		const deps = makeDeps({
-			glob: async () => ["mac/macos-sequoia/install-homebrew.md"],
+			glob: async function* () {
+				yield "mac/macos-sequoia-arm64/install-homebrew.md";
+			},
 			readFile: async (p) => {
 				if (p.endsWith(".md")) return specContent;
 				return "#!/bin/bash";
 			},
-			fileExists: async () => true,
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts[0].runCommand).toBe(
-			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/mac/macos-sequoia/install-homebrew.sh | bash",
+			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/mac/macos-sequoia-arm64/install-homebrew.sh | bash",
 		);
 	});
 
-	it("returns scripts sorted by platform, then os, then title", async () => {
+	it("returns scripts sorted by platform then title", async () => {
 		const deps = makeDeps({
-			glob: async () => [
-				"mac/macos-sequoia/z-script.md",
-				"linux/ubuntu-24.04/b-script.md",
-				"linux/ubuntu-24.04/a-script.md",
-				"windows/windows-11/setup.md",
-			],
+			glob: async function* () {
+				yield "mac/macos-sequoia-arm64/z-script.md";
+				yield "linux/ubuntu-24.04-x64/b-script.md";
+				yield "linux/ubuntu-24.04-x64/a-script.md";
+				yield "windows/windows-11-x64/setup.md";
+			},
 			readFile: async (p) => {
-				if (p.includes("mac/macos-sequoia/z-script"))
-					return `---\nplatform: mac\nos: macos-sequoia\ntitle: Z Script\n---\nBody.\n`;
-				if (p.includes("linux/ubuntu-24.04/b-script"))
-					return `---\nplatform: linux\nos: ubuntu-24.04\ntitle: B Script\n---\nBody.\n`;
-				if (p.includes("linux/ubuntu-24.04/a-script"))
-					return `---\nplatform: linux\nos: ubuntu-24.04\ntitle: A Script\n---\nBody.\n`;
-				if (p.includes("windows/windows-11/setup"))
-					return `---\nplatform: windows\nos: windows-11\ntitle: Setup\n---\nBody.\n`;
+				if (p.includes("mac/macos-sequoia-arm64/z-script"))
+					return `---\nplatform: macos-sequoia-arm64\ntitle: Z Script\n---\nBody.\n`;
+				if (p.includes("linux/ubuntu-24.04-x64/b-script"))
+					return `---\nplatform: ubuntu-24.04-x64\ntitle: B Script\n---\nBody.\n`;
+				if (p.includes("linux/ubuntu-24.04-x64/a-script"))
+					return `---\nplatform: ubuntu-24.04-x64\ntitle: A Script\n---\nBody.\n`;
+				if (p.includes("windows/windows-11-x64/setup"))
+					return `---\nplatform: windows-11-x64\ntitle: Setup\n---\nBody.\n`;
 				return "";
 			},
-			fileExists: async () => false,
 		});
 
 		const scripts = await loadScripts(deps);
 		expect(scripts).toHaveLength(4);
-		// linux < mac < windows (alphabetical)
-		expect(scripts[0].platform).toBe("linux");
-		expect(scripts[0].title).toBe("A Script");
-		expect(scripts[1].platform).toBe("linux");
-		expect(scripts[1].title).toBe("B Script");
-		expect(scripts[2].platform).toBe("mac");
-		expect(scripts[3].platform).toBe("windows");
+		// macos-sequoia-arm64 < ubuntu-24.04-x64 < windows-11-x64 (alphabetical)
+		expect(scripts[0].platform).toBe("macos-sequoia-arm64");
+		expect(scripts[1].platform).toBe("ubuntu-24.04-x64");
+		expect(scripts[1].title).toBe("A Script");
+		expect(scripts[2].platform).toBe("ubuntu-24.04-x64");
+		expect(scripts[2].title).toBe("B Script");
+		expect(scripts[3].platform).toBe("windows-11-x64");
 	});
 
 	it("returns empty array when no spec files found", async () => {
-		const deps = makeDeps({ glob: async () => [] });
+		const deps = makeDeps({ glob: async function* () {} });
 		const scripts = await loadScripts(deps);
 		expect(scripts).toHaveLength(0);
 	});
@@ -224,15 +243,14 @@ describe("loadScripts()", () => {
 		const badYamlSpec = `---\n: : invalid yaml :::\n---\nBody.\n`;
 		const goodSpec = makeSpec({ title: "Good Script" });
 		const deps = makeDeps({
-			glob: async () => [
-				"linux/ubuntu-24.04/bad.md",
-				"linux/ubuntu-24.04/good.md",
-			],
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/bad.md";
+				yield "linux/ubuntu-24.04-x64/good.md";
+			},
 			readFile: async (p) => {
 				if (p.includes("bad.md")) return badYamlSpec;
 				return goodSpec;
 			},
-			fileExists: async () => false,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -245,15 +263,7 @@ describe("loadScripts()", () => {
 // ─── Integration tests against real scripts/ folder ──────────────────────────
 
 describe("loadScripts() integration — real scripts/ folder", () => {
-	it("loads at least one script per platform (linux, windows, mac)", async () => {
-		const scripts = await loadScripts();
-		const platforms = new Set(scripts.map((s) => s.platform));
-		expect(platforms.has("linux")).toBe(true);
-		expect(platforms.has("windows")).toBe(true);
-		expect(platforms.has("mac")).toBe(true);
-	});
-
-	it("returns at least 3 scripts total", async () => {
+	it("loads at least 3 scripts total", async () => {
 		const scripts = await loadScripts();
 		expect(scripts.length).toBeGreaterThanOrEqual(3);
 	});
@@ -263,6 +273,14 @@ describe("loadScripts() integration — real scripts/ folder", () => {
 		for (const s of scripts) {
 			expect(s.title.length).toBeGreaterThan(0);
 			expect(s.id.length).toBeGreaterThan(0);
+		}
+	});
+
+	it("every loaded script has a platform string (combined target)", async () => {
+		const scripts = await loadScripts();
+		for (const s of scripts) {
+			expect(typeof s.platform).toBe("string");
+			expect(s.platform.length).toBeGreaterThan(0);
 		}
 	});
 });

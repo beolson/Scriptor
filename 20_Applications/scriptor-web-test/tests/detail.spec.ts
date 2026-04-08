@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-	await page.goto("/scripts/linux/ubuntu-24.04/install-curl");
+	await page.goto("/scripts/linux/ubuntu-24.04-x64/install-curl");
 });
 
 test("detail page shows the script title", async ({ page }) => {
@@ -10,21 +10,17 @@ test("detail page shows the script title", async ({ page }) => {
 	).toBeVisible();
 });
 
-test("detail page shows platform metadata", async ({ page }) => {
-	// The metadata row contains span tags with platform/os values
-	await expect(page.getByText("linux", { exact: true }).first()).toBeVisible();
-});
-
-test("detail page shows OS metadata", async ({ page }) => {
-	await expect(
-		page.getByText("ubuntu-24.04", { exact: true }).first(),
-	).toBeVisible();
+test("detail page shows single target tag via formatTarget", async ({
+	page,
+}) => {
+	// formatTarget("ubuntu-24.04-x64") => "Ubuntu 24.04 X64"
+	await expect(page.getByText("Ubuntu 24.04 X64").first()).toBeVisible();
 });
 
 test("detail page shows the run command text", async ({ page }) => {
 	await expect(
 		page.getByText(
-			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04/install-curl.sh | bash",
+			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04-x64/install-curl.sh | bash",
 		),
 	).toBeVisible();
 });
@@ -33,25 +29,22 @@ test("copy button is visible on the detail page", async ({ page }) => {
 	await expect(page.getByRole("button", { name: "Copy" })).toBeVisible();
 });
 
-test("windows detail page shows irm run command", async ({ page }) => {
-	await page.goto("/scripts/windows/windows-11/setup-winget");
-	await expect(
-		page.getByRole("heading", { name: "Setup winget" }),
-	).toBeVisible();
-	await expect(
-		page.getByText(
-			"irm https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/windows/windows-11/setup-winget.ps1 | iex",
-		),
-	).toBeVisible();
-});
-
-test("mac detail page shows correct title and metadata", async ({ page }) => {
-	await page.goto("/scripts/mac/macos-sequoia/install-homebrew");
+test("mac detail page shows correct title and target tag", async ({ page }) => {
+	await page.goto("/scripts/mac/macos-sequoia-arm64/install-homebrew");
 	await expect(
 		page.getByRole("heading", { name: "Install Homebrew" }),
 	).toBeVisible();
-	await expect(page.getByText("mac", { exact: true }).first()).toBeVisible();
+	// formatTarget("macos-sequoia-arm64") => "Macos Sequoia Arm64"
+	await expect(page.getByText("Macos Sequoia Arm64").first()).toBeVisible();
+});
+
+test("windows detail page shows correct title and target tag", async ({
+	page,
+}) => {
+	await page.goto("/scripts/windows/windows-11-x64/setup-winget");
 	await expect(
-		page.getByText("macos-sequoia", { exact: true }).first(),
+		page.getByRole("heading", { name: "Setup winget" }),
 	).toBeVisible();
+	// formatTarget("windows-11-x64") => "Windows 11 X64"
+	await expect(page.getByText("Windows 11 X64").first()).toBeVisible();
 });

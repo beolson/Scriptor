@@ -1,0 +1,14 @@
+.heading {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--scriptor-text);
+	margin: 0;
+	padding: 48px 120px 24px;
+}
+
+.scriptList {
+	padding: 0 120px 40px;
+	display: flex;
+	flex-direction: column;
+}

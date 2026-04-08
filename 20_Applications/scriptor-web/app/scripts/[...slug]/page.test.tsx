@@ -17,37 +17,25 @@ vi.mock("next/navigation", () => ({
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const linuxScript: Script = {
-	id: "linux/ubuntu-24.04/install-curl",
+	id: "linux/ubuntu-24.04-x64/install-curl",
 	title: "Install curl",
-	platform: "linux",
-	os: "ubuntu-24.04",
-	body: "Installs curl on Ubuntu 24.04.",
+	description: "Installs curl on Ubuntu.",
+	platform: "ubuntu-24.04-x64",
+	body: "Installs curl on Ubuntu 24.04 x64.",
 	source: "#!/bin/bash\napt-get install -y curl",
 	runCommand:
-		"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04/install-curl.sh | bash",
+		"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04-x64/install-curl.sh | bash",
 };
 
 const windowsScript: Script = {
-	id: "windows/windows-11/setup-winget",
+	id: "windows/windows-11-x64/setup-winget",
 	title: "Setup winget",
-	platform: "windows",
-	os: "windows-11",
-	body: "Sets up winget on Windows 11.",
+	description: "Ensures winget is up to date.",
+	platform: "windows-11-x64",
+	body: "Sets up winget on Windows 11 x64.",
 	source: "# PowerShell\nwinget upgrade --all",
 	runCommand:
-		"irm https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/windows/windows-11/setup-winget.ps1 | iex",
-};
-
-const archScript: Script = {
-	id: "linux/ubuntu-24.04/install-git",
-	title: "Install git",
-	platform: "linux",
-	os: "ubuntu-24.04",
-	arch: "x64",
-	body: "Installs git for x64.",
-	source: "#!/bin/bash\napt-get install -y git",
-	runCommand:
-		"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04/install-git.sh | bash",
+		"irm https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/windows/windows-11-x64/setup-winget.ps1 | iex",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -60,7 +48,7 @@ async function importPage() {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("Detail page — /scripts/[...slug]", () => {
-	it("renders the script title in an h1", async () => {
+	it("renders > {script title} in an h1", async () => {
 		const { loadScripts } = await import("../../../lib/loadScripts.js");
 		vi.mocked(loadScripts).mockResolvedValue([linuxScript]);
 
@@ -70,17 +58,17 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
 		});
 
 		expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
-		expect(screen.getByText("Install curl")).toBeTruthy();
+		expect(screen.getByText(/>\s*Install curl/)).toBeTruthy();
 	});
 
-	it("renders platform and OS metadata", async () => {
+	it("renders the target in the metadata sidebar", async () => {
 		const { loadScripts } = await import("../../../lib/loadScripts.js");
 		vi.mocked(loadScripts).mockResolvedValue([linuxScript]);
 
@@ -90,33 +78,13 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
 		});
 
-		expect(screen.getByText("linux")).toBeTruthy();
-		expect(screen.getByText("ubuntu-24.04")).toBeTruthy();
-	});
-
-	it("renders arch metadata when present", async () => {
-		const { loadScripts } = await import("../../../lib/loadScripts.js");
-		vi.mocked(loadScripts).mockResolvedValue([archScript]);
-
-		const { default: Page } = await importPage();
-
-		await act(async () => {
-			render(
-				await Page({
-					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-git"],
-					}),
-				}),
-			);
-		});
-
-		expect(screen.getByText("x64")).toBeTruthy();
+		expect(screen.getByText("ubuntu-24.04-x64")).toBeTruthy();
 	});
 
 	it("renders the spec body as markdown", async () => {
@@ -129,13 +97,13 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
 		});
 
-		expect(screen.getByText("Installs curl on Ubuntu 24.04.")).toBeTruthy();
+		expect(screen.getByText("Installs curl on Ubuntu 24.04 x64.")).toBeTruthy();
 	});
 
 	it("renders the script source in a code block", async () => {
@@ -148,7 +116,7 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
@@ -167,7 +135,7 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
@@ -188,16 +156,16 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["linux", "ubuntu-24.04", "install-curl"],
+						slug: ["linux", "ubuntu-24.04-x64", "install-curl"],
 					}),
 				}),
 			);
 		});
 
-		expect(screen.getByRole("button", { name: "Copy" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "[copy]" })).toBeTruthy();
 	});
 
-	it("renders windows run command for windows scripts", async () => {
+	it("renders windows target in the metadata sidebar", async () => {
 		const { loadScripts } = await import("../../../lib/loadScripts.js");
 		vi.mocked(loadScripts).mockResolvedValue([windowsScript]);
 
@@ -207,13 +175,13 @@ describe("Detail page — /scripts/[...slug]", () => {
 			render(
 				await Page({
 					params: Promise.resolve({
-						slug: ["windows", "windows-11", "setup-winget"],
+						slug: ["windows", "windows-11-x64", "setup-winget"],
 					}),
 				}),
 			);
 		});
 
-		expect(screen.getByText(/irm.*setup-winget\.ps1 \| iex/)).toBeTruthy();
+		expect(screen.getByText("windows-11-x64")).toBeTruthy();
 	});
 
 	it("calls notFound() for an unknown slug", async () => {
@@ -225,7 +193,7 @@ describe("Detail page — /scripts/[...slug]", () => {
 		await expect(
 			Page({
 				params: Promise.resolve({
-					slug: ["linux", "ubuntu-24.04", "nonexistent"],
+					slug: ["linux", "ubuntu-24.04-x64", "nonexistent"],
 				}),
 			}),
 		).rejects.toThrow("NEXT_NOT_FOUND");

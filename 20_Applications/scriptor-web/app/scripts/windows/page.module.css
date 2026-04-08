@@ -1,0 +1,36 @@
+.pageHeader {
+	padding: 48px 120px;
+	border-bottom: 1px solid var(--scriptor-border);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.heading {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--scriptor-text);
+	margin: 0;
+}
+
+.codeRow {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.codeBlockWrapper {
+	width: 600px;
+}
+
+.count {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 14px;
+	color: var(--scriptor-muted);
+}
+
+.scriptList {
+	padding: 40px 120px;
+	display: flex;
+	flex-direction: column;
+}

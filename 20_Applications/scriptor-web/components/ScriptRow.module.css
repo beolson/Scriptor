@@ -1,0 +1,29 @@
+.row {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 16px 0;
+	border-bottom: 1px solid var(--scriptor-border);
+}
+
+.row:last-child {
+	border-bottom: none;
+}
+
+.scriptName {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--scriptor-text);
+	text-decoration: none;
+}
+
+.scriptName:hover {
+	color: var(--scriptor-accent);
+}
+
+.scriptDesc {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
+}

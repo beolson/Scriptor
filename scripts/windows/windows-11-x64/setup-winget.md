@@ -1,7 +1,7 @@
 ---
-platform: windows
-os: windows-11
+platform: windows-11-x64
 title: Setup winget
+description: Ensures the Windows Package Manager (winget) is up to date.
 ---
 
 Ensures the Windows Package Manager (`winget`) is up to date on Windows 11.

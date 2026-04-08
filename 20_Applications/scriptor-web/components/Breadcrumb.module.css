@@ -1,0 +1,32 @@
+.breadcrumb {
+	display: flex;
+	flex-direction: row;
+	gap: 6px;
+	align-items: center;
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+}
+
+.item {
+	display: flex;
+	flex-direction: row;
+	gap: 6px;
+	align-items: center;
+}
+
+.separator {
+	color: var(--scriptor-muted);
+}
+
+.link {
+	color: var(--scriptor-muted);
+	text-decoration: none;
+}
+
+.link:hover {
+	color: var(--scriptor-text);
+}
+
+.current {
+	color: var(--scriptor-text);
+}

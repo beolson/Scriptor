@@ -1,0 +1,28 @@
+.navbar {
+	height: 56px;
+	padding: 0 48px;
+	background: var(--scriptor-bg);
+	border-bottom: 1px solid var(--scriptor-border);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.brand {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--scriptor-text);
+	text-decoration: none;
+}
+
+.github {
+	font-family: var(--font-jetbrains), monospace;
+	font-size: 13px;
+	color: var(--scriptor-muted);
+	text-decoration: none;
+}
+
+.github:hover {
+	color: var(--scriptor-text);
+}
