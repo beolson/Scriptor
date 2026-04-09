@@ -5,9 +5,11 @@
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
+			"env": ["SCRIPTS_DIR"],
 			"inputs": [
 				"$TURBO_DEFAULT$",
 				"../../scripts/**",
+				"../../scripts-fixture/**",
 				"!README.md",
 				"!**/*.test.ts",
 				"!**/*.spec.ts"
