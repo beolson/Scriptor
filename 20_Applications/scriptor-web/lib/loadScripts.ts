@@ -115,13 +115,17 @@ export const defaultDeps = (scriptsDir: string): LoadScriptsDeps => ({
  * When called without `deps`, uses Bun-native APIs against the real
  * `scripts/` folder at the repo root (3 levels above this module).
  */
+// Navigate from lib/ → scriptor-web/ → 20_Applications/ → repo root
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+
+// Allow SCRIPTS_DIR env var to override the default scripts/ folder (e.g. for testing)
+// process.env is used (not Bun.env) because this module also runs under Vitest/Node.
+const defaultScriptsDir = process.env.SCRIPTS_DIR
+	? resolve(repoRoot, process.env.SCRIPTS_DIR)
+	: resolve(repoRoot, "scripts");
+
 export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
-	const resolvedDeps =
-		deps ??
-		defaultDeps(
-			// Navigate from lib/ → scriptor-web/ → 20_Applications/ → repo root → scripts/
-			resolve(dirname(fileURLToPath(import.meta.url)), "../../..", "scripts"),
-		);
+	const resolvedDeps = deps ?? defaultDeps(defaultScriptsDir);
 
 	const { glob, readFile, scriptsDir } = resolvedDeps;
 

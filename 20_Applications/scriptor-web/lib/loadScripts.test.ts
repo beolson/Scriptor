@@ -1,7 +1,16 @@
 // @vitest-environment node
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import type { LoadScriptsDeps } from "./loadScripts.js";
-import { loadScripts } from "./loadScripts.js";
+import { defaultDeps, loadScripts } from "./loadScripts.js";
+
+// Navigate from lib/ → scriptor-web/ → 20_Applications/ → repo root → scripts-fixture/
+const fixtureDir = resolve(
+	dirname(fileURLToPath(import.meta.url)),
+	"../../..",
+	"scripts-fixture",
+);
 
 // Helper to build a minimal spec file string using new single-field platform
 function makeSpec(overrides: Record<string, string> = {}): string {
@@ -260,16 +269,16 @@ describe("loadScripts()", () => {
 	});
 });
 
-// ─── Integration tests against real scripts/ folder ──────────────────────────
+// ─── Integration tests against scripts-fixture/ ──────────────────────────────
 
-describe("loadScripts() integration — real scripts/ folder", () => {
+describe("loadScripts() integration — scripts-fixture/ folder", () => {
 	it("loads at least 3 scripts total", async () => {
-		const scripts = await loadScripts();
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
 		expect(scripts.length).toBeGreaterThanOrEqual(3);
 	});
 
 	it("every loaded script has a non-empty title and id", async () => {
-		const scripts = await loadScripts();
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
 		for (const s of scripts) {
 			expect(s.title.length).toBeGreaterThan(0);
 			expect(s.id.length).toBeGreaterThan(0);
@@ -277,7 +286,7 @@ describe("loadScripts() integration — real scripts/ folder", () => {
 	});
 
 	it("every loaded script has a platform string (combined target)", async () => {
-		const scripts = await loadScripts();
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
 		for (const s of scripts) {
 			expect(typeof s.platform).toBe("string");
 			expect(s.platform.length).toBeGreaterThan(0);

@@ -17,7 +17,7 @@
 		"format": "biome format --write .",
 		"typecheck": "turbo run typecheck",
 		"test:unit": "turbo run test:unit",
-		"test:e2e": "turbo run test:e2e",
+		"test:e2e": "SCRIPTS_DIR=scripts-fixture turbo run test:e2e",
 		"db:dev": "docker compose -f 40_Infrastructure/docker-compose.dev.yml up -d",
 		"shadcn": "bun --cwd 20_Applications/agent-sap shadcn",
 		"db:migrate": "bun --cwd 20_Applications/agent-sap run db:migrate",
