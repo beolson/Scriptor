@@ -4,12 +4,15 @@
 	padding: 20px 24px 24px;
 	background: transparent;
 	border: 1px solid var(--scriptor-border);
+	overflow: hidden;
+	min-width: 0;
 }
 
 .header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	flex-shrink: 0;
 	padding-bottom: 12px;
 	margin-bottom: 16px;
 	border-bottom: 1px solid var(--scriptor-border);
@@ -22,8 +25,11 @@
 }
 
 .command {
+	display: block;
 	font-family: var(--font-jetbrains), monospace;
 	font-size: 13px;
 	color: var(--scriptor-accent);
-	word-break: break-all;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
