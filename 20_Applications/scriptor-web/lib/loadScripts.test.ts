@@ -204,11 +204,20 @@ describe("loadScripts()", () => {
 			},
 			readFile: async (p) => {
 				if (p.includes("mac/macos-sequoia-arm64/z-script"))
-					return makeShSpec({ platform: "macos-sequoia-arm64", title: "Z Script" });
+					return makeShSpec({
+						platform: "macos-sequoia-arm64",
+						title: "Z Script",
+					});
 				if (p.includes("linux/ubuntu-24.04-x64/b-script"))
-					return makeShSpec({ platform: "ubuntu-24.04-x64", title: "B Script" });
+					return makeShSpec({
+						platform: "ubuntu-24.04-x64",
+						title: "B Script",
+					});
 				if (p.includes("linux/ubuntu-24.04-x64/a-script"))
-					return makeShSpec({ platform: "ubuntu-24.04-x64", title: "A Script" });
+					return makeShSpec({
+						platform: "ubuntu-24.04-x64",
+						title: "A Script",
+					});
 				if (p.includes("windows/windows-11-x64/setup"))
 					return makePs1Spec({ platform: "windows-11-x64", title: "Setup" });
 				return "";
