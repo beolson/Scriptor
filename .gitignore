@@ -49,5 +49,8 @@ Thumbs.db
 
 .playwright-cli/
 
+# Playwright test results
+test-results/
+
 # Claude Code worktrees
 .claude/worktrees/

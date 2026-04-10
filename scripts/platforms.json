@@ -1,5 +1,4 @@
 {
-	"ubuntu-24.04-x64": "Ubuntu 24.04 X64",
-	"macos-sequoia-arm64": "MacOS Sequoia ARM64",
+	"debian-13-x64": "Debian 13 x64",
 	"windows-11-x64": "Windows 11 X64"
 }
