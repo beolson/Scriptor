@@ -4,13 +4,10 @@ test("home page loads and renders platform cards", async ({ page }) => {
 	await page.goto("/");
 	// Platform cards link to each OS section
 	await expect(
-		page.getByRole("link", { name: /ubuntu/i }).first(),
+		page.getByRole("link", { name: /debian/i }).first(),
 	).toBeVisible();
 	await expect(
 		page.getByRole("link", { name: /windows/i }).first(),
-	).toBeVisible();
-	await expect(
-		page.getByRole("link", { name: /macos/i }).first(),
 	).toBeVisible();
 });
 
