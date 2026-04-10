@@ -12,8 +12,26 @@ const fixtureDir = resolve(
 	"scripts-fixture",
 );
 
-// Helper to build a minimal spec file string using new single-field platform
-function makeSpec(overrides: Record<string, string> = {}): string {
+// Helper to build a .sh script with an embedded spec block
+function makeShSpec(
+	overrides: Partial<Record<"platform" | "title" | "description", string>> = {},
+): string {
+	const fm = {
+		platform: "ubuntu-24.04-x64",
+		title: "Install curl",
+		description: "Installs curl on the system.",
+		...overrides,
+	};
+	const fmLines = Object.entries(fm)
+		.map(([k, v]) => `# ${k}: ${v}`)
+		.join("\n");
+	return `#!/bin/bash\n# ---\n${fmLines}\n# ---\n#\n# This installs curl on the system.\n\napt-get install -y curl\n`;
+}
+
+// Helper to build a .ps1 script with an embedded spec block
+function makePs1Spec(
+	overrides: Partial<Record<"platform" | "title" | "description", string>> = {},
+): string {
 	const fm = {
 		platform: "ubuntu-24.04-x64",
 		title: "Install curl",
@@ -23,7 +41,7 @@ function makeSpec(overrides: Record<string, string> = {}): string {
 	const yamlLines = Object.entries(fm)
 		.map(([k, v]) => `${k}: ${v}`)
 		.join("\n");
-	return `---\n${yamlLines}\n---\n\nThis installs curl on the system.\n`;
+	return `<#\n---\n${yamlLines}\n---\n\nThis installs curl on the system.\n#>\n\nWrite-Output "test"\n`;
 }
 
 // Minimal deps factory — callers override what they need
@@ -38,15 +56,12 @@ function makeDeps(overrides: Partial<LoadScriptsDeps> = {}): LoadScriptsDeps {
 
 describe("loadScripts()", () => {
 	it("parses a valid spec into a Script with all fields", async () => {
-		const specContent = makeSpec();
+		const scriptContent = makeShSpec();
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/install-curl.md";
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				return "#!/bin/bash\napt-get install -y curl";
-			},
+			readFile: async () => scriptContent,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -58,7 +73,7 @@ describe("loadScripts()", () => {
 		expect(s.description).toBe("Installs curl on the system.");
 		expect(s.platform).toBe("ubuntu-24.04-x64");
 		expect(s.body).toContain("This installs curl");
-		expect(s.source).toBe("#!/bin/bash\napt-get install -y curl");
+		expect(s.source).toBe(scriptContent);
 		expect(s.runCommand).toBe(
 			"curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/ubuntu-24.04-x64/install-curl.sh | bash",
 		);
@@ -68,15 +83,13 @@ describe("loadScripts()", () => {
 	});
 
 	it("sets description to empty string when frontmatter field is absent", async () => {
-		const noDescSpec = `---\nplatform: ubuntu-24.04-x64\ntitle: Install curl\n---\n\nBody.\n`;
+		const noDescScript =
+			"#!/bin/bash\n# ---\n# platform: ubuntu-24.04-x64\n# title: Install curl\n# ---\n#\n# Body.\n\napt-get install -y curl\n";
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/install-curl.md";
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return noDescSpec;
-				return "#!/bin/bash";
-			},
+			readFile: async () => noDescScript,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -85,12 +98,13 @@ describe("loadScripts()", () => {
 	});
 
 	it("skips a spec missing the required title field", async () => {
-		const noTitleSpec = `---\nplatform: ubuntu-24.04-x64\n---\n\nBody here.\n`;
+		const noTitleScript =
+			"#!/bin/bash\n# ---\n# platform: ubuntu-24.04-x64\n# ---\n#\n# Body here.\n\necho hi\n";
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/bad-script.md";
+				yield "linux/ubuntu-24.04-x64/bad-script.sh";
 			},
-			readFile: async () => noTitleSpec,
+			readFile: async () => noTitleScript,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -99,12 +113,13 @@ describe("loadScripts()", () => {
 
 	it("skips a spec missing the required platform field and warns", async () => {
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-		const noPlatformSpec = `---\ntitle: Some Script\n---\n\nBody.\n`;
+		const noPlatformScript =
+			"#!/bin/bash\n# ---\n# title: Some Script\n# ---\n#\n# Body.\n\necho hi\n";
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/some-script.md";
+				yield "linux/ubuntu-24.04-x64/some-script.sh";
 			},
-			readFile: async () => noPlatformSpec,
+			readFile: async () => noPlatformScript,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -113,52 +128,28 @@ describe("loadScripts()", () => {
 		warnSpy.mockRestore();
 	});
 
-	it("sets source to empty string when co-located script file does not exist", async () => {
-		const specContent = makeSpec();
+	it("skips a script with no embedded spec block", async () => {
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/install-curl.md";
+				yield "linux/ubuntu-24.04-x64/bare-script.sh";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				throw new Error("file not found");
-			},
+			readFile: async () => "#!/bin/bash\napt-get install -y curl\n",
 		});
 
 		const scripts = await loadScripts(deps);
-		expect(scripts).toHaveLength(1);
-		expect(scripts[0].source).toBe("");
-	});
-
-	it("sets runCommand to empty string when source file does not exist", async () => {
-		const specContent = makeSpec();
-		const deps = makeDeps({
-			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/install-curl.md";
-			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				throw new Error("file not found");
-			},
-		});
-
-		const scripts = await loadScripts(deps);
-		expect(scripts[0].runCommand).toBe("");
+		expect(scripts).toHaveLength(0);
 	});
 
 	it("buildRunCommand produces correct URL for a known id", async () => {
-		const specContent = makeSpec({
+		const scriptContent = makeShSpec({
 			platform: "ubuntu-24.04-x64",
 			title: "Install curl",
 		});
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/install-curl.md";
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				return "#!/bin/bash";
-			},
+			readFile: async () => scriptContent,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -168,19 +159,15 @@ describe("loadScripts()", () => {
 	});
 
 	it("derives a PowerShell run command for .ps1 scripts", async () => {
-		const specContent = makeSpec({
+		const scriptContent = makePs1Spec({
 			platform: "windows-11-x64",
 			title: "Setup winget",
 		});
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "windows/windows-11-x64/setup-winget.md";
+				yield "windows/windows-11-x64/setup-winget.ps1";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				if (p.endsWith(".ps1")) return "# PowerShell";
-				throw new Error("file not found");
-			},
+			readFile: async () => scriptContent,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -190,18 +177,15 @@ describe("loadScripts()", () => {
 	});
 
 	it("derives the correct mac run command", async () => {
-		const specContent = makeSpec({
+		const scriptContent = makeShSpec({
 			platform: "macos-sequoia-arm64",
 			title: "Install Homebrew",
 		});
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "mac/macos-sequoia-arm64/install-homebrew.md";
+				yield "mac/macos-sequoia-arm64/install-homebrew.sh";
 			},
-			readFile: async (p) => {
-				if (p.endsWith(".md")) return specContent;
-				return "#!/bin/bash";
-			},
+			readFile: async () => scriptContent,
 		});
 
 		const scripts = await loadScripts(deps);
@@ -213,20 +197,29 @@ describe("loadScripts()", () => {
 	it("returns scripts sorted by platform then title", async () => {
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "mac/macos-sequoia-arm64/z-script.md";
-				yield "linux/ubuntu-24.04-x64/b-script.md";
-				yield "linux/ubuntu-24.04-x64/a-script.md";
-				yield "windows/windows-11-x64/setup.md";
+				yield "mac/macos-sequoia-arm64/z-script.sh";
+				yield "linux/ubuntu-24.04-x64/b-script.sh";
+				yield "linux/ubuntu-24.04-x64/a-script.sh";
+				yield "windows/windows-11-x64/setup.ps1";
 			},
 			readFile: async (p) => {
 				if (p.includes("mac/macos-sequoia-arm64/z-script"))
-					return `---\nplatform: macos-sequoia-arm64\ntitle: Z Script\n---\nBody.\n`;
+					return makeShSpec({
+						platform: "macos-sequoia-arm64",
+						title: "Z Script",
+					});
 				if (p.includes("linux/ubuntu-24.04-x64/b-script"))
-					return `---\nplatform: ubuntu-24.04-x64\ntitle: B Script\n---\nBody.\n`;
+					return makeShSpec({
+						platform: "ubuntu-24.04-x64",
+						title: "B Script",
+					});
 				if (p.includes("linux/ubuntu-24.04-x64/a-script"))
-					return `---\nplatform: ubuntu-24.04-x64\ntitle: A Script\n---\nBody.\n`;
+					return makeShSpec({
+						platform: "ubuntu-24.04-x64",
+						title: "A Script",
+					});
 				if (p.includes("windows/windows-11-x64/setup"))
-					return `---\nplatform: windows-11-x64\ntitle: Setup\n---\nBody.\n`;
+					return makePs1Spec({ platform: "windows-11-x64", title: "Setup" });
 				return "";
 			},
 		});
@@ -242,23 +235,24 @@ describe("loadScripts()", () => {
 		expect(scripts[3].platform).toBe("windows-11-x64");
 	});
 
-	it("returns empty array when no spec files found", async () => {
+	it("returns empty array when no script files found", async () => {
 		const deps = makeDeps({ glob: async function* () {} });
 		const scripts = await loadScripts(deps);
 		expect(scripts).toHaveLength(0);
 	});
 
 	it("continues past a spec with unparseable YAML", async () => {
-		const badYamlSpec = `---\n: : invalid yaml :::\n---\nBody.\n`;
-		const goodSpec = makeSpec({ title: "Good Script" });
+		const badYamlScript =
+			"#!/bin/bash\n# ---\n# : : invalid yaml :::\n# ---\n# Body.\n\necho bad\n";
+		const goodScript = makeShSpec({ title: "Good Script" });
 		const deps = makeDeps({
 			glob: async function* () {
-				yield "linux/ubuntu-24.04-x64/bad.md";
-				yield "linux/ubuntu-24.04-x64/good.md";
+				yield "linux/ubuntu-24.04-x64/bad.sh";
+				yield "linux/ubuntu-24.04-x64/good.sh";
 			},
 			readFile: async (p) => {
-				if (p.includes("bad.md")) return badYamlSpec;
-				return goodSpec;
+				if (p.includes("bad.sh")) return badYamlScript;
+				return goodScript;
 			},
 		});
 

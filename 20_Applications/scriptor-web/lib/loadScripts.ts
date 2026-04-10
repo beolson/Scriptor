@@ -11,7 +11,7 @@ import type { Script } from "./types.js";
  * in-memory fixtures instead of hitting the real filesystem.
  */
 export interface LoadScriptsDeps {
-	/** Yields relative paths (from scriptsDir) of all .md files under scripts/ */
+	/** Yields relative paths (from scriptsDir) of all .sh and .ps1 files under scripts/ */
 	glob: (pattern: string, dir: string) => AsyncIterable<string>;
 	/** Reads a file by absolute path and returns its text contents */
 	readFile: (path: string) => Promise<string>;
@@ -34,9 +34,9 @@ interface SpecFrontmatter {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Derive the script id from a relative spec path (strips .md extension) */
+/** Derive the script id from a relative script path (strips .sh or .ps1 extension) */
 function idFromRelPath(relPath: string): string {
-	return relPath.replace(/\.md$/, "");
+	return relPath.replace(/\.(sh|ps1)$/, "");
 }
 
 /** Build the one-liner run command for a given script id and file extension */
@@ -49,8 +49,8 @@ function buildRunCommand(id: string, ext: ".sh" | ".ps1"): string {
 }
 
 /**
- * Split a Markdown file into frontmatter YAML string and body text.
- * Returns null if the file does not start with a `---` fence.
+ * Split text into frontmatter YAML string and body text.
+ * Returns null if the text does not start with a `---` fence.
  */
 function splitFrontmatter(
 	text: string,
@@ -61,13 +61,72 @@ function splitFrontmatter(
 	return { yamlStr: match[1], body: match[2] };
 }
 
+/**
+ * Extract the embedded spec from a .sh script file.
+ *
+ * Expects a block of `# ` line comments starting with `# ---` immediately
+ * after the optional shebang line. Strips the `# ` prefix from each line and
+ * returns the result ready for splitFrontmatter(), or null if no spec block
+ * is found.
+ */
+function extractShSpec(content: string): string | null {
+	const lines = content.split("\n");
+	let i = 0;
+
+	// Skip shebang
+	if (lines[0]?.startsWith("#!")) i = 1;
+
+	// Must start with `# ---`
+	if (lines[i] !== "# ---") return null;
+
+	const specLines: string[] = [];
+	while (i < lines.length) {
+		const line = lines[i];
+		if (line.startsWith("# ")) {
+			specLines.push(line.slice(2));
+			i++;
+		} else if (line === "#") {
+			specLines.push("");
+			i++;
+		} else {
+			break;
+		}
+	}
+
+	return specLines.join("\n");
+}
+
+/**
+ * Extract the embedded spec from a .ps1 script file.
+ *
+ * Expects a `<# ... #>` block comment at the top of the file. Returns the
+ * block content trimmed and ready for splitFrontmatter(), or null if no block
+ * comment is found at the start.
+ */
+function extractPs1Spec(content: string): string | null {
+	if (!content.startsWith("<#")) return null;
+	const end = content.indexOf("#>");
+	if (end === -1) return null;
+	return content.slice(2, end).trim();
+}
+
+/**
+ * Dispatch to the correct spec extractor based on file extension.
+ */
+function extractEmbeddedSpec(
+	content: string,
+	ext: ".sh" | ".ps1",
+): string | null {
+	return ext === ".ps1" ? extractPs1Spec(content) : extractShSpec(content);
+}
+
 // ─── Real-filesystem deps ─────────────────────────────────────────────────────
 
 /**
- * Recursively collect all .md files under a directory, yielding paths
+ * Recursively collect all .sh and .ps1 files under a directory, yielding paths
  * relative to that base directory.
  */
-async function* collectMdFiles(
+async function* collectScriptFiles(
 	baseDir: string,
 	subDir = "",
 ): AsyncIterable<string> {
@@ -77,8 +136,8 @@ async function* collectMdFiles(
 	for (const entry of entries) {
 		const rel = subDir ? `${subDir}/${entry.name}` : entry.name;
 		if (entry.isDirectory()) {
-			yield* collectMdFiles(baseDir, rel);
-		} else if (entry.name.endsWith(".md")) {
+			yield* collectScriptFiles(baseDir, rel);
+		} else if (entry.name.endsWith(".sh") || entry.name.endsWith(".ps1")) {
 			yield rel;
 		}
 	}
@@ -100,15 +159,16 @@ export const defaultDeps = (scriptsDir: string): LoadScriptsDeps => ({
 	scriptsDir,
 	readFile: readFileCompat,
 	glob: async function* (_pattern: string, dir: string) {
-		yield* collectMdFiles(dir);
+		yield* collectScriptFiles(dir);
 	},
 });
 
 // ─── loadScripts ─────────────────────────────────────────────────────────────
 
 /**
- * Reads all spec files from the `scripts/` directory at build time.
- * Skips specs with missing required frontmatter fields (no build error).
+ * Reads all script files from the `scripts/` directory at build time.
+ * Parses the embedded spec block (comment at the top of each file) for metadata.
+ * Skips scripts with no spec block or missing required frontmatter fields.
  * Returns Script[] sorted by platform, then title.
  *
  * Pass `deps` to override filesystem behaviour in unit tests.
@@ -133,21 +193,30 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 
 	let paths: AsyncIterable<string>;
 	try {
-		paths = glob("**/*.md", scriptsDir);
+		paths = glob("**/*.{sh,ps1}", scriptsDir);
 	} catch {
 		console.warn("[loadScripts] scripts/ directory not found — returning []");
 		return [];
 	}
 
 	for await (const relPath of paths) {
-		const absSpecPath = `${scriptsDir}/${relPath}`;
+		const ext: ".sh" | ".ps1" = relPath.endsWith(".ps1") ? ".ps1" : ".sh";
+		const absPath = `${scriptsDir}/${relPath}`;
 
-		let text: string;
+		let content: string;
 		try {
-			text = await readFile(absSpecPath);
+			content = await readFile(absPath);
 		} catch (err) {
 			console.warn(
-				`[loadScripts] Could not read ${absSpecPath}: ${(err as Error).message}`,
+				`[loadScripts] Could not read ${absPath}: ${(err as Error).message}`,
+			);
+			continue;
+		}
+
+		const specText = extractEmbeddedSpec(content, ext);
+		if (!specText) {
+			console.warn(
+				`[loadScripts] No embedded spec block found in ${relPath} — skipping`,
 			);
 			continue;
 		}
@@ -155,7 +224,7 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 		let fm: SpecFrontmatter;
 		let body: string;
 		try {
-			const split = splitFrontmatter(text);
+			const split = splitFrontmatter(specText);
 			if (!split) {
 				console.warn(
 					`[loadScripts] No frontmatter found in ${relPath} — skipping`,
@@ -188,27 +257,14 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 
 		const id = idFromRelPath(relPath);
 
-		let source = "";
-		let runCommand = "";
-
-		for (const ext of [".sh", ".ps1"] as const) {
-			try {
-				source = await readFile(`${scriptsDir}/${id}${ext}`);
-				runCommand = buildRunCommand(id, ext);
-				break;
-			} catch {
-				// Try next extension
-			}
-		}
-
 		scripts.push({
 			id,
 			title: fm.title,
 			description: typeof fm.description === "string" ? fm.description : "",
 			platform: fm.platform,
 			body,
-			source,
-			runCommand,
+			source: content,
+			runCommand: buildRunCommand(id, ext),
 		});
 	}
 

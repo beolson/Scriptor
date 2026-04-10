@@ -1,21 +1,42 @@
 .detail {
+	--page-x: 20px;
 	display: flex;
 	flex-direction: column;
+	overflow-x: hidden;
+}
+
+@media (min-width: 768px) {
+	.detail {
+		--page-x: 120px;
+	}
 }
 
 .detailHeader {
-	padding: 48px 120px;
+	padding: 32px var(--page-x);
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
 }
 
+@media (min-width: 768px) {
+	.detailHeader {
+		padding-top: 48px;
+	}
+}
+
 .heading {
 	font-family: var(--font-jetbrains), monospace;
-	font-size: 28px;
+	font-size: 22px;
 	font-weight: 700;
 	color: var(--scriptor-text);
 	margin: 0;
+	overflow-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+	.heading {
+		font-size: 28px;
+	}
 }
 
 .description {
@@ -40,19 +61,28 @@
 }
 
 .runSection {
-	padding: 0 120px;
+	padding: 0 var(--page-x);
 	margin-bottom: 24px;
+	min-width: 0;
 }
 
 .detailBody {
-	padding: 0 120px 40px;
+	padding: 0 var(--page-x) 40px;
 	display: flex;
-	flex-direction: row;
-	gap: 48px;
+	flex-direction: column;
+	gap: 24px;
+}
+
+@media (min-width: 768px) {
+	.detailBody {
+		flex-direction: row;
+		gap: 48px;
+	}
 }
 
 .mainCol {
 	flex: 1;
+	min-width: 0;
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -76,6 +106,9 @@
 	gap: 16px;
 	font-family: var(--font-ibmplex), monospace;
 	font-size: 13px;
+	overflow-wrap: break-word;
+	word-break: break-word;
+	min-width: 0;
 }
 
 .specContent h1,
@@ -97,14 +130,21 @@
 	overflow-x: auto;
 	margin: 0;
 	white-space: pre;
+	min-width: 0;
 }
 
 .sidebar {
-	width: 280px;
+	width: 100%;
 	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
+}
+
+@media (min-width: 768px) {
+	.sidebar {
+		width: 280px;
+	}
 }
 
 .metadataCard {
@@ -119,6 +159,7 @@
 	flex-direction: row;
 	border-bottom: 1px solid var(--scriptor-border);
 	padding: 10px 0;
+	gap: 8px;
 }
 
 .metaRow:last-child {
@@ -130,6 +171,7 @@
 	font-size: 12px;
 	color: var(--scriptor-muted);
 	flex: 1;
+	flex-shrink: 0;
 }
 
 .metaValue {
@@ -137,4 +179,7 @@
 	font-size: 12px;
 	color: var(--scriptor-text);
 	text-align: right;
+	overflow-wrap: break-word;
+	word-break: break-all;
+	min-width: 0;
 }

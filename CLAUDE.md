@@ -88,9 +88,42 @@ All workspaces use strict mode. `scriptor-web` config: target ES2017, module ESN
 
 ## Adding a New Script
 
-1. Add the script to `scripts/<platform>/<category>/script-name.sh` (or `.ps1` for Windows).
-2. Optionally add a corresponding `.spec.md` file alongside it.
+1. Add the script to `scripts/<platform>/script-name.sh` (or `.ps1` for Windows).
+2. Add an embedded spec block at the top of the file (see formats below).
 3. The web site picks up the new script automatically at the next build — no code changes needed.
+
+**`.sh` format** (bash line comments):
+```bash
+#!/bin/bash
+# ---
+# platform: <platform-id>
+# title: Script Title
+# description: Optional one-line description.
+# ---
+# Markdown body here. Use `#` for blank lines.
+#
+# ## Sections work too
+
+actual-command --here
+```
+
+**`.ps1` format** (PowerShell block comment):
+```powershell
+<#
+---
+platform: <platform-id>
+title: Script Title
+description: Optional one-line description.
+---
+Markdown body here.
+
+## Sections work too
+#>
+
+Actual-Command -Here
+```
+
+Required frontmatter fields: `platform`, `title`. `description` is optional.
 
 ## Release Process
 
