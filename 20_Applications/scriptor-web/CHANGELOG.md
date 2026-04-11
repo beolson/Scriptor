@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.2.3
+
+### Patch Changes
+
+- 55424ee: Fix release workflow to run E2E against a fixture build before building for deploy
+
 ## 0.2.2
 
 ### Patch Changes
