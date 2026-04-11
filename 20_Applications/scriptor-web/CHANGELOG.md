@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.2.4
+
+### Patch Changes
+
+- 5f361a8: Consolidate Windows install scripts into one and make WSL distro name interactive
+
 ## 0.2.3
 
 ### Patch Changes
