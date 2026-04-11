@@ -1,8 +1,8 @@
 <#
 ---
 platform: windows-11-x64
-title: Install Dev Apps
-description: Installs Windows Terminal, VS Code, and Google Chrome via winget.
+title: Install Apps
+description: Upgrades winget, then installs Windows Terminal, VS Code, Git, and Chrome.
 ---
 Installs a standard set of developer applications using the Windows Package Manager
 (`winget`). Each package is checked first — already-installed apps are skipped so
@@ -10,15 +10,17 @@ the script is safe to run more than once.
 
 ## What it does
 
-1. Verifies `winget` is available.
+1. Upgrades **winget** (App Installer) to the latest version.
 2. Installs **Windows Terminal** — the modern tabbed terminal for PowerShell, CMD, and WSL.
 3. Installs **Visual Studio Code** — lightweight code editor.
-4. Installs **Google Chrome** — web browser.
+4. Installs **Git for Windows** — version control.
+5. Installs **Google Chrome** — web browser.
 
 ## Requirements
 
 - Windows 11
-- winget (App Installer) — pre-installed on Windows 11; update via the Microsoft Store if needed.
+- winget (App Installer) — pre-installed on Windows 11; update via the Microsoft Store if
+  the upgrade step fails.
 #>
 
 Set-StrictMode -Version Latest
@@ -51,8 +53,14 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-Install-WingetPackage -Id 'Microsoft.WindowsTerminal' -Name 'Windows Terminal'
-Install-WingetPackage -Id 'Microsoft.VisualStudioCode' -Name 'Visual Studio Code'
-Install-WingetPackage -Id 'Google.Chrome'              -Name 'Google Chrome'
+# Upgrade winget itself first
+Write-Host "Upgrading winget (App Installer)..."
+winget upgrade --id Microsoft.AppInstaller --silent --accept-source-agreements
+# Non-zero exit here just means no upgrade was needed; don't treat as fatal
+
+Install-WingetPackage -Id 'Microsoft.WindowsTerminal'   -Name 'Windows Terminal'
+Install-WingetPackage -Id 'Microsoft.VisualStudioCode'  -Name 'Visual Studio Code'
+Install-WingetPackage -Id 'Git.Git'                     -Name 'Git for Windows'
+Install-WingetPackage -Id 'Google.Chrome'               -Name 'Google Chrome'
 
 Write-Host "All apps installed." -ForegroundColor Green

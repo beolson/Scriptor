@@ -7,8 +7,8 @@ description: Installs a named Debian 13 WSL instance and creates a local user ac
 Installs a WSL 2 Debian 13 instance, creates a user account matching your Windows
 username, adds it to the `sudo` group, and sets it as the default login user.
 
-The instance name defaults to `Debian13Dev` but can be overridden by passing a name
-as the first argument: `.\setup-wsl-debian13.ps1 MyInstance`.
+The script prompts for an instance name before doing anything — enter any identifier
+you like (e.g. `Debian13Dev`, `work`, `personal`).
 
 ## What it does
 
@@ -32,7 +32,11 @@ as the first argument: `.\setup-wsl-debian13.ps1 MyInstance`.
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$InstanceName = if ($args[0]) { $args[0] } else { 'Debian13Dev' }
+$InstanceName = ''
+while (-not $InstanceName.Trim()) {
+    $InstanceName = (Read-Host 'Enter a name for the WSL instance (e.g. Debian13Dev)').Trim()
+}
+
 $WinUser = $env:USERNAME
 $Tag = '[setup-wsl-debian13]'
 
