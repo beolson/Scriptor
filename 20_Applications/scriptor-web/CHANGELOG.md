@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.2.2
+
+### Patch Changes
+
+- 778a00e: Fix release workflow E2E step to use fixture scripts directory
+
 ## 0.2.1
 
 ### Patch Changes
