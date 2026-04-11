@@ -70,8 +70,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Create user account (run as root — no default user exists yet)
+# useradd is used instead of adduser: Debian 13 ships adduser 4.0 which dropped
+# the --gecos flag, and PowerShell drops empty-string args when passing to WSL.
 Write-Host "$Tag Creating user '$WinUser'..."
-wsl --distribution $InstanceName --user root -- adduser --disabled-password --gecos '' $WinUser
+wsl --distribution $InstanceName --user root -- useradd --create-home --shell /bin/bash $WinUser
 if ($LASTEXITCODE -ne 0) {
     Write-Error "$Tag Failed to create user '$WinUser'."
     exit 1
