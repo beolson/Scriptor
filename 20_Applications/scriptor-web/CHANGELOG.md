@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.2.5
+
+### Patch Changes
+
+- 3b31816: Split WSL setup into two scripts and fix Debian 13 user creation
+
 ## 0.2.4
 
 ### Patch Changes
