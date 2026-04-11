@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.2.1
+
+### Patch Changes
+
+- fb20798: Add Windows 11 scripts: WSL Debian 13 setup and dev app installer (Windows Terminal, VS Code, Chrome)
+
 ## 0.2.0
 
 ### Minor Changes
