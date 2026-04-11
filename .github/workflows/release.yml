@@ -82,21 +82,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build static site
-        working-directory: 20_Applications/scriptor-web
-        env:
-          NEXT_PUBLIC_VERSION: ${{ needs.changesets.outputs.version }}
-        run: bun run build
-
       - name: Install Playwright browsers
         working-directory: 20_Applications/scriptor-web-test
         run: bunx playwright install --with-deps chromium
 
-      - name: Run E2E tests
-        working-directory: 20_Applications/scriptor-web-test
+      - name: Run E2E tests (fixture build)
+        run: SCRIPTS_DIR=scripts-fixture bunx turbo run test:e2e
+
+      - name: Build static site for deploy (real scripts)
+        working-directory: 20_Applications/scriptor-web
         env:
-          SCRIPTS_DIR: scripts-fixture
-        run: bun run test:e2e
+          NEXT_PUBLIC_VERSION: ${{ needs.changesets.outputs.version }}
+        run: bun run build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
