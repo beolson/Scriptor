@@ -89,7 +89,8 @@ curl -fL "https://go.dev/dl/${TARBALL}" -o "${TMP_DIR}/${TARBALL}"
 curl -fL "https://go.dev/dl/${TARBALL}.sha256" -o "${TMP_DIR}/${TARBALL}.sha256"
 
 echo "==> Verifying SHA256..."
-echo "$(cat "${TMP_DIR}/${TARBALL}.sha256")  ${TMP_DIR}/${TARBALL}" | sha256sum -c -
+EXPECTED_SHA=$(tr -d '[:space:]' < "${TMP_DIR}/${TARBALL}.sha256")
+echo "${EXPECTED_SHA}  ${TMP_DIR}/${TARBALL}" | sha256sum -c -
 
 # ---------------------------------------------------------------------------
 # Step 3: Extract to /usr/local/
