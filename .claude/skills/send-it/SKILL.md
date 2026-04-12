@@ -7,11 +7,11 @@ description: >
   the Changesets version PR, and watches the GitHub Pages deployment through to
   completion.
 
-  Use this skill whenever the user has code ready to ship and says things like
-  "send it", "ship this", "push and PR", "check this in", "commit and create a
-  PR", "get this merged", or any phrase meaning "drive this code to a green PR".
-  Also use it when they say "send it all the way", "ship to production", or
-  "deploy this" to go the full distance to a live site.
+  ONLY use this skill when the user explicitly invokes it by name ("/send-it"
+  or "send it"). Do NOT infer invocation from general phrases like "ship this",
+  "push this", "commit and PR", or similar. No push, PR creation, PR merge,
+  or release action may happen unless the user explicitly calls this skill.
+disable-model-invocation: true
 ---
 
 # Send It
@@ -213,3 +213,18 @@ Report the final deployment URL and confirm you are on `main`.
 - Never merge a PR without confirming CI is green first
 - Never proceed to "all the way" steps if the user only said "send it"
 - Don't self-approve PRs (GitHub will reject it); just merge directly when CI is green
+
+## Hard stops — explicit direction required
+
+These actions must **never** happen automatically or speculatively. Each requires
+an explicit user instruction before proceeding:
+
+- `git push` — do not push without being told to
+- `gh pr create` — do not open a PR without being told to
+- `gh pr merge` — do not merge a PR without being told to
+- Changeset creation — do not create a changeset without being told to
+- Any release or deployment step
+
+If you are operating outside this skill (e.g. in a regular conversation) and the
+user says something that sounds like "ship it" or "push this", do **not** invoke
+any of these actions. Ask for explicit confirmation or direct the user to `/send-it`.

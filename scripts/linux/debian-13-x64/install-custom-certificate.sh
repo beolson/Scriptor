@@ -54,7 +54,7 @@ ensure_ca_certificates() {
 
 prompt_host() {
 	local url
-	read -r -p "Enter URL to inspect [www.google.com]: " url
+	read -r -p "Enter URL to inspect [www.google.com]: " url </dev/tty
 	url="${url:-www.google.com}"
 	url="${url#https://}"
 	url="${url#http://}"
@@ -113,7 +113,7 @@ get_selection() {
 	local cert_count="$1"
 	local selection
 	while true; do
-		read -r -p "Select certificate to install as trusted CA [1-${cert_count}]: " selection
+		read -r -p "Select certificate to install as trusted CA [1-${cert_count}]: " selection </dev/tty
 		if [[ "$selection" =~ ^[0-9]+$ ]] && \
 		   [[ "$selection" -ge 1 ]] && \
 		   [[ "$selection" -le "$cert_count" ]]; then
@@ -186,7 +186,7 @@ printf '\nSelected certificate:\n'
 openssl x509 -noout -subject -issuer -dates -in "$selected_cert" 2>/dev/null | sed 's/^/  /'
 
 printf '\n'
-read -r -p "Install '${cert_name}' as a trusted CA? [y/N]: " confirm
+read -r -p "Install '${cert_name}' as a trusted CA? [y/N]: " confirm </dev/tty
 if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
 	echo "Aborted."
 	exit 0
