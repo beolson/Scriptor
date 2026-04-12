@@ -65,23 +65,23 @@ prompt_host() {
 fetch_chain() {
 	local host="$1"
 	echo "Fetching certificate chain from ${host}:443..."
-	if ! timeout 15 openssl s_client -connect "${host}:443" -showcerts \
-			</dev/null > "$TMP_DIR/chain.pem" 2>/dev/null; then
-		echo "Error: could not connect to ${host}:443" >&2
-		exit 1
-	fi
-	if ! grep -q 'BEGIN CERTIFICATE' "$TMP_DIR/chain.pem"; then
-		echo "Error: no certificates returned by ${host}" >&2
+	# Ignore openssl's exit code: SSL inspection proxies cause verification failures
+	# (exit 1) even when the cert chain is successfully captured in the output.
+	# The grep check below is the only success gate we need.
+	timeout 15 openssl s_client -connect "${host}:443" -showcerts \
+		</dev/null > "$TMP_DIR/chain.pem" 2>/dev/null || true
+	if ! grep -q 'BEGIN CERTIFICATE' "$TMP_DIR/chain.pem" 2>/dev/null; then
+		echo "Error: could not retrieve certificate chain from ${host}:443" >&2
 		exit 1
 	fi
 }
 
 extract_certs() {
-	awk '
+	awk -v out_dir="$TMP_DIR" '
 		/-----BEGIN CERTIFICATE-----/ { n++; f = out_dir "/cert_" n ".pem" }
 		f { print > f }
 		/-----END CERTIFICATE-----/ { close(f); f = "" }
-	' out_dir="$TMP_DIR" "$TMP_DIR/chain.pem"
+	' "$TMP_DIR/chain.pem"
 }
 
 count_certs() {
