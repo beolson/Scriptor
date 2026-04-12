@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.4
+
+### Patch Changes
+
+- 4676962: fix: redirect interactive reads to /dev/tty so install-custom-certificate.sh works via curl | bash
+
 ## 0.3.3
 
 ### Patch Changes
