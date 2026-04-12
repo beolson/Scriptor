@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.1
+
+### Patch Changes
+
+- 3f73d9b: Standardize sudo handling and curl auto-install in debian-13-x64 scripts
+
 ## 0.3.0
 
 ### Minor Changes
