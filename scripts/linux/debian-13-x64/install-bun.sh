@@ -11,33 +11,34 @@
 #
 # ## What it does
 #
-# - Installs `unzip` if not already present (required by the Bun installer)
+# - Installs `curl` and `unzip` if not already present
 # - Downloads and runs the official Bun installer via curl
 # - Installs Bun to `~/.bun/bin/` and adds it to `PATH` in `~/.bashrc`
 # - Skips installation if Bun is already present
 #
 # ## Requirements
 #
-# - `curl` must be installed (`sudo apt-get install -y curl`)
-# - `sudo` access to install `unzip` if missing
+# - Regular user with `sudo` access
 # - Linux kernel 5.6 or higher recommended (`uname -r` to check)
 
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-check_prerequisites() {
-	if ! command -v curl &>/dev/null; then
-		echo "Error: curl is required but not installed. Run: sudo apt-get install -y curl" >&2
-		exit 1
-	fi
-}
+# Cache sudo credentials upfront so we don't prompt mid-script
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
 
-ensure_unzip() {
-	if command -v unzip &>/dev/null; then
-		return
+ensure_deps() {
+	local pkgs=()
+	command -v curl  &>/dev/null || pkgs+=(curl)
+	command -v unzip &>/dev/null || pkgs+=(unzip)
+	if [[ ${#pkgs[@]} -gt 0 ]]; then
+		echo "Installing missing packages: ${pkgs[*]}..."
+		sudo apt-get update -y
+		sudo apt-get install -y "${pkgs[@]}"
 	fi
-	echo "Installing unzip (required by the Bun installer)..."
-	sudo apt-get install -y unzip
 }
 
 install_bun() {
@@ -49,8 +50,7 @@ install_bun() {
 	curl -fsSL https://bun.com/install | bash
 }
 
-check_prerequisites
-ensure_unzip
+ensure_deps
 install_bun
 
 echo "Bun installed successfully."

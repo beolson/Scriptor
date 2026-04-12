@@ -31,6 +31,12 @@ if command -v gh &>/dev/null; then
 	exit 0
 fi
 
+# Cache sudo credentials upfront so we don't prompt mid-script
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 
 packages_to_install=()

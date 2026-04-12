@@ -11,22 +11,27 @@
 #
 # ## What it does
 #
+# - Installs `curl` if not present
 # - Downloads and runs the official uv installer via curl
 # - Installs uv to `~/.local/bin/uv` (no sudo required)
 # - Skips installation if uv is already present
 #
 # ## Requirements
 #
-# - `curl` must be installed (`sudo apt-get install -y curl`)
+# - Regular user with `sudo` access (only needed if `curl` is missing)
+# - Internet connection
 
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-check_prerequisites() {
-	if ! command -v curl &>/dev/null; then
-		echo "Error: curl is required but not installed. Run: sudo apt-get install -y curl" >&2
-		exit 1
+ensure_curl() {
+	if command -v curl &>/dev/null; then
+		return
 	fi
+	echo "Installing curl..."
+	sudo -v
+	sudo apt-get update -y
+	sudo apt-get install -y curl
 }
 
 install_uv() {
@@ -38,7 +43,7 @@ install_uv() {
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 }
 
-check_prerequisites
+ensure_curl
 install_uv
 
 echo "uv installed successfully."

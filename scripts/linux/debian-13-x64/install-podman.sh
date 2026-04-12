@@ -22,9 +22,7 @@
 #
 # ## Requirements
 #
-# - Run as root or with `sudo`.
-# - The target user is detected from `$SUDO_USER`; if run directly as root,
-#   you will be prompted.
+# - Regular user with `sudo` access
 # - Kernel must support cgroup v2 (default on Debian 13).
 #
 # ## Verifying success
@@ -54,26 +52,17 @@ if grep -qi "microsoft-standard-WSL" /proc/version 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-# Must run as root
+# Sudo — cache credentials upfront so we don't prompt mid-script
 # ---------------------------------------------------------------------------
-if [[ "$(/usr/bin/id -u)" -ne 0 ]]; then
-	echo "Error: run as root or with sudo." >&2
-	exit 1
-fi
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
 
 # ---------------------------------------------------------------------------
 # Determine the user to configure for rootless access
 # ---------------------------------------------------------------------------
-if [[ -n "${SUDO_USER:-}" ]]; then
-	TARGET_USER="$SUDO_USER"
-else
-	read -rp "Username to configure for rootless podman: " TARGET_USER
-fi
-
-if [[ -z "$TARGET_USER" ]]; then
-	echo "Error: no target user specified." >&2
-	exit 1
-fi
+TARGET_USER="${USER}"
 
 if ! id "$TARGET_USER" &>/dev/null; then
 	echo "Error: user '${TARGET_USER}' does not exist." >&2
@@ -101,8 +90,8 @@ if [[ "${#MISSING[@]}" -eq 0 ]]; then
 	echo "==> All podman packages already installed, skipping."
 else
 	echo "==> Installing: ${MISSING[*]}..."
-	apt-get update
-	apt-get install -y "${MISSING[@]}"
+	sudo apt-get update
+	sudo apt-get install -y "${MISSING[@]}"
 fi
 
 # ---------------------------------------------------------------------------
@@ -119,14 +108,14 @@ if grep -q "^${TARGET_USER}:" "$SUBUID_FILE" 2>/dev/null; then
 	echo "==> subuid already configured for ${TARGET_USER}, skipping."
 else
 	echo "==> Adding subuid range for ${TARGET_USER}..."
-	usermod --add-subuids "$SUBID_RANGE" "$TARGET_USER"
+	sudo usermod --add-subuids "$SUBID_RANGE" "$TARGET_USER"
 fi
 
 if grep -q "^${TARGET_USER}:" "$SUBGID_FILE" 2>/dev/null; then
 	echo "==> subgid already configured for ${TARGET_USER}, skipping."
 else
 	echo "==> Adding subgid range for ${TARGET_USER}..."
-	usermod --add-subgids "$SUBID_RANGE" "$TARGET_USER"
+	sudo usermod --add-subgids "$SUBID_RANGE" "$TARGET_USER"
 fi
 
 # ---------------------------------------------------------------------------
@@ -147,15 +136,14 @@ if [[ "$IN_WSL" == "true" ]]; then
 	if grep -q "cgroup_manager" "$CONTAINERS_CONF" 2>/dev/null; then
 		echo "==> containers.conf already configured, skipping."
 	else
-		sudo -H -u "$TARGET_USER" mkdir -p "${TARGET_HOME}/.config/containers"
-		cat > "$CONTAINERS_CONF" <<'EOF'
+		mkdir -p "${TARGET_HOME}/.config/containers"
+		tee "$CONTAINERS_CONF" > /dev/null <<'EOF'
 [engine]
 # WSL2: systemd user sessions are unreliable — use cgroupfs instead
 cgroup_manager = "cgroupfs"
 # WSL2: journald is unavailable — write events to a file instead
 events_logger = "file"
 EOF
-		chown "$TARGET_USER:" "$CONTAINERS_CONF"
 		echo "==> containers.conf written to ${CONTAINERS_CONF}"
 	fi
 else
@@ -171,7 +159,7 @@ elif loginctl show-user "$TARGET_USER" 2>/dev/null | grep -q "Linger=yes"; then
 	echo "==> Systemd linger already enabled for ${TARGET_USER}, skipping."
 else
 	echo "==> Enabling systemd linger for ${TARGET_USER}..."
-	loginctl enable-linger "$TARGET_USER"
+	sudo loginctl enable-linger "$TARGET_USER"
 fi
 
 # ---------------------------------------------------------------------------

@@ -11,33 +11,33 @@
 #
 # ## What it does
 #
-# - Installs `libicu-dev` if not present (required by .NET on Linux)
+# - Installs `curl` and `libicu-dev` if not present
 # - Downloads and runs the official Microsoft dotnet-install.sh for the 10.0 channel
 # - Configures `DOTNET_ROOT` and `PATH` in `~/.bashrc` if not already set
 # - Skips each step if already done
 #
 # ## Requirements
 #
-# - `curl` must be installed (`sudo apt-get install -y curl`)
-# - `sudo` access to install `libicu-dev`
+# - Regular user with `sudo` access
 
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-check_prerequisites() {
-	if ! command -v curl &>/dev/null; then
-		echo "Error: curl is required but not installed. Run: sudo apt-get install -y curl" >&2
-		exit 1
-	fi
-}
+# Cache sudo credentials upfront so we don't prompt mid-script
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
 
-ensure_libicu() {
-	if dpkg-query -W libicu-dev &>/dev/null; then
-		echo "libicu-dev is already installed, skipping"
-		return
+ensure_deps() {
+	local pkgs=()
+	command -v curl &>/dev/null || pkgs+=(curl)
+	dpkg-query -W libicu-dev &>/dev/null || pkgs+=(libicu-dev)
+	if [[ ${#pkgs[@]} -gt 0 ]]; then
+		echo "Installing missing packages: ${pkgs[*]}..."
+		sudo apt-get update -y
+		sudo apt-get install -y "${pkgs[@]}"
 	fi
-	echo "Installing libicu-dev..."
-	sudo apt-get install -y libicu-dev
 }
 
 dotnet_10_installed() {
@@ -72,8 +72,7 @@ export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 EOF
 }
 
-check_prerequisites
-ensure_libicu
+ensure_deps
 install_dotnet
 configure_path
 
