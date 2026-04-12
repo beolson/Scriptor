@@ -86,7 +86,8 @@ fi
 TARBALL="${GO_VERSION}.linux-${ARCH}.tar.gz"
 echo "==> Downloading ${TARBALL}..."
 curl -fL "https://go.dev/dl/${TARBALL}" -o "${TMP_DIR}/${TARBALL}"
-curl -fL "https://go.dev/dl/${TARBALL}.sha256" -o "${TMP_DIR}/${TARBALL}.sha256"
+# go.dev/dl/*.sha256 redirects to an HTML anchor, not a file — use dl.google.com directly
+curl -fL "https://dl.google.com/go/${TARBALL}.sha256" -o "${TMP_DIR}/${TARBALL}.sha256"
 
 echo "==> Verifying SHA256..."
 EXPECTED_SHA=$(tr -d '[:space:]' < "${TMP_DIR}/${TARBALL}.sha256")
