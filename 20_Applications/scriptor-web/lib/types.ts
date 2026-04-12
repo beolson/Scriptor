@@ -13,4 +13,8 @@ export interface Script {
 	source: string;
 	/** One-liner run command for the terminal */
 	runCommand: string;
+	/** Group ID from frontmatter (e.g., "linux-dev-setup"); undefined if script is not part of a group */
+	group?: string;
+	/** Integer sort position within the group; undefined sorts after all explicitly ordered members */
+	groupOrder?: number;
 }

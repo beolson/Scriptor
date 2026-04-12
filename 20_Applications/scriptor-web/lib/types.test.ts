@@ -46,4 +46,51 @@ describe("Script interface", () => {
 		expect("os" in script).toBe(false);
 		expect("arch" in script).toBe(false);
 	});
+
+	it("accepts a Script object with group and groupOrder fields", () => {
+		const script: Script = {
+			id: "linux/ubuntu-24.04-x64/install-bun",
+			title: "Install Bun",
+			description: "Installs Bun runtime on Ubuntu.",
+			platform: "ubuntu-24.04-x64",
+			body: "## Description\n\nInstalls Bun.",
+			source: "#!/bin/bash\ncurl -fsSL https://bun.sh/install | bash",
+			runCommand: "curl -fsSL https://example.com | bash",
+			group: "linux-dev-setup",
+			groupOrder: 1,
+		};
+		expect(script.group).toBe("linux-dev-setup");
+		expect(script.groupOrder).toBe(1);
+		expect(typeof script.group).toBe("string");
+		expect(typeof script.groupOrder).toBe("number");
+	});
+
+	it("group and groupOrder fields are optional — Script without them is valid", () => {
+		const script: Script = {
+			id: "linux/ubuntu-24.04-x64/install-docker",
+			title: "Install Docker",
+			description: "Installs Docker Engine on Ubuntu.",
+			platform: "ubuntu-24.04-x64",
+			body: "## Description\n\nInstalls Docker.",
+			source: "#!/bin/bash\napt-get install -y docker.io",
+			runCommand: "curl -fsSL https://example.com | bash",
+		};
+		expect(script.group).toBeUndefined();
+		expect(script.groupOrder).toBeUndefined();
+	});
+
+	it("accepts a Script with group but without groupOrder", () => {
+		const script: Script = {
+			id: "linux/ubuntu-24.04-x64/install-go",
+			title: "Install Go",
+			description: "Installs Go on Ubuntu.",
+			platform: "ubuntu-24.04-x64",
+			body: "## Description\n\nInstalls Go.",
+			source: "#!/bin/bash",
+			runCommand: "curl -fsSL https://example.com | bash",
+			group: "linux-dev-setup",
+		};
+		expect(script.group).toBe("linux-dev-setup");
+		expect(script.groupOrder).toBeUndefined();
+	});
 });

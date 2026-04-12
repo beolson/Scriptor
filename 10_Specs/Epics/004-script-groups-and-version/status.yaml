@@ -1,7 +1,9 @@
-status: Ready
+status: Complete
 prd: 001-script-index
 completed_steps:
   - functional
   - research
   - tech
   - delivery
+  - verify
+  - complete

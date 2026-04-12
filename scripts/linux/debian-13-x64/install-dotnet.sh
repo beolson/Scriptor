@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install .NET 10 SDK
 # description: Installs the .NET 10 SDK using the official Microsoft dotnet-install script.
+# group: debian-13-dev-box
+# group_order: 2
 # ---
 # Installs the [.NET 10](https://dotnet.microsoft.com/) SDK on Debian 13 x64
 # using the official Microsoft dotnet-install.sh script.

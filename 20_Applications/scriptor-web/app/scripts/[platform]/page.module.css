@@ -7,6 +7,12 @@
 	padding: 48px 120px 24px;
 }
 
+.groupList {
+	padding: 0 120px 8px;
+	display: flex;
+	flex-direction: column;
+}
+
 .scriptList {
 	padding: 0 120px 40px;
 	display: flex;

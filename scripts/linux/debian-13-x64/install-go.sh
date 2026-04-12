@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install Go
 # description: Installs the latest stable Go toolchain from go.dev/dl into /usr/local/go.
+# group: debian-13-dev-box
+# group_order: 4
 # ---
 # Installs Go using the official tarball from [go.dev/dl](https://go.dev/dl/),
 # verifying the download against the SHA256 checksum published by the Go team.

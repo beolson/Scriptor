@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, JetBrains_Mono } from "next/font/google";
 
 import { Footer } from "@/components/Footer";
 import { NavBar } from "@/components/NavBar";
+import { loadVersion } from "@/lib/loadVersion";
 
 import "./globals.css";
 
@@ -23,11 +24,13 @@ export const metadata: Metadata = {
 	description: "Script Index",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const version = await loadVersion();
+
 	return (
 		<html
 			lang="en"
@@ -39,7 +42,7 @@ export default function RootLayout({
 			>
 				<NavBar />
 				<main style={{ flex: 1 }}>{children}</main>
-				<Footer />
+				<Footer version={version} />
 			</body>
 		</html>
 	);

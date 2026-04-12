@@ -1,13 +1,33 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { CodeBlock } from "@/components/CodeBlock";
+import { GroupRow } from "@/components/GroupRow";
 import { ScriptRow } from "@/components/ScriptRow";
+import { loadGroups } from "@/lib/loadGroups";
 import { loadScripts } from "@/lib/loadScripts";
 
 import styles from "./page.module.css";
 
 export default async function WindowsPage() {
 	const allScripts = await loadScripts();
-	const scripts = allScripts.filter((s) => s.id.startsWith("windows/"));
+	const platformScripts = allScripts.filter((s) => s.id.startsWith("windows/"));
+
+	const groups = await loadGroups(platformScripts);
+
+	// Build a set of group IDs that have at least one member in platformScripts
+	const groupMemberIds = new Set(
+		platformScripts
+			.filter((s) => s.group !== undefined)
+			.map((s) => s.group as string),
+	);
+
+	// A group is displayed only if it has members among platformScripts
+	const activeGroups = groups.filter((g) => groupMemberIds.has(g.id));
+
+	// Scripts that belong to an active group are excluded from the ungrouped list
+	const activeGroupIdSet = new Set(activeGroups.map((g) => g.id));
+	const ungroupedScripts = platformScripts.filter(
+		(s) => s.group === undefined || !activeGroupIdSet.has(s.group),
+	);
 
 	return (
 		<div>
@@ -30,12 +50,28 @@ export default async function WindowsPage() {
 				</div>
 				<span className={styles.count}>
 					{"// "}
-					{scripts.length} scripts available
+					{platformScripts.length} scripts available
 				</span>
 			</div>
 
+			{activeGroups.length > 0 && (
+				<div className={styles.groupList}>
+					{activeGroups.map((group) => {
+						const members = platformScripts
+							.filter((s) => s.group === group.id)
+							.sort((a, b) => {
+								const aOrder = a.groupOrder ?? Number.POSITIVE_INFINITY;
+								const bOrder = b.groupOrder ?? Number.POSITIVE_INFINITY;
+								if (aOrder !== bOrder) return aOrder - bOrder;
+								return a.id.localeCompare(b.id);
+							});
+						return <GroupRow key={group.id} group={group} members={members} />;
+					})}
+				</div>
+			)}
+
 			<div className={styles.scriptList}>
-				{scripts.map((script) => (
+				{ungroupedScripts.map((script) => (
 					<ScriptRow key={script.id} script={script} />
 				))}
 			</div>

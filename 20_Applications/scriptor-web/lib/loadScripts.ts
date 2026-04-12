@@ -30,6 +30,8 @@ interface SpecFrontmatter {
 	platform?: unknown;
 	title?: unknown;
 	description?: unknown;
+	group?: unknown;
+	group_order?: unknown;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -257,6 +259,32 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 
 		const id = idFromRelPath(relPath);
 
+		// Parse optional group field — must be a non-empty string
+		let group: string | undefined;
+		if (fm.group !== undefined) {
+			if (typeof fm.group === "string" && fm.group.length > 0) {
+				group = fm.group;
+			} else {
+				console.warn(
+					`[loadScripts] Script ${relPath}: 'group' field is not a string — ignoring`,
+				);
+			}
+		}
+
+		// Parse optional group_order field — must be a finite integer
+		let groupOrder: number | undefined;
+		if (fm.group_order !== undefined) {
+			const raw = fm.group_order;
+			if (
+				typeof raw === "number" &&
+				Number.isFinite(raw) &&
+				Number.isInteger(raw)
+			) {
+				groupOrder = raw;
+			}
+			// Non-integer or non-number values silently default to undefined (sorts last)
+		}
+
 		scripts.push({
 			id,
 			title: fm.title,
@@ -265,6 +293,8 @@ export async function loadScripts(deps?: LoadScriptsDeps): Promise<Script[]> {
 			body,
 			source: content,
 			runCommand: buildRunCommand(id, ext),
+			...(group !== undefined ? { group } : {}),
+			...(groupOrder !== undefined ? { groupOrder } : {}),
 		});
 	}
 

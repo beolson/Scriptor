@@ -1,0 +1,7 @@
+[
+	{
+		"id": "fixture-group",
+		"name": "Fixture Group",
+		"description": "E2E test fixture group."
+	}
+]
