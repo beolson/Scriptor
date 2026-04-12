@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.2
+
+### Patch Changes
+
+- b5ab49f: Fix SHA256 verification in install-go.sh failing due to CRLF line endings
+
 ## 0.3.1
 
 ### Patch Changes
