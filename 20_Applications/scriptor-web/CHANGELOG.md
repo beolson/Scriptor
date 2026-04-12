@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.3
+
+### Patch Changes
+
+- 785d3d0: Fix install-custom-certificate.sh crashing with "awk: cannot open chain.pem" behind SSL inspection proxies
+
 ## 0.3.2
 
 ### Patch Changes
