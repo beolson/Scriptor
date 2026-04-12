@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.5
+
+### Patch Changes
+
+- d146596: fix: fetch go SHA256 from dl.google.com instead of go.dev to avoid HTML redirect
+
 ## 0.3.4
 
 ### Patch Changes
