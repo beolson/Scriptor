@@ -10,13 +10,13 @@ export default async function Page() {
 	return (
 		<div className={styles.platforms}>
 			<div className={styles.platformCards}>
-				{Object.entries(platforms).map(([value, displayName]) => (
+				{Object.entries(platforms).map(([value, entry]) => (
 					<Link
 						key={value}
 						href={`/scripts/${value}`}
 						className={styles.platformCard}
 					>
-						<span className={styles.platformName}>{displayName}</span>
+						<span className={styles.platformName}>{entry.displayName}</span>
 						<span className={styles.viewLink}>&gt; view scripts</span>
 					</Link>
 				))}

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { GroupRow } from "@/components/GroupRow";
 import { ScriptRow } from "@/components/ScriptRow";
 import { loadGroups } from "@/lib/loadGroups";
@@ -25,8 +26,10 @@ export default async function PlatformPage({ params }: PageProps) {
 		loadScripts(),
 	]);
 
-	const displayName = platforms[platform];
-	if (!displayName) notFound();
+	const platformEntry = platforms[platform];
+	if (!platformEntry) notFound();
+
+	const { displayName } = platformEntry;
 
 	const platformScripts = allScripts.filter((s) => s.platform === platform);
 	const groups = await loadGroups(platformScripts);
@@ -44,7 +47,21 @@ export default async function PlatformPage({ params }: PageProps) {
 
 	return (
 		<div>
-			<h1 className={styles.heading}>&gt; {displayName}</h1>
+			<div className={styles.pageHeader}>
+				<Breadcrumb
+					items={[
+						{ label: "home", href: "/" },
+						{ label: "scripts", href: "/" },
+						{ label: platform },
+					]}
+				/>
+				<h1 className={styles.heading}>&gt; {displayName} scripts</h1>
+				<span className={styles.count}>
+					{"// "}
+					{platformScripts.length} scripts available
+				</span>
+			</div>
+
 			{activeGroups.length > 0 && (
 				<div className={styles.groupList}>
 					{activeGroups.map((group) => {
@@ -60,6 +77,7 @@ export default async function PlatformPage({ params }: PageProps) {
 					})}
 				</div>
 			)}
+
 			<div className={styles.scriptList}>
 				{ungroupedScripts.map((script) => (
 					<ScriptRow key={script.id} script={script} />

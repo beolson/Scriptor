@@ -1,6 +1,6 @@
 #!/bin/bash
 # ---
-# platform: ubuntu-24.04-x64
+# platform: debian-13-x64
 # title: Fixture Setup Dev
 # description: A fixture script for setting up a dev environment.
 # group: fixture-group

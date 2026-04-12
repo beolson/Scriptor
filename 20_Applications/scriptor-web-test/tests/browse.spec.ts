@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-	await page.goto("/scripts/windows");
+	await page.goto("/scripts/windows-11-x64");
 });
 
 test("browse page loads and shows windows scripts", async ({ page }) => {
@@ -30,7 +30,7 @@ test("clicking a script row navigates to the detail page", async ({ page }) => {
 // ─── Group browse tests (linux page) ─────────────────────────────────────────
 
 test("linux browse page shows the fixture group entry", async ({ page }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 	// The group name is rendered as a link — use role-based selector to avoid ambiguity
 	await expect(page.getByRole("link", { name: "Fixture Group" })).toBeVisible();
 });
@@ -38,7 +38,7 @@ test("linux browse page shows the fixture group entry", async ({ page }) => {
 test("linux browse page shows ungrouped scripts below group entries", async ({
 	page,
 }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 
 	// The debian-13-x64 fixture-install-curl is ungrouped and should appear on the page
 	// It renders as a ScriptRow with a link to its detail page
@@ -62,7 +62,7 @@ test("linux browse page shows ungrouped scripts below group entries", async ({
 test("group entry on linux browse page has a badge distinguishing it from script entries", async ({
 	page,
 }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 	await expect(page.getByTestId("group-badge")).toBeVisible();
 	await expect(page.getByTestId("group-badge")).toHaveText("group");
 });
@@ -70,7 +70,7 @@ test("group entry on linux browse page has a badge distinguishing it from script
 test("clicking expand control on group entry reveals member list", async ({
 	page,
 }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 
 	// Member link to ubuntu grouped script should not be visible yet (collapsed)
 	await expect(
@@ -91,7 +91,7 @@ test("clicking expand control on group entry reveals member list", async ({
 test("clicking group title on linux browse page navigates to group detail page", async ({
 	page,
 }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 	await page.getByRole("link", { name: "Fixture Group" }).click();
 	await expect(page).toHaveURL(/\/groups\/linux\/fixture-group/);
 	await expect(
@@ -102,7 +102,7 @@ test("clicking group title on linux browse page navigates to group detail page",
 test("ungrouped scripts appear after group entries on linux browse page", async ({
 	page,
 }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 
 	// Group badge must be visible
 	await expect(page.getByTestId("group-badge")).toBeVisible();

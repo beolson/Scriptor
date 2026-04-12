@@ -2,8 +2,14 @@ import { readFile as fsReadFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** Maps platform target values (e.g. "ubuntu-24.04-x64") to display names. */
-export type PlatformMap = Record<string, string>;
+export interface PlatformEntry {
+	displayName: string;
+	installCommand: string;
+	codeLabel: string;
+}
+
+/** Maps platform target values (e.g. "debian-13-x64") to platform metadata. */
+export type PlatformMap = Record<string, PlatformEntry>;
 
 function platformsPath(): string {
 	return resolve(
@@ -22,7 +28,7 @@ function readJson(path: string): Promise<string> {
 }
 
 /**
- * Reads scripts/platforms.json and returns the platform → display name map.
+ * Reads scripts/platforms.json and returns the platform → metadata map.
  * Returns an empty object if the file cannot be read.
  */
 export async function loadPlatforms(): Promise<PlatformMap> {

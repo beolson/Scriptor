@@ -34,7 +34,8 @@ export default async function ScriptDetailPage({ params }: PageProps) {
 		notFound();
 	}
 
-	const platformLabel = platforms[script.platform] ?? script.platform;
+	const platformLabel =
+		platforms[script.platform]?.displayName ?? script.platform;
 
 	return (
 		<div className={styles.detail}>

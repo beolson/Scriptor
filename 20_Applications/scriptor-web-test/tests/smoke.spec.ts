@@ -30,7 +30,7 @@ test("footer shows version string on home page", async ({ page }) => {
 });
 
 test("footer shows version string on linux browse page", async ({ page }) => {
-	await page.goto("/scripts/linux");
+	await page.goto("/scripts/debian-13-x64");
 	await expect(page.locator("footer")).toContainText(/v\d+\.\d+\.\d+/);
 });
 

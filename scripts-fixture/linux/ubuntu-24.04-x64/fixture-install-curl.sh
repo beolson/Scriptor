@@ -1,6 +1,6 @@
 #!/bin/bash
 # ---
-# platform: ubuntu-24.04-x64
+# platform: debian-13-x64
 # title: Fixture Install curl
 # description: A fixture script for testing curl installation.
 # group: fixture-group

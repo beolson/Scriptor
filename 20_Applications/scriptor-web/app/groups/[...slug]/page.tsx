@@ -56,7 +56,12 @@ async function readRunnerSource(
 	groupId: string,
 	ext: ".sh" | ".ps1",
 ): Promise<string | undefined> {
-	const runnerPath = join(scriptsRoot, platformPrefix, groupId, `run-all${ext}`);
+	const runnerPath = join(
+		scriptsRoot,
+		platformPrefix,
+		groupId,
+		`run-all${ext}`,
+	);
 	try {
 		if (typeof Bun !== "undefined") {
 			return await Bun.file(runnerPath).text();
