@@ -11,23 +11,31 @@
 #
 # ## What it does
 #
+# - Installs `curl` if not present
 # - Installs `az` via the official Microsoft Debian install script (requires sudo)
 # - Installs `azd` via the official Microsoft install script
 # - Skips each tool if it is already installed
 #
 # ## Requirements
 #
-# - `curl` must be installed (`sudo apt-get install -y curl`)
-# - `sudo` access for installing `az`
+# - Regular user with `sudo` access
 
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-check_prerequisites() {
-	if ! command -v curl &>/dev/null; then
-		echo "Error: curl is required but not installed. Run: sudo apt-get install -y curl" >&2
-		exit 1
+# Cache sudo credentials upfront so we don't prompt mid-script
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
+
+ensure_curl() {
+	if command -v curl &>/dev/null; then
+		return
 	fi
+	echo "Installing curl..."
+	sudo apt-get update -y
+	sudo apt-get install -y curl
 }
 
 install_az() {
@@ -48,7 +56,7 @@ install_azd() {
 	curl -fsSL https://aka.ms/install-azd.sh | bash
 }
 
-check_prerequisites
+ensure_curl
 install_az
 install_azd
 

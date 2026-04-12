@@ -11,7 +11,7 @@
 #
 # ## What it does
 #
-# 1. Installs `conntrack` (required by minikube on Linux).
+# 1. Installs `curl` and `conntrack` if not present (conntrack required by minikube on Linux).
 # 2. Resolves the latest stable kubectl version from `dl.k8s.io/release/stable.txt`,
 #    downloads the binary and its SHA256, and installs it if not already current.
 # 3. Resolves the latest minikube release from the GitHub API, downloads the
@@ -20,8 +20,7 @@
 #
 # ## Requirements
 #
-# - Run as root or with `sudo`.
-# - `curl` must be installed (`sudo apt-get install -y curl`).
+# - Regular user with `sudo` access
 # - **Docker** must be installed and the user who will run `minikube start`
 #   must be in the `docker` group. Docker does not need to be installed before
 #   running this script, but minikube will not start without it.
@@ -44,21 +43,22 @@
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-# ---------------------------------------------------------------------------
-# Must run as root
-# ---------------------------------------------------------------------------
-if [[ "$(/usr/bin/id -u)" -ne 0 ]]; then
-	echo "Error: run as root or with sudo." >&2
-	exit 1
-fi
-
-if ! command -v curl &>/dev/null; then
-	echo "Error: curl is required. Run: sudo apt-get install -y curl" >&2
-	exit 1
-fi
-
 ARCH="amd64"  # platform: debian-13-x64
 BIN_DIR="/usr/local/bin"
+
+# ---------------------------------------------------------------------------
+# Sudo — cache credentials upfront, clean up keepalive on exit
+# ---------------------------------------------------------------------------
+sudo -v
+TMP_DIR=$(mktemp -d)
+SUDO_PID=""
+cleanup() {
+	[[ -n "$SUDO_PID" ]] && kill "$SUDO_PID" 2>/dev/null
+	rm -rf "${TMP_DIR:?}"
+}
+trap cleanup EXIT
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
 
 # ---------------------------------------------------------------------------
 # Helper: check if a package is fully installed
@@ -68,24 +68,20 @@ pkg_installed() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 1: Install conntrack (required by minikube on Linux)
+# Ensure curl and conntrack
 # ---------------------------------------------------------------------------
-if pkg_installed conntrack; then
-	echo "==> conntrack already installed, skipping."
-else
-	echo "==> Installing conntrack..."
-	apt-get update
-	apt-get install -y conntrack
+pkgs_needed=()
+command -v curl &>/dev/null   || pkgs_needed+=(curl)
+pkg_installed conntrack        || pkgs_needed+=(conntrack)
+
+if [[ ${#pkgs_needed[@]} -gt 0 ]]; then
+	echo "==> Installing missing packages: ${pkgs_needed[*]}..."
+	sudo apt-get update -y
+	sudo apt-get install -y "${pkgs_needed[@]}"
 fi
 
 # ---------------------------------------------------------------------------
-# Temp dir — cleaned up on exit
-# ---------------------------------------------------------------------------
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "${TMP_DIR:?}"' EXIT
-
-# ---------------------------------------------------------------------------
-# Step 2: Install kubectl
+# Step 1: Install kubectl
 # ---------------------------------------------------------------------------
 echo "==> Resolving latest stable kubectl version..."
 KUBECTL_STABLE=$(curl -fsSL 'https://dl.k8s.io/release/stable.txt')
@@ -111,12 +107,12 @@ else
 	echo "==> Verifying kubectl SHA256..."
 	echo "$(cat "${TMP_DIR}/kubectl.sha256")  ${TMP_DIR}/kubectl" | sha256sum -c -
 
-	install -o root -g root -m 0755 "${TMP_DIR}/kubectl" "${BIN_DIR}/kubectl"
+	sudo install -o root -g root -m 0755 "${TMP_DIR}/kubectl" "${BIN_DIR}/kubectl"
 	echo "==> kubectl installed: $(kubectl version --client --short 2>/dev/null || kubectl version --client)"
 fi
 
 # ---------------------------------------------------------------------------
-# Step 3: Install minikube
+# Step 2: Install minikube
 # ---------------------------------------------------------------------------
 echo "==> Resolving latest minikube release..."
 MINIKUBE_LATEST=$(curl -fsSL 'https://api.github.com/repos/kubernetes/minikube/releases/latest' \
@@ -141,12 +137,12 @@ else
 	echo "==> Verifying minikube SHA256..."
 	echo "$(cat "${TMP_DIR}/minikube.sha256")  ${TMP_DIR}/minikube" | sha256sum -c -
 
-	install -o root -g root -m 0755 "${TMP_DIR}/minikube" "${BIN_DIR}/minikube"
+	sudo install -o root -g root -m 0755 "${TMP_DIR}/minikube" "${BIN_DIR}/minikube"
 	echo "==> minikube installed: $(minikube version --short)"
 fi
 
 # ---------------------------------------------------------------------------
-# Step 4: Detect container runtime and print driver instructions
+# Step 3: Detect container runtime and print driver instructions
 # ---------------------------------------------------------------------------
 echo ""
 if command -v docker &>/dev/null; then

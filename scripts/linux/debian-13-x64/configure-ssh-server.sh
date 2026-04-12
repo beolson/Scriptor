@@ -22,7 +22,7 @@
 #
 # ## Requirements
 #
-# - Run as root or with `sudo`.
+# - Regular user with `sudo` access
 # - Internet access to reach `deb.debian.org` (package install) and `api.github.com`
 #   (key import).
 #
@@ -45,22 +45,19 @@ set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
 # ---------------------------------------------------------------------------
-# Must run as root
+# Sudo — cache credentials upfront so we don't prompt mid-script
 # ---------------------------------------------------------------------------
-if [[ "$(/usr/bin/id -u)" -ne 0 ]]; then
-	echo "Error: run as root or with sudo." >&2
-	exit 1
-fi
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
 
 # ---------------------------------------------------------------------------
 # Determine the user whose authorized_keys will be populated
 # ---------------------------------------------------------------------------
-# Use the user who invoked sudo; fall back to an interactive prompt.
-if [[ -n "${SUDO_USER:-}" ]]; then
-	TARGET_USER="$SUDO_USER"
-else
-	read -rp "Local username to import SSH keys for (leave blank to skip key import): " TARGET_USER
-fi
+TARGET_USER="${USER}"
+read -rp "Local username to import SSH keys for [${TARGET_USER}] (leave blank to skip key import): " input
+TARGET_USER="${input:-$TARGET_USER}"
 
 if [[ -n "$TARGET_USER" ]]; then
 	read -rp "GitHub username to import keys from [${TARGET_USER}]: " GH_USER
@@ -81,8 +78,8 @@ if pkg_installed openssh-server && pkg_installed ssh-import-id; then
 	echo "==> openssh-server and ssh-import-id already installed, skipping."
 else
 	echo "==> Installing openssh-server and ssh-import-id..."
-	apt-get update
-	apt-get install -y openssh-server ssh-import-id
+	sudo apt-get update
+	sudo apt-get install -y openssh-server ssh-import-id
 fi
 
 # ---------------------------------------------------------------------------
@@ -112,7 +109,7 @@ fi
 HARDENING_CONF="/etc/ssh/sshd_config.d/99-hardening.conf"
 
 echo "==> Writing hardened SSH configuration to ${HARDENING_CONF}..."
-cat > "$HARDENING_CONF" <<'EOF'
+sudo tee "$HARDENING_CONF" > /dev/null <<'EOF'
 # SSH server hardening
 # Sources:
 #   https://infosec.mozilla.org/guidelines/openssh
@@ -149,11 +146,11 @@ EOF
 # Step 4: Validate config, then reload sshd
 # ---------------------------------------------------------------------------
 echo "==> Validating SSH configuration..."
-sshd -t
+sudo sshd -t
 
 echo "==> Reloading SSH service..."
-systemctl reload ssh
+sudo systemctl reload ssh
 
 echo ""
 echo "==> Done. Active security settings:"
-sshd -T | grep -E "^(kexalgorithms|ciphers|macs|authenticationmethods|permitrootlogin|loglevel)" | sort
+sudo sshd -T | grep -E "^(kexalgorithms|ciphers|macs|authenticationmethods|permitrootlogin|loglevel)" | sort

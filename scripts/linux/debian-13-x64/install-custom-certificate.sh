@@ -27,7 +27,12 @@
 set -euo pipefail
 
 TMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TMP_DIR"' EXIT
+SUDO_PID=""
+cleanup() {
+	[[ -n "$SUDO_PID" ]] && kill "$SUDO_PID" 2>/dev/null
+	rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
 trap 'echo "Error on line $LINENO" >&2' ERR
 
 check_prerequisites() {
@@ -150,6 +155,12 @@ install_cert() {
 
 check_prerequisites
 ensure_ca_certificates
+
+# Cache sudo credentials before the interactive certificate selection so the
+# install step doesn't prompt mid-flow
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
 
 host=$(prompt_host)
 fetch_chain "$host"

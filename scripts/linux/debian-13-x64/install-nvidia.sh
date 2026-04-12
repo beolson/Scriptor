@@ -12,7 +12,7 @@
 #
 # - **Secure Boot must be disabled** in BIOS/UEFI. The DKMS module is unsigned and will
 #   not load with Secure Boot enabled.
-# - Run as root or with `sudo`.
+# - Regular user with `sudo` access
 # - Internet access to reach `deb.debian.org`.
 #
 # ## What it does
@@ -41,20 +41,20 @@
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
-# ---------------------------------------------------------------------------
-# Must run as root
-# ---------------------------------------------------------------------------
-if [[ "$(/usr/bin/id -u)" -ne 0 ]]; then
-	echo "Error: run as root or with sudo." >&2
-	exit 1
-fi
-
 echo "=========================================================="
 echo "  IMPORTANT: Secure Boot must be disabled in BIOS/UEFI."
 echo "  The NVIDIA DKMS module will not load if Secure Boot is"
 echo "  enabled. Verify this before continuing."
 echo "=========================================================="
 read -rp "Secure Boot is disabled — press Enter to continue..."
+
+# ---------------------------------------------------------------------------
+# Sudo — cache credentials upfront so we don't prompt mid-script
+# ---------------------------------------------------------------------------
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
 
 # ---------------------------------------------------------------------------
 # Helper: check if a package is installed
@@ -74,30 +74,30 @@ if [[ -f "$DEB822_SOURCES" ]]; then
 		echo "==> non-free already enabled in ${DEB822_SOURCES}, skipping."
 	else
 		echo "==> Enabling contrib, non-free, non-free-firmware in ${DEB822_SOURCES}..."
-		sed -i 's/^Components: main.*/Components: main contrib non-free non-free-firmware/' "$DEB822_SOURCES"
+		sudo sed -i 's/^Components: main.*/Components: main contrib non-free non-free-firmware/' "$DEB822_SOURCES"
 	fi
 elif [[ -f "$LEGACY_SOURCES" ]]; then
 	if grep -q "non-free" "$LEGACY_SOURCES"; then
 		echo "==> non-free already enabled in ${LEGACY_SOURCES}, skipping."
 	else
 		echo "==> Enabling contrib, non-free, non-free-firmware in ${LEGACY_SOURCES}..."
-		sed -i 's/trixie \+main.*/trixie main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
-		sed -i 's/trixie-security \+main.*/trixie-security main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
-		sed -i 's/trixie-updates \+main.*/trixie-updates main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
+		sudo sed -i 's/trixie \+main.*/trixie main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
+		sudo sed -i 's/trixie-security \+main.*/trixie-security main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
+		sudo sed -i 's/trixie-updates \+main.*/trixie-updates main contrib non-free non-free-firmware/g' "$LEGACY_SOURCES"
 	fi
 else
 	echo "Error: no APT sources file found (checked ${DEB822_SOURCES} and ${LEGACY_SOURCES})." >&2
 	exit 1
 fi
 
-apt-get update
+sudo apt-get update
 
 # ---------------------------------------------------------------------------
 # Step 2: Run nvidia-detect to confirm GPU and recommended driver
 # ---------------------------------------------------------------------------
 if ! pkg_installed nvidia-detect; then
 	echo "==> Installing nvidia-detect..."
-	apt-get install -y nvidia-detect
+	sudo apt-get install -y nvidia-detect
 fi
 
 echo "==> Detecting NVIDIA GPU..."
@@ -111,7 +111,7 @@ if pkg_installed "linux-headers-${KERNEL_VERSION}"; then
 	echo "==> Kernel headers for ${KERNEL_VERSION} already installed, skipping."
 else
 	echo "==> Installing kernel headers for ${KERNEL_VERSION}..."
-	apt-get install -y "linux-headers-${KERNEL_VERSION}"
+	sudo apt-get install -y "linux-headers-${KERNEL_VERSION}"
 fi
 
 # ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ if pkg_installed nvidia-driver; then
 	echo "==> nvidia-driver already installed, skipping."
 else
 	echo "==> Installing nvidia-driver, nvidia-kernel-dkms, firmware-misc-nonfree..."
-	apt-get install -y nvidia-driver nvidia-kernel-dkms firmware-misc-nonfree
+	sudo apt-get install -y nvidia-driver nvidia-kernel-dkms firmware-misc-nonfree
 fi
 
 # ---------------------------------------------------------------------------
@@ -131,7 +131,7 @@ if pkg_installed nvidia-cuda-toolkit; then
 	echo "==> CUDA toolkit already installed, skipping."
 else
 	echo "==> Installing CUDA development tools..."
-	apt-get install -y nvidia-cuda-dev nvidia-cuda-toolkit
+	sudo apt-get install -y nvidia-cuda-dev nvidia-cuda-toolkit
 fi
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ fi
 if pkg_installed xserver-xorg-core; then
 	if ! pkg_installed nvidia-xconfig; then
 		echo "==> X server detected — installing nvidia-xconfig..."
-		apt-get install -y nvidia-xconfig
+		sudo apt-get install -y nvidia-xconfig
 	fi
 	echo "==> After reboot, run: nvidia-xconfig"
 fi

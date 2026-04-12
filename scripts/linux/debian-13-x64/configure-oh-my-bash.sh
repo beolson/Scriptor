@@ -22,6 +22,12 @@
 set -euo pipefail
 trap 'echo "Script failed on line $LINENO" >&2' ERR
 
+# Cache sudo credentials upfront so we don't prompt mid-script
+sudo -v
+while true; do sudo -n true; sleep 55; done &
+SUDO_PID=$!
+trap 'kill "$SUDO_PID" 2>/dev/null' EXIT
+
 # ── Dependencies ──────────────────────────────────────────────────────────────
 
 packages_to_install=()
