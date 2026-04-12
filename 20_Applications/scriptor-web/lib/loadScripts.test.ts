@@ -14,7 +14,12 @@ const fixtureDir = resolve(
 
 // Helper to build a .sh script with an embedded spec block
 function makeShSpec(
-	overrides: Partial<Record<"platform" | "title" | "description", string>> = {},
+	overrides: Partial<
+		Record<
+			"platform" | "title" | "description" | "group" | "group_order",
+			string
+		>
+	> = {},
 ): string {
 	const fm = {
 		platform: "ubuntu-24.04-x64",
@@ -30,7 +35,12 @@ function makeShSpec(
 
 // Helper to build a .ps1 script with an embedded spec block
 function makePs1Spec(
-	overrides: Partial<Record<"platform" | "title" | "description", string>> = {},
+	overrides: Partial<
+		Record<
+			"platform" | "title" | "description" | "group" | "group_order",
+			string
+		>
+	> = {},
 ): string {
 	const fm = {
 		platform: "ubuntu-24.04-x64",
@@ -261,6 +271,111 @@ describe("loadScripts()", () => {
 		expect(scripts).toHaveLength(1);
 		expect(scripts[0].title).toBe("Good Script");
 	});
+
+	// ─── Group frontmatter field tests ────────────────────────────────────────
+
+	it("parses group and group_order from frontmatter", async () => {
+		const scriptContent = makeShSpec({
+			group: "linux-dev-setup",
+			group_order: "2",
+		});
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBe("linux-dev-setup");
+		expect(scripts[0].groupOrder).toBe(2);
+	});
+
+	it("sets group but not groupOrder when group_order is absent", async () => {
+		const scriptContent = makeShSpec({ group: "linux-dev-setup" });
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBe("linux-dev-setup");
+		expect(scripts[0].groupOrder).toBeUndefined();
+	});
+
+	it("leaves group undefined and warns when group field is not a string", async () => {
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+		// Manually craft a script with a numeric group value in YAML
+		const scriptContent =
+			"#!/bin/bash\n# ---\n# platform: ubuntu-24.04-x64\n# title: Install curl\n# group: 42\n# ---\n#\n# Body.\n\napt-get install -y curl\n";
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBeUndefined();
+		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("group"));
+		warnSpy.mockRestore();
+	});
+
+	it("leaves groupOrder undefined when group_order is not an integer", async () => {
+		const scriptContent = makeShSpec({
+			group: "linux-dev-setup",
+			group_order: "not-a-number",
+		});
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBe("linux-dev-setup");
+		expect(scripts[0].groupOrder).toBeUndefined();
+	});
+
+	it("leaves groupOrder undefined when group_order is a float", async () => {
+		const scriptContent = makeShSpec({
+			group: "linux-dev-setup",
+			group_order: "1.5",
+		});
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBe("linux-dev-setup");
+		expect(scripts[0].groupOrder).toBeUndefined();
+	});
+
+	it("leaves group and groupOrder undefined when neither field is in frontmatter", async () => {
+		const scriptContent = makeShSpec();
+		const deps = makeDeps({
+			glob: async function* () {
+				yield "linux/ubuntu-24.04-x64/install-curl.sh";
+			},
+			readFile: async () => scriptContent,
+		});
+
+		const scripts = await loadScripts(deps);
+		expect(scripts).toHaveLength(1);
+		expect(scripts[0].group).toBeUndefined();
+		expect(scripts[0].groupOrder).toBeUndefined();
+	});
 });
 
 // ─── Integration tests against scripts-fixture/ ──────────────────────────────
@@ -285,5 +400,31 @@ describe("loadScripts() integration — scripts-fixture/ folder", () => {
 			expect(typeof s.platform).toBe("string");
 			expect(s.platform.length).toBeGreaterThan(0);
 		}
+	});
+
+	it("ubuntu fixture-install-curl script has group field set to fixture-group", async () => {
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
+		const curlScript = scripts.find((s) =>
+			s.id.includes("ubuntu-24.04-x64/fixture-install-curl"),
+		);
+		expect(curlScript).toBeDefined();
+		expect(curlScript?.group).toBe("fixture-group");
+	});
+
+	it("fixture-setup-dev script has group field set to fixture-group", async () => {
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
+		const devScript = scripts.find((s) => s.id.includes("fixture-setup-dev"));
+		expect(devScript).toBeDefined();
+		expect(devScript?.group).toBe("fixture-group");
+	});
+
+	it("ubuntu fixture-install-curl has groupOrder 1 and fixture-setup-dev has groupOrder 2", async () => {
+		const scripts = await loadScripts(defaultDeps(fixtureDir));
+		const curlScript = scripts.find((s) =>
+			s.id.includes("ubuntu-24.04-x64/fixture-install-curl"),
+		);
+		const devScript = scripts.find((s) => s.id.includes("fixture-setup-dev"));
+		expect(curlScript?.groupOrder).toBe(1);
+		expect(devScript?.groupOrder).toBe(2);
 	});
 });

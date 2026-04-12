@@ -24,3 +24,15 @@
 .github:hover {
 	color: var(--scriptor-text);
 }
+
+.right {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.version {
+	font-family: var(--font-ibmplex), monospace;
+	font-size: 12px;
+	color: var(--scriptor-muted);
+}

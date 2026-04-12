@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install Bun
 # description: Installs Bun, the fast all-in-one JavaScript runtime and package manager.
+# group: debian-13-dev-box
+# group_order: 3
 # ---
 # Installs [Bun](https://bun.com) — a fast JavaScript runtime, bundler, and package
 # manager — using the official Bun install script.

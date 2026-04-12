@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install uv (Python Package Manager)
 # description: Installs uv, the fast Python package and project manager from Astral.
+# group: debian-13-dev-box
+# group_order: 5
 # ---
 # Installs [uv](https://docs.astral.sh/uv/) — a fast Python package manager and
 # project tool — using the official Astral install script.

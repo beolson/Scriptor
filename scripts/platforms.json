@@ -1,4 +1,12 @@
 {
-	"debian-13-x64": "Debian 13 x64",
-	"windows-11-x64": "Windows 11 X64"
+	"debian-13-x64": {
+		"displayName": "Debian 13 x64",
+		"installCommand": "$ curl -fsSL https://scriptor.dev/install.sh | sh",
+		"codeLabel": "// bash"
+	},
+	"windows-11-x64": {
+		"displayName": "Windows 11 X64",
+		"installCommand": "$ irm https://scriptor.dev/install.ps1 | iex",
+		"codeLabel": "// powershell"
+	}
 }

@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install GitHub CLI
 # description: Installs the GitHub CLI (gh) from the official GitHub apt repository.
+# group: debian-13-dev-box
+# group_order: 1
 # ---
 # Installs the [GitHub CLI](https://cli.github.com/) (`gh`) on Debian 13 (x64)
 # using the official GitHub-hosted apt repository.

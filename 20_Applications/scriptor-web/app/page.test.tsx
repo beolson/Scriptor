@@ -3,9 +3,21 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/loadPlatforms", () => ({
 	loadPlatforms: vi.fn().mockResolvedValue({
-		"ubuntu-24.04-x64": "Ubuntu 24.04 X64",
-		"macos-sequoia-arm64": "MacOS Sequoia ARM64",
-		"windows-11-x64": "Windows 11 X64",
+		"ubuntu-24.04-x64": {
+			displayName: "Ubuntu 24.04 X64",
+			installCommand: "$ curl -fsSL https://scriptor.dev/install.sh | sh",
+			codeLabel: "// bash",
+		},
+		"macos-sequoia-arm64": {
+			displayName: "MacOS Sequoia ARM64",
+			installCommand: "$ curl -fsSL https://scriptor.dev/install.sh | sh",
+			codeLabel: "// zsh",
+		},
+		"windows-11-x64": {
+			displayName: "Windows 11 X64",
+			installCommand: "$ irm https://scriptor.dev/install.ps1 | iex",
+			codeLabel: "// powershell",
+		},
 	}),
 }));
 

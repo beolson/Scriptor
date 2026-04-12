@@ -1,0 +1,7 @@
+[
+	{
+		"id": "debian-13-dev-box",
+		"name": "Dev Box",
+		"description": "Core developer toolchain for a Debian 13 dev box: GitHub CLI, .NET, Bun, Go, uv, and Azure CLI."
+	}
+]

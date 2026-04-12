@@ -3,6 +3,8 @@
 # platform: debian-13-x64
 # title: Install Azure CLI and Azure Developer CLI
 # description: Installs az (Azure CLI) and azd (Azure Developer CLI) using official Microsoft install scripts.
+# group: debian-13-dev-box
+# group_order: 6
 # ---
 # Installs the Azure CLI (`az`) and Azure Developer CLI (`azd`) on Debian 13 x64
 # using the official Microsoft install scripts.
