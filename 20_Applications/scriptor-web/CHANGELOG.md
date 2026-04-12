@@ -1,5 +1,11 @@
 # @scriptor/scriptor-web
 
+## 0.3.0
+
+### Minor Changes
+
+- d34df8a: Add script groups, version display, and per-platform install commands
+
 ## 0.2.5
 
 ### Patch Changes
