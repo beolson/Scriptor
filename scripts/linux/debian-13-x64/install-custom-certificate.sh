@@ -54,7 +54,7 @@ ensure_ca_certificates() {
 
 prompt_host() {
 	local url
-	read -r -p "Enter URL to inspect [www.google.com]: " url
+	read -r -p "Enter URL to inspect [www.google.com]: " url </dev/tty
 	url="${url:-www.google.com}"
 	url="${url#https://}"
 	url="${url#http://}"
@@ -113,7 +113,7 @@ get_selection() {
 	local cert_count="$1"
 	local selection
 	while true; do
-		read -r -p "Select certificate to install as trusted CA [1-${cert_count}]: " selection
+		read -r -p "Select certificate to install as trusted CA [1-${cert_count}]: " selection </dev/tty
 		if [[ "$selection" =~ ^[0-9]+$ ]] && \
 		   [[ "$selection" -ge 1 ]] && \
 		   [[ "$selection" -le "$cert_count" ]]; then
@@ -153,17 +153,6 @@ install_cert() {
 
 # --- Main ---
 
-# This script has interactive prompts and cannot run via curl | bash.
-# Stdin must be a terminal so the URL, certificate selection, and confirmation
-# prompts can be answered.
-if [[ ! -t 0 ]]; then
-	echo "Error: this script requires an interactive terminal." >&2
-	echo "Download it first, then run it:" >&2
-	echo "  curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/debian-13-x64/install-custom-certificate.sh -o install-cert.sh" >&2
-	echo "  bash install-cert.sh" >&2
-	exit 1
-fi
-
 check_prerequisites
 ensure_ca_certificates
 
@@ -197,7 +186,7 @@ printf '\nSelected certificate:\n'
 openssl x509 -noout -subject -issuer -dates -in "$selected_cert" 2>/dev/null | sed 's/^/  /'
 
 printf '\n'
-read -r -p "Install '${cert_name}' as a trusted CA? [y/N]: " confirm
+read -r -p "Install '${cert_name}' as a trusted CA? [y/N]: " confirm </dev/tty
 if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
 	echo "Aborted."
 	exit 0
