@@ -153,6 +153,17 @@ install_cert() {
 
 # --- Main ---
 
+# This script has interactive prompts and cannot run via curl | bash.
+# Stdin must be a terminal so the URL, certificate selection, and confirmation
+# prompts can be answered.
+if [[ ! -t 0 ]]; then
+	echo "Error: this script requires an interactive terminal." >&2
+	echo "Download it first, then run it:" >&2
+	echo "  curl -fsSL https://raw.githubusercontent.com/beolson/Scriptor/main/scripts/linux/debian-13-x64/install-custom-certificate.sh -o install-cert.sh" >&2
+	echo "  bash install-cert.sh" >&2
+	exit 1
+fi
+
 check_prerequisites
 ensure_ca_certificates
 
